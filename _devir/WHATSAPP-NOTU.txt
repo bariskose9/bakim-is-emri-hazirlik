@@ -1,0 +1,125 @@
+BAKIM VE IS EMRI PROJESI - WINDOWS KURULUM
+Depo: https://github.com/bariskose9/bakim-is-emri-hazirlik
+
+Not: Komutlari NEREYE yazacagin her adimda yaziyor.
+3 yer var: PowerShell / VS Code terminali / Claude sohbeti
+
+--- BOLUM 1: PROGRAMLARI KUR (tarayicidan indir) ---
+
+1. Git ....... git-scm.com
+2. Node.js ... nodejs.org  (LTS surumu)
+3. Docker .... docker.com  (kurarken "Use WSL 2" isaretli olsun)
+4. VS Code ... code.visualstudio.com
+5. GitHub CLI  cli.github.com
+
+--- BOLUM 2: POWERSHELL'DE (Baslat > PowerShell) ---
+
+6. pnpm kur:
+npm install -g pnpm
+
+7. Hepsi kuruldu mu kontrol et (5 satiri tek tek yaz):
+git --version
+node --version
+pnpm --version
+docker --version
+gh --version
+> Besi de surum numarasi vermeli.
+
+8. Git'i tanit (3 satir):
+git config --global user.name "Baris Kose"
+git config --global user.email "kilicarslan45@gmail.com"
+git config --global core.autocrlf input
+> 3. satir onemli, atlanirsa Docker bozulur.
+
+9. GitHub'a gir (KENDI kisisel hesabin - bariskose9):
+gh auth login
+Cevaplar: GitHub.com > HTTPS > Yes > Login with a web browser
+Ekranda kod cikar, tarayicida yapistir.
+
+10. Projeyi indir:
+cd C:\Users\KULLANICI_ADIN\Documents
+gh repo clone bariskose9/bakim-is-emri-hazirlik
+cd bakim-is-emri-hazirlik
+code .
+> VS Code acilir.
+
+--- BOLUM 3: VS CODE ICINDE ---
+
+11. Sol kenardaki Extensions ikonu (4 kare)
+    Arama: Claude Code
+    Anthropic'in eklentisini Install
+    Giris isteyince: BELEDIYENIN hesabiyla gir
+    (Dikkat: GitHub'a kisisel hesapla, Claude'a belediye hesabiyla)
+
+12. Claude sohbetine sunu yapistir:
+
+Su uc marketplace'i ekle ve uc plugin'i kur:
+claude plugin marketplace add bariskose9/bariskose-skills
+claude plugin marketplace add addyosmani/agent-skills
+claude plugin marketplace add ChromeDevTools/chrome-devtools-mcp
+claude plugin install proje-kiti@bariskose-skills
+claude plugin install agent-skills@addy-agent-skills
+claude plugin install chrome-devtools-mcp@chrome-devtools-plugins
+
+13. Yeniden baslat:
+Ctrl+Shift+P > yaz: Developer: Reload Window > Enter
+
+14. Kontrol - Claude sohbetine:
+claude plugin list
+> Ucu de gorunmeli.
+
+--- BOLUM 4: CALISMAYA BASLA ---
+
+15. Claude sohbetine sunu yapistir:
+
+_devir klasorundeki dosyalari oku, kaldigimiz yerden devam ediyoruz:
+_devir/kurulum-plani.md
+_devir/proje-teknoloji-rehberi.md
+_devir/sunum-taslagi.md
+
+Izmir Buyuksehir'in teknik degerlendirme odevi (_devir/odev.docx) icin
+hazirlanan rehberi bolum bolum inceleyip duzeltme gonderecegim.
+
+YAZIM KURALLARI:
+- Her kavram uc adimda acilir: gercek hayat ornegi > yazilimdaki tanimi >
+  BU projede tam olarak nerede. Ucuncusu atlanamaz.
+- Kod gorulmeden anlasilmayacak her baslikta 5-15 satir ornek olur.
+  "Yanlis hali > neden yanlis > dogru hali" kalibi tercih edilir.
+  Kodun icine aciklama yorumu yazilmaz.
+- Dokuman, sahibinin bilgi seviyesini ele vermez. Hedef kitle: mulakati
+  yapacak orta seviye yazilimcilar.
+- Verdigim metinlerdeki ornekleri ve terimleri koru, yalnizca bicimi duzelt.
+  Teknik hata gorursen sessizce duzeltme, once bana soyle.
+
+--- KOD YAZMAYA GECERKEN (rehber incelemesi bitince) ---
+
+16. Claude sohbetine:
+_devir ve _kit-inceleme klasorlerini sil, sonra /yeni-proje calistir.
+> Bu iki klasor silinmeden /yeni-proje calistirilmaz.
+
+17. /yeni-proje sana soracak: "Bu proje kimin icin?"
+    Cevap: isyeri projesi  (ya da belediye projesi - ikisi de olur)
+
+--- SORUN CIKARSA ---
+
+docker bulunamiyor > Docker Desktop'i baslat, balina ikonu yesil olmali
+pnpm bulunamiyor   > PowerShell'i kapat-ac
+repository not found > gh auth status yaz, yanlis hesapla girilmis olabilir
+\r hatasi          > 8. adimdaki 3. satiri yap, sonra yeniden indir
+plugin gorunmuyor  > Ctrl+Shift+P > Developer: Reload Window
+
+--- UC HESAP - KARISTIRMA ---
+
+PowerShell'de gh auth login > KISISEL GitHub (bariskose9)
+VS Code Claude eklentisi   > BELEDIYENIN hesabi
+Ileride kurumun GitLab'i   > KURUMUN hesabi
+
+--- DOSYALAR NE ISE YARIYOR ---
+
+_devir/NE-YAPACAGIM.md ......... adim adim (ILK BUNU AC)
+_devir/WINDOWS-ADIMLARI.md ..... ayrintili hali + sorun cozme
+_devir/odev.docx ............... kurumun verdigi odev
+_devir/kurulum-plani.md ........ stack, mimari, port plani
+_devir/proje-teknoloji-rehberi.md  40 sayfa teknoloji rehberi
+_devir/sunum-taslagi.md ........ sunum iskeleti
+_kit-inceleme/ ................. kitin standart dosyalari
