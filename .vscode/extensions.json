@@ -1,0 +1,23 @@
+{
+  "recommendations": [
+    "anthropic.claude-code",
+
+    "Prisma.prisma",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+
+    "yoavbls.pretty-ts-errors",
+    "usernamehw.errorlens",
+    "eamodio.gitlens",
+
+    "ms-azuretools.vscode-containers",
+    "ms-playwright.playwright",
+    "vitest.explorer",
+    "humao.rest-client",
+    "github.vscode-github-actions",
+
+    "christian-kohler.path-intellisense",
+    "formulahendry.auto-rename-tag"
+  ]
+}
