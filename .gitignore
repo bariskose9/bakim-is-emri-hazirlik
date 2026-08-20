@@ -1,0 +1,24 @@
+# Ortam değişkenleri — ASLA commit edilmez
+.env
+.env.*
+!.env.example
+
+# Bağımlılıklar ve derleme çıktıları
+node_modules/
+dist/
+build/
+.next/
+coverage/
+
+# İşletim sistemi
+.DS_Store
+Thumbs.db
+
+# Editör
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Loglar
+*.log
+npm-debug.log*
