@@ -30,8 +30,6 @@ sona anlatırsan, mimariyi *anlatmadan göstermiş* olursun.
 
 ---
 
----
-
 ## 2. Hangi bölüm rehberin neresinden anlatılıyor
 
 | Sunum bölümü | Rehberdeki kaynağı |
@@ -51,40 +49,19 @@ bir anlatı. Sıra yukarıdaki akış tablosunda.
 
 ---
 
-## 3. ⭐ Bir iş emrinin hayatı — sistemi baştan sona gösteren anlatım
+## 3. ⭐ Bir iş emrinin hayatı
 
-⏳ *Kod yazıldıkça gerçek dosya adları ve satırlarla doldurulacak.*
+Sunumun kalbi. Anlatım rehberde: **BÖLÜM F — Bir iş emrinin hayatı.**
 
-Anlatım sırası:
-
-1. **Talep açılıyor** — Kullanıcı formu doldurur → Next form doğrulaması
-   (`packages/contracts` şeması) → API'ye gider → **aynı şema** sunucuda tekrar
-   doğrular *(istemciye asla güvenilmez)*
-2. **İş kuralları** — Lokasyon pasif mi? Varlık kullanım dışı mı? Bu kontroller
-   `packages/domain` içinde, veritabanı bilmeden
-3. **SLA hesabı** — `SlaPolicyFactory` devreye girer *(§6.1)*
-4. **Kayıt** — İş emri + ilk geçmiş kaydı **tek transaction** içinde
-5. **Job planlanıyor** — BullMQ'ya gecikmeli hatırlatma bırakılır
-6. **Atama** — Yalnızca teknik personele; atama + geçmiş kaydı yine tek transaction
-7. **Durum değişikliği** — Durum makinesi geçerli mi diye bakar; geçersizse
-   domain hatası → merkezî filtre → **409**
-8. **Eş zamanlı güncelleme** — İki kişi aynı anda değiştirirse `version` kolonu
-   çakışmayı yakalar → **409 Conflict**
-9. **SLA aşımı** — Worker tarar, işaretler, bildirim üretir — **iki kez
-   çalışsa da tek bildirim** (unique index + job anahtarı)
-10. **Kapanış** — Çözüm açıklaması zorunlu; kapalı kayıt normal güncellemeyle
-    değiştirilemez
+On adımlık yolculuk, her adımın hangi karara dayandığı tablosuyla birlikte
+orada. Bu bölümü anlatmak, mimariyi anlatmadan göstermek demektir — bu yüzden
+akışta 6 dakika ayrıldı.
 
 ---
 
----
+## 4. Bilinen teknik borçlar
 
-## 4. ⏳ Bilinen teknik borçlar
-
-Ödev §31 bunu açıkça soruyor. **Sorulmadan söylenir** — dürüstlük olumlu
-değerlendirilir. Proje ilerledikçe doldurulacak.
-
----
+Rehberde: **KAPANIŞ → Bilinen teknik borçlar.** Sunumda sorulmadan söylenir.
 
 ---
 
@@ -106,33 +83,37 @@ değerlendirilir. Proje ilerledikçe doldurulacak.
 
 ---
 
----
-
 ## 6. Anlatım sırasında dikkat
 
-**Her kararın hangi kutuda olduğunu söyle.** Dört kutu rehberin girişinde:
-ödev istedi–zaten doğrusuydu · ödev istedi–JS eşleniğini kullandım · ödev
-istemedi–gerçek hayat gerektirdi · ödev istedi–yapmadım.
+**Her kararı kutusuyla birlikte söyle.** Dört kutunun tanımı rehberin girişinde
+(*"Kararların dört kutusu"*). Dördüncü kutudaki her madde **ölçüyle**
+desteklenir — *"bence daha iyi"* denmez.
 
-Dördüncü kutudaki her madde **ölçüyle** desteklenir: indirme sayısı, son yayın
-tarihi, sürüm kısıtı. *"Bence daha iyi"* denmez.
+**En çok soru gelecek üç yer:**
 
-**En çok soru gelecek üç yer** — hazırlıklı ol:
+| Soru | Rehberde nerede |
+|---|---|
+| *"AutoMapper nerede?"* | **E.6** — ölçüm tablosuyla |
+| *"Next tek başına yetmez miydi?"* | **E.1** — dört koşul |
+| *"Neden .NET değil?"* | **Giriş** — üç ölçüt + yetenek tablosu |
 
-1. *"AutoMapper nerede?"* → **E.6**, ölçümle
-2. *"Next tek başına yetmez miydi?"* → **E.1**, dört koşul
-3. *"Neden .NET değil?"* → giriş, üç ölçüt + hiçbir yeteneğin düşmediği tablosu
+**Bölüm 3'ü atlama.** Akıştaki en uzun süre (6 dk) ona ayrıldı; sebebi rehberin
+**BÖLÜM F** girişinde yazılı.
 
-**Bölüm 5'i (bir iş emrinin hayatı) mutlaka anlat.** Değerlendirmeci "mimariyi
-anlat" dediğinde çoğu aday katman isimlerini sayar. Tek bir isteğin yolculuğunu
-anlatmak, mimariyi *anlatmadan göstermek* demektir.
+**Bilmediğin bir şey sorulursa:** *"Emin değilim, rehberde şu bölümde ayrıntısı
+var, bakıp döneyim."* Uydurmaktan çok daha iyi karşılanır — rehber zaten
+ekranda açık olacak.
 
----
+## 7. Rehber güncellenirken (kendime not)
 
-## 7. Sunum yazım kuralları (kendime not)
+Rehberin yazım kuralları kitte tanımlı: `11-agent-workflow.md` → *"Dışarıya
+giden doküman — anlatım standardı"*. Özeti:
 
-- Her başlık **"bu ne demek"** ile başlar, sonra "neden böyle yaptık"a geçer
-- Kod okumadan anlaşılmalı
-- Her sapma **ölçüyle** desteklenir — "bence daha iyi" yok
-- Her session bittiğinde o session'ın kararları **hemen** buraya işlenir;
-  en sona bırakılmaz, çünkü gerekçe en iyi kararı verirken hatırlanır
+- Her kavram **üç adımda** açılır: gerçek hayat örneği → yazılımdaki tanımı →
+  bu projede tam olarak nerede
+- Kod görülmeden anlaşılmayacak her başlıkta kısa örnek olur
+- Doküman, sahibinin bilgi seviyesini ele vermez
+- Aynı gerekçe iki yerde yazılmaz — biri diğerine başlığıyla işaret eder
+
+⭐ **Her session bittiğinde o session'ın kararları rehbere hemen işlenir.**
+En sona bırakılmaz; gerekçe, kararı verirken en net hatırlanır.

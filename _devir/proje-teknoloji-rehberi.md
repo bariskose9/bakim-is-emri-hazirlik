@@ -3899,7 +3899,64 @@ olmadığını iddia etmekten daha güvenilirdir.
 
 ---
 
+---
+
+# BÖLÜM F — Bir iş emrinin hayatı (uçtan uca akış)
+
+Önceki bölümler parçaları tek tek anlattı. Bu bölüm hepsini **tek bir isteğin
+yolculuğunda** birleştiriyor: bir talep açıldığı andan iş emri kapandığı ana
+kadar hangi katman devreye giriyor, hangi kural nerede çalışıyor.
+
+⏳ *Kod yazıldıkça gerçek dosya adları ve satır numaralarıyla doldurulacak.*
+
+1. **Talep açılıyor** — Kullanıcı formu doldurur → Next form doğrulaması
+   (`packages/contracts` şeması) → API'ye gider → **aynı şema** sunucuda tekrar
+   doğrular *(istemciye asla güvenilmez)*
+2. **İş kuralları** — Lokasyon pasif mi? Varlık kullanım dışı mı? Bu kontroller
+   `packages/domain` içinde, veritabanı bilmeden
+3. **SLA hesabı** — `SlaPolicyFactory` devreye girer *(§6.1)*
+4. **Kayıt** — İş emri + ilk geçmiş kaydı **tek transaction** içinde
+5. **Job planlanıyor** — BullMQ'ya gecikmeli hatırlatma bırakılır
+6. **Atama** — Yalnızca teknik personele; atama + geçmiş kaydı yine tek transaction
+7. **Durum değişikliği** — Durum makinesi geçerli mi diye bakar; geçersizse
+   domain hatası → merkezî filtre → **409**
+8. **Eş zamanlı güncelleme** — İki kişi aynı anda değiştirirse `version` kolonu
+   çakışmayı yakalar → **409 Conflict**
+9. **SLA aşımı** — Worker tarar, işaretler, bildirim üretir — **iki kez
+   çalışsa da tek bildirim** (unique index + job anahtarı)
+10. **Kapanış** — Çözüm açıklaması zorunlu; kapalı kayıt normal güncellemeyle
+    değiştirilemez
+
+---
+
+## Bu akışta hangi karar nerede görünüyor
+
+| Adım | İlgili bölüm |
+|---|---|
+| Aynı şemanın iki tarafta doğrulaması | **E.3** — DRY |
+| İş kurallarının veritabanı bilmemesi | **E.1** — Clean Architecture |
+| SLA politikasının seçilmesi | **E.4** — Factory Pattern |
+| İş emri + geçmiş kaydının tek işlemde yazılması | **E.5** ve **E.8** — transaction |
+| Gecikmeli hatırlatma işi | **C.6** — BullMQ |
+| Geçersiz durum geçişinin engellenmesi | **E.5** — durum makinesi |
+| Eş zamanlı güncellemenin yakalanması | **E.8** — iyimser eşzamanlılık |
+| Mükerrer bildirimin engellenmesi | **C.5** ve **C.6** — benzersiz index + iş anahtarı |
+| Hataların 409'a çevrilmesi | **E.7** — merkezî hata yönetimi |
+
+⭐ **Sunumda en çok işe yarayacak bölüm budur.** *"Mimariyi anlat"* dendiğinde
+katman isimlerini saymak yerine bu yolculuğu anlatmak, mimariyi **anlatmadan
+göstermek** demektir.
+
+---
+
 # KAPANIŞ
+
+## Bilinen teknik borçlar
+
+Ödev §31 bunu açıkça soruyor ve **sorulmadan söylenmesi** olumlu değerlendirilir:
+neyin eksik olduğunu bilmek, eksik olmadığını iddia etmekten daha güvenilirdir.
+
+⏳ *Proje ilerledikçe doldurulacak.*
 
 ## Bu stack'in tek cümlelik özeti
 
