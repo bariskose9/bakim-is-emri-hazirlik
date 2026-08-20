@@ -48,6 +48,114 @@ bilmeli — ve daha önemlisi, **yanlış yaptığında sistem ona söylemeli.**
 yüzden mimari kurallar yorum satırı olarak değil, CI'da build'i durduran
 denetimler olarak kuruldu (C.8, C.21).
 
+## Kararların dört kutusu
+
+Anlatırken her kararın hangi kutuda olduğunu söyleyeceğim:
+
+| Kutu | Anlamı | Örnek |
+|---|---|---|
+| **1** | Ödev istedi, zaten doğrusuydu | PostgreSQL, Docker, Factory Pattern, optimistic concurrency |
+| **2** | Ödev istedi, JS eşleniğini kullandım | EF Core→Prisma, Hangfire→BullMQ, FluentValidation→Zod |
+| **3** | Ödev istemedi, gerçek hayat gerektirdi | Renovate, mimari testi, correlation ID, `/api/v1` |
+| **4** | Ödev istedi, yapmadım — şunu tercih ettim | AutoMapper yerine Zod+Prisma `select` |
+
+⚠️ 4. kutudaki her madde **ölçüyle** desteklenir (indirme sayısı, son yayın
+tarihi, sürüm kısıtı) — "bence daha iyi" denmez.
+
+---
+
+---
+
+# BÖLÜM 0 — Sistem nasıl çalışıyor
+
+Bu bölüm zemindir: sonraki bölümlerdeki her teknoloji, aşağıdaki altı adımdan
+birinde çalışıyor. Hangisinde çalıştığını bilmek, o teknolojiyi anlamanın
+yarısıdır.
+
+## İki ayrı bilgisayar
+
+Her web uygulamasında iş **iki yerde** yapılır:
+
+| | **İstemci (client)** | **Sunucu (server)** |
+|---|---|---|
+| Neresi | Kullanıcının tarayıcısı / telefonu | Senin kontrolündeki, kapanmayan bilgisayar |
+| Ne yapar | Ekranı çizer, tıklamayı alır | Karar verir, veritabanına gider |
+| Güvenilir mi | **Hayır** | Evet |
+
+**"İstemciye güvenilmez" ne demek:** Kullanıcı tarayıcıda geliştirici araçlarını
+açıp gönderdiği veriyi değiştirebilir. "Ben yöneticiyim" diye veri gönderebilir.
+Bu yüzden *"bu kişi gerçekten yönetici mi"* kararı **her zaman sunucuda** verilir.
+Ekrandaki "Sil" düğmesini gizlemek bir **kolaylıktır**, güvenlik değil.
+
+## Bir isteğin yolculuğu
+
+Kullanıcı "İş Emirleri" ekranını açtığında olanlar:
+
+```
+1. Tarayıcı              "bana açık iş emirlerini ver"
+        ↓ (internet)
+2. API sunucusu          "sen kimsin? yetkin var mı?"
+        ↓
+3. İş kuralları          "bu kullanıcı sadece kendi lokasyonunu görebilir"
+        ↓
+4. Veritabanı            SELECT ... WHERE ...
+        ↓
+5. API sunucusu          sonucu JSON'a çevirir, fazla alanları kırpar
+        ↓ (internet)
+6. Tarayıcı              gelen veriyi tabloya çizer
+```
+
+Aşağıdaki tablo her teknolojinin bu altı adımdan hangisinde çalıştığını gösteriyor.
+
+## Her teknoloji hangi adımda — tek tabloda
+
+| Teknoloji | Hangi adım | En sade tanımı | Günlük hayattan benzetme |
+|---|---|---|---|
+| **React** | 6 | Veriye göre ekranı çizen kütüphane | Vitrin düzenleyicisi |
+| **Next.js** | 6 (+1) | React'i çalışır siteye dönüştüren framework; sayfaları da sunucuda hazırlar | Vitrini kuran **ve** mağazayı açan ekip |
+| **TypeScript** | Hepsi | JavaScript + tip kontrolü. Hatayı çalışmadan **önce** yakalar | Yazım denetimi |
+| **NestJS** | 2–5 | Sunucu tarafı uygulama çatısı | Bir ofisin organizasyon şeması |
+| **Express** | 2 | Gelen isteği karşılayan temel katman. *Nest zaten bunu kullanır* | Santral görevlisi |
+| **Prisma** | 4 | Kod ile veritabanı arasındaki tercüman | Tercüman |
+| **PostgreSQL** | 4 | Verinin durduğu yer | Arşiv/dolap |
+| **Zod** | 2 ve 5 | "Gelen veri doğru biçimde mi?" kontrolü | Form denetleyicisi |
+| **JWT** | 2 | Giriş yapan kullanıcıya verilen dijital kimlik kartı | Otel kartı |
+| **argon2** | 2 | Şifreyi geri çevrilemez şekilde karıştırır | Kağıt öğütücü |
+| **BullMQ** | — | Sonra/düzenli yapılacak işlerin listesi | Yapılacaklar defteri |
+| **Redis** | — | Çok hızlı, geçici hafıza. BullMQ'nun defteri burada durur | Not kağıdı |
+| **Docker** | — | Uygulamayı ihtiyaçlarıyla birlikte tek pakete koyar | Hazır yemek kabı |
+| **Vitest / Playwright** | — | Testler: "hâlâ çalışıyor mu?" | Kalite kontrol |
+| **Swagger** | — | API'nin kullanma kılavuzu, kendiliğinden üretilir | Kullanım kılavuzu |
+| **Expo** | 6 | Aynı React bilgisiyle telefon uygulaması yazma aracı | — |
+
+## Sık karıştırılan üç çift
+
+**1. Kütüphane ile framework**
+Kütüphaneyi **sen çağırırsın**, framework **seni çağırır.** React bir
+kütüphanedir — sen "şunu çiz" dersin. Next.js ve NestJS framework'tür — kuralları
+onlar koyar, sen boşlukları doldurursun. Framework daha kısıtlayıcıdır ama
+karşılığında düzen verir; on kişilik ekipte bu düzen her şeydir.
+
+**2. Frontend ile backend**
+Frontend = kullanıcının **gördüğü**. Backend = kullanıcının **göremediği** ama
+işi yapan. Bizde frontend Next.js, backend NestJS.
+
+**3. Veritabanı ile ORM**
+Veritabanı (PostgreSQL) verinin durduğu yer. ORM (Prisma) oraya konuşan
+tercüman. ORM olmadan da olur — SQL'i elle yazarsın; ama o zaman tip güvenliğini
+ve migration yönetimini kendin kurarsın.
+
+## Tek cümlelik özet
+
+> "Kullanıcı **Next.js** ile yazılmış ekranı açar. Ekran, **NestJS** ile
+> yazılmış API'ye istek atar. API gelen veriyi **Zod** ile doğrular, kullanıcının
+> yetkisini **JWT** ile kontrol eder, iş kurallarını uygular ve **Prisma**
+> üzerinden **PostgreSQL**'e gider. Sonuç JSON olarak döner. Kullanıcıyı
+> bekletmemesi gereken işler **BullMQ** ile kuyruğa alınır ve ayrı bir worker
+> süreci onları yapar. Hepsi **Docker** ile paketlenir, tek komutla ayağa kalkar."
+
+---
+
 ---
 
 # BÖLÜM A — Hızlı eşleme tablosu
@@ -2174,6 +2282,16 @@ jwtFromRequest: ExtractJwt.fromExtractors([
 ]),
 ```
 
+---
+
+# BÖLÜM E — Kavramlar, prensipler ve desenler
+
+Önceki bölümde anlatılanlar **kurulan paketlerdi.** Bu bölümdekiler ise kurulmaz;
+**karar verilir.** Ödevin en çok puan verdiği kısımlar da burasıdır, çünkü paket
+kurmak kolaydır — doğru kararı verip tutarlı uygulamak zordur.
+
+---
+
 ## E.0 Önce temel kelimeler
 
 Bu bölümdeki her şey birkaç temel kavrama dayanıyor. Her birini üç adımda
@@ -3778,6 +3896,10 @@ ve yerine konan çözümün **daha sağlam** olduğunu.
 *"varsayımlar"*. Ödev ikisini de açıkça istiyor. Bunları yazmak zayıflık değil,
 **projeye hâkimiyet** göstergesidir — neyin eksik olduğunu bilmek, eksik
 olmadığını iddia etmekten daha güvenilirdir.
+
+---
+
+# KAPANIŞ
 
 ## Bu stack'in tek cümlelik özeti
 
