@@ -27,9 +27,13 @@ gh --version
 
 8. Git'i tanit (3 satir):
 git config --global user.name "Baris Kose"
-git config --global user.email "kilicarslan45@gmail.com"
+git config --global user.email "BELEDIYE_MAILIN@izmir.bel.tr"
 git config --global core.autocrlf input
 > 3. satir onemli, atlanirsa Docker bozulur.
+> E-posta bir GIRIS degil, commit'in ustundeki IMZA.
+> Makine belediyenin oldugu icin genel ayar kurum mailin olsun.
+> Kurum mailini bilmiyorsan simdilik kisisel yaz, sonra degistir.
+> ONEMLI: Kurum mailini kisisel GitHub hesabina EKLEME.
 
 9. GitHub'a gir (KENDI kisisel hesabin - bariskose9):
 gh auth login
@@ -40,6 +44,11 @@ Ekranda kod cikar, tarayicida yapistir.
 cd C:\Users\KULLANICI_ADIN\Documents
 gh repo clone bariskose9/bakim-is-emri-hazirlik
 cd bakim-is-emri-hazirlik
+
+10b. Bu depo kisisel oldugu icin sadece BURADA kisisel mailini kullan
+     (--global YOK, o yuzden sadece bu klasoru etkiler):
+git config user.email "kilicarslan45@gmail.com"
+
 code .
 > VS Code acilir.
 
@@ -93,9 +102,16 @@ YAZIM KURALLARI:
 
 --- KOD YAZMAYA GECERKEN (rehber incelemesi bitince) ---
 
-16. Claude sohbetine:
-_devir ve _kit-inceleme klasorlerini sil, sonra /yeni-proje calistir.
-> Bu iki klasor silinmeden /yeni-proje calistirilmaz.
+16. Claude sohbetine (DIKKAT: hepsini silme, rehber ve sunum KALACAK):
+
+_kit-inceleme klasorunu sil.
+_devir'den sunlari sil: NE-YAPACAGIM.md, WINDOWS-ADIMLARI.md,
+OKU-ONCE.md, WHATSAPP-NOTU.txt
+_devir'den sunlari KORU: odev.docx, kurulum-plani.md,
+proje-teknoloji-rehberi.md, sunum-taslagi.md
+Sonra /yeni-proje calistir, korunanlari docs/ altina yerlestir.
+
+> "_devir klasorunu sil" DEME. Icinde 40 sayfalik rehber ve sunum var.
 
 17. /yeni-proje sana soracak: "Bu proje kimin icin?"
     Cevap: isyeri projesi  (ya da belediye projesi - ikisi de olur)
