@@ -179,11 +179,27 @@ YAZIM KURALLARI:
 Rehber incelemesi bittiğinde, kuruluma başlamadan önce:
 
 ```
-_devir ve _kit-inceleme klasörlerini sil, sonra /yeni-proje çalıştır.
+_kit-inceleme klasörünü sil.
+
+_devir klasöründen ŞUNLARI SİL (işlevi bitti):
+  NE-YAPACAGIM.md, WINDOWS-ADIMLARI.md, OKU-ONCE.md, WHATSAPP-NOTU.txt
+
+_devir klasöründen ŞUNLARI KORU, geçici bir yere taşı:
+  odev.docx, kurulum-plani.md, proje-teknoloji-rehberi.md, sunum-taslagi.md
+
+Sonra /yeni-proje çalıştır. Kurulum bitince korunanları yerleştir:
+  odev.docx ve kurulum-plani.md   → docs/project/
+  proje-teknoloji-rehberi.md      → docs/sunum/
+  sunum-taslagi.md                → docs/sunum/
 ```
 
-⚠️ Bu iki klasör silinmeden `/yeni-proje` çalıştırılmaz — skill boş klasör
-bekliyor, bu klasörler iskeleti karıştırır.
+⛔ **"_devir klasörünü sil" deme.** İçinde 40 sayfalık teknoloji rehberi ve
+sunum taslağı var; ikisi de projenin kalıcı dokümanları. Yalnızca kurulum
+yönergesi dosyaları silinir.
+
+⚠️ `_kit-inceleme` neden siliniyor: `/yeni-proje` aynı dosyaları
+`docs/standards/` olarak zaten getirecek. İkisi bir arada durursa aynı bilgi
+iki yerde kalır, biri güncellenir diğeri eskir.
 
 ---
 
