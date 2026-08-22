@@ -1,7 +1,7 @@
 # Teknik Sunum — Anlatım Planı
 
 > **Bu dosya içerik değil, plan.** Anlatılacak her şeyin kaynağı
-> `proje-teknoloji-rehberi.md` dosyasıdır (~42 sayfa). Burada yalnızca *hangi
+> `proje-teknoloji-rehberi.md` dosyasıdır (~52 sayfa). Burada yalnızca *hangi
 > sırayla, ne kadar sürede ve nasıl* anlatılacağı duruyor.
 >
 > Aynı bilgi iki dosyada tutulmuyor: bir konunun gerekçesi değiştiğinde tek yer
@@ -43,6 +43,25 @@ sona anlatırsan, mimariyi *anlatmadan göstermiş* olursun.
 | Zor maddeler | **E.2** SOLID · **E.4** Factory · **E.5** durum makinesi · **E.6** mapping · **E.7** hata yönetimi · **E.8** eşzamanlılık |
 | Test ve teslim | **C.7** Testcontainers · **C.11** Vitest · **C.8** mimari testi · **C.10** Docker |
 | Dokümantasyon | **E.12** ADR ve AI_USAGE |
+| Reddedilen alternatifler | **E.13** — Fastify, GraphQL, Repository, pg-boss |
+
+### Kod örneklerini sunumda kullanmak
+
+Rehberdeki 71 kod bloğunun tamamı satır satır Türkçe açıklamalı. Kod okumayan
+biri de takip edebilir; bu yüzden ekranda **kodu gösterip yorumları okumak**
+mümkün.
+
+Yorumlar önem sırasına göre işaretli — anlatırken bunlara odaklan:
+
+| İşaret | Ne demek | Sunumda |
+|---|---|---|
+| `⛔` | Yapılırsa sistem bozulur | *"Bu satır olmazsa şifre özeti dışarı sızar"* |
+| `⚠️` | Kolayca gözden kaçar, sonucu ağır | *"Bu hata tek kullanıcılı testte hiç görünmez"* |
+| `⭐` | Tasarımın kalbi | *"Kararın sebebi tam olarak burası"* |
+
+⭐ **Soru geldiğinde işaretli satırı göster.** *"Mükerrer bildirimi nasıl
+engelliyorsun?"* sorusuna, C.5'teki `⛔` işaretli iki satırı açmak, uzun uzun
+anlatmaktan daha inandırıcı.
 
 ⭐ Sunumda **rehberdeki sırayı takip etme.** Rehber referans kitabı; sunum ise
 bir anlatı. Sıra yukarıdaki akış tablosunda.
@@ -67,19 +86,24 @@ Rehberde: **KAPANIŞ → Bilinen teknik borçlar.** Sunumda sorulmadan söylenir
 
 ## 5. Muhtemel sorular ve hazır cevaplar
 
-| Soru | Nerede cevabı var |
+Numaralar **rehberdeki** bölümleri gösteriyor.
+
+| Soru | Rehberde nerede |
 |---|---|
-| "Neden .NET değil?" | §1 — kurum serbest bıraktı; ekip JS'e geçiyor, ödevin her yeteneği karşılandı |
-| "Neden Hangfire değil BullMQ?" | §3.6 |
-| "AutoMapper nerede?" | §3.9 — ölçümle |
-| "Repository Pattern neden yok?" | Prisma zaten repository soyutlaması; üstüne katman `select` yeteneklerini kısıtlar ve ödevin uyardığı generic CRUD tuzağına düşer |
-| "Neden Next.js, Vite değil?" | §3.2 |
-| "Next tek başına yetmez miydi?" | §4.2 |
-| "Domain katmanı gerçekten bağımsız mı?" | §4.1 — `dependency-cruiser` testi, iddia değil kapı |
-| "Neden Redis eklendi?" | §3.6 — kuyruk + hız sınırı + dağıtık kilit |
-| "GraphQL düşündün mü?" | §3.11 |
-| "Fastify daha hızlı değil mi?" | §3.10 |
-| "Bu kadar test şart mı?" | Ödev §23 zorunlu tutuyor; ayrıca §6.6 |
+| "Neden .NET değil?" | **Giriş** — üç ölçüt · **A.1** hiçbir yeteneğin düşmediği tablo |
+| "Neden Hangfire değil BullMQ?" | **C.6** |
+| "Neden BullMQ, pg-boss değil?" | **E.13** — yaygınlık ölçümüyle |
+| "AutoMapper nerede?" | **E.6** — aday kütüphanelerin ölçüm tablosu |
+| "Repository Pattern neden yok?" | **E.13** |
+| "Neden Next.js, Vite değil?" | **C.2** — Next'in üç ürünün işini nasıl topladığı |
+| "Next tek başına yetmez miydi?" | **E.1** — dört koşul, üçü bu projede var |
+| "Domain katmanı gerçekten bağımsız mı?" | **C.8** — `dependency-cruiser`; iddia değil CI kapısı |
+| "Neden Redis eklendi?" | **C.6** ve **E.13** — kuyruk + hız sınırı + dağıtık kilit |
+| "GraphQL düşündün mü?" | **E.13** — izleme ve önbellek gerekçesiyle |
+| "Fastify daha hızlı değil mi?" | **E.13** — süre dağılımı tablosuyla |
+| "Bu kadar test şart mı?" | Ödev §23 zorunlu tutuyor · **C.7** sahte veritabanı neden yasak |
+| "Servis yaşam döngülerini anlat" | **C.1 §4** — Transient/Scoped/Singleton tablosu |
+| "Eş zamanlı güncellemeyi nasıl çözdün?" | **E.8** — `version` kolonu ve üretilen SQL |
 
 ---
 

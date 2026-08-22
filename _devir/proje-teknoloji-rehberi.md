@@ -579,16 +579,27 @@ Cevap döner
 Bu projedeki karşılıkları:
 
 ```ts
+// Bu sınıftaki tüm uçlar /work-orders adresi altında toplanıyor
 @Controller('work-orders')
-@UseGuards(JwtAuthGuard, RolesGuard)          // her uç için yetki
+// İki bekçi: önce "giriş yapmış mı", sonra "yetkisi var mı" kontrol ediliyor.
+// Bu satır sayesinde her metoda ayrı ayrı kontrol yazmak gerekmiyor.
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class WorkOrdersController {
 
+  // POST /work-orders/1042/assign adresine gelen istekleri bu metot karşılıyor
   @Post(':id/assign')
-  @Roles('ADMIN', 'OPERATIONS')                // sadece bu iki rol atayabilir
+  // Yalnızca bu iki rol atama yapabilir. Teknik personel gelirse 403 alır.
+  @Roles('ADMIN', 'OPERATIONS')
   assign(
-    @Param('id', ParseIntPipe) id: number,     // "1042" yazısını 1042 sayısına çevirir
-    @Body() dto: AssignWorkOrderDto,           // Zod şemasıyla doğrulanır
+    // Adresteki "1042" metnini gerçek sayıya çeviriyor.
+    // Çeviremezse (örn. "abc") istek buraya hiç ulaşmadan 400 dönüyor.
+    @Param('id', ParseIntPipe) id: number,
+
+    // İsteğin gövdesindeki JSON. Zod şemasıyla doğrulanıyor;
+    // eksik veya hatalı alan varsa metot hiç çalışmıyor.
+    @Body() dto: AssignWorkOrderDto,
   ) {
+    // Controller'da iş kuralı YOK — işi servise devredip cevabı döndürüyor
     return this.service.assign(id, dto.assigneeId);
   }
 }
@@ -675,18 +686,22 @@ kendisi rotadır — ayrıca rota tablosu yazılmaz:
 
 ```
 apps/web/app/
-├─ (auth)/login/page.tsx              → /login
-├─ (protected)/
+├─ (auth)/login/page.tsx              → /login        · giriş ekranı
+├─ (protected)/                       ← bu klasördeki her sayfa oturum ister
 │  ├─ dashboard/page.tsx              → /dashboard
 │  ├─ is-emirleri/
-│  │  ├─ page.tsx                     → /is-emirleri          (liste)
-│  │  ├─ yeni/page.tsx                → /is-emirleri/yeni
-│  │  └─ [id]/
-│  │     ├─ page.tsx                  → /is-emirleri/1042     (detay)
+│  │  ├─ page.tsx                     → /is-emirleri          (liste ekranı)
+│  │  ├─ yeni/page.tsx                → /is-emirleri/yeni     (yeni kayıt formu)
+│  │  └─ [id]/                        ← köşeli parantez = değişken parça
+│  │     ├─ page.tsx                  → /is-emirleri/1042     (detay ekranı)
 │  │     └─ duzenle/page.tsx          → /is-emirleri/1042/duzenle
 │  ├─ lokasyonlar/page.tsx            → /lokasyonlar
 │  └─ bildirimler/page.tsx            → /bildirimler
-└─ not-found.tsx                      → 404 ekranı
+└─ not-found.tsx                      → bulunamayan adreslerde açılan 404 ekranı
+
+# Parantezli klasörler — (auth) ve (protected) — adreste GÖRÜNMEZ.
+# Yalnızca gruplama yaparlar: (protected) altındaki tüm sayfalar
+# tek bir yerde yazılan oturum kontrolünden geçer.
 ```
 
 ⭐ Parantezli klasörler (`(auth)`, `(protected)`) **adrese girmez**; yalnızca
@@ -747,26 +762,31 @@ topladığınız, okunması kolay bir dosyadır. Üç şeyi tanımlar:
 - **Models:** Tablolar, kolonlar, veri tipleri ve tablolar arası ilişkiler
 
 ```prisma
+// 1) HANGİ VERİTABANI — bağlantı adresi koda yazılmıyor,
+//    ortam değişkeninden okunuyor (local ile canlı farklı olsun diye)
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")   // Docker'daki Postgres adresi
+  url      = env("DATABASE_URL")
 }
 
+// 2) NE ÜRETİLECEK — Prisma bu şemadan TypeScript kodu üretiyor
 generator client {
   provider = "prisma-client-js"
 }
 
+// 3) TABLOLAR
 model Location {
-  id       Int      @id @default(autoincrement())
-  name     String   @unique
-  isActive Boolean  @default(true)
-  assets   Asset[]                       // İlişki: bir lokasyonun çok varlığı olur
+  id       Int      @id @default(autoincrement())  // birincil anahtar, otomatik artar
+  name     String   @unique                        // iki lokasyon aynı adı alamaz
+  isActive Boolean  @default(true)                 // pasife alınca false olur
+  assets   Asset[]                                 // bu lokasyondaki varlıklar
 }
 
 model Asset {
   id         Int      @id @default(autoincrement())
   name       String
-  locationId Int
+  locationId Int                                   // hangi lokasyona ait
+  // İki tabloyu bağlayan tanım: locationId, Location tablosundaki id'yi gösteriyor
   location   Location @relation(fields: [locationId], references: [id])
 }
 ```
@@ -898,10 +918,16 @@ kapatırsınız. Kural memurda değil, **sistemin kendisinde** olduğu için kim
 
 ```prisma
 model Asset {
-  id         Int      @id @default(autoincrement())
+  id         Int      @id @default(autoincrement())   // varlığın kendi numarası
+
+  // Bu varlığın hangi lokasyona ait olduğunu tutan alan
   locationId Int
+
+  // İki tabloyu birbirine bağlayan tanım.
+  // ⛔ onDelete: Restrict → üzerinde varlık olan bir lokasyon SİLİNEMEZ.
+  //    Koruma uygulama kodunda değil, veritabanının kendisinde duruyor.
   location   Location @relation(fields: [locationId], references: [id],
-                                 onDelete: Restrict)   // ← silmeyi engeller
+                                 onDelete: Restrict)
 }
 ```
 
@@ -921,20 +947,29 @@ bile sistem ikinci bileti basmaz.
 
 ```prisma
 model Notification {
-  id       Int    @id @default(autoincrement())
-  userId   Int
-  eventKey String                       // "SLA_BREACH:1042"
+  id       Int    @id @default(autoincrement())   // bildirimin kendi numarası
+  userId   Int                                    // bildirim kime gidecek
+  eventKey String                                 // hangi olay: "SLA_BREACH:1042"
 
-  @@unique([userId, eventKey])          // aynı kişiye aynı olay ikinci kez YAZILAMAZ
+  // ⛔ Korumanın kalbi: aynı kullanıcıya aynı olay için İKİNCİ bir bildirim
+  //    yazılamaz. Kural uygulama kodunda değil, veritabanının kendisinde.
+  @@unique([userId, eventKey])
 }
 ```
 
 **Neden uygulama kodunda kontrol yetmiyor:**
 
 ```ts
-// ⛔ YANLIŞ: iki iş aynı anda çalışırsa ikisi de "yok" görür
+// ⛔ YANLIŞ YOL: önce bak, yoksa ekle
+
+// 1) "Bu bildirim daha önce yazılmış mı?" diye soruyoruz
 const varMi = await prisma.notification.findFirst({ where: { userId, eventKey } });
-if (!varMi) await prisma.notification.create({ ... });   // ikisi birden yazar
+
+// 2) Yazılmamışsa ekliyoruz
+if (!varMi) await prisma.notification.create({ ... });
+
+// ⚠️ İki arka plan işi aynı anda 1. satırı çalıştırırsa İKİSİ DE "yok"
+//    cevabı alır ve ikisi de ekler. Kullanıcı aynı olay için iki bildirim görür.
 ```
 
 İki arka plan işi aynı anda kontrol ederse ikisi de "kayıt yok" görür ve ikisi
@@ -949,11 +984,19 @@ olmaz.
 **Bu projedeki somut senaryo:**
 
 ```ts
+// "Ya ikisi birden ya hiçbiri" garantisi
 await prisma.$transaction(async (tx) => {
+
+  // 1) İş emrini kapalı olarak işaretle
   await tx.workOrder.update({ where: { id }, data: { status: 'CLOSED' } });
+
+  // 2) Aynı işlemde geçmişe de yaz: kim, nereden nereye aldı
   await tx.workOrderHistory.create({
     data: { workOrderId: id, from: 'RESOLVED', to: 'CLOSED', byUserId },
   });
+
+  // Arada hata çıkarsa ikisi de geri alınır. Böylece "kapatılmış ama
+  // kim kapattığı belli olmayan" bir kayıt asla oluşmaz.
 });
 ```
 
@@ -985,7 +1028,13 @@ yani `%pompa%` aramasında hiç işe yaramaz.
 - **GIN index:** Bu parçaları aranabilir hâle getiren index türü.
 
 ```sql
+-- 1) PostgreSQL'in kelime parçalama eklentisini aç (yoksa kur).
+--    Bu eklenti "pompa" kelimesini "pom","omp","mpa" parçalarına bölüyor.
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+-- 2) İş emri başlıkları için arama index'i oluştur.
+--    GIN = bu parçaları hızlı aramaya uygun index türü.
+--    Bu index olmadan "%pompa%" araması tüm tabloyu satır satır tarardı.
 CREATE INDEX work_order_title_trgm_idx
   ON "WorkOrder" USING GIN (title gin_trgm_ops);
 ```
@@ -1028,20 +1077,28 @@ Bu işleri API içinde yaparsanız, o sırada gelen kullanıcı istekleri bekler
 ### İki iş türü — kodla
 
 ```ts
-// GECİKMELİ: "SLA'ya 1 saat kala hatırlat"
+// GECİKMELİ İŞ — "şimdi değil, ileri bir saatte çalış"
 await queue.add(
-  'sla-reminder',
-  { workOrderId: 1042 },                       // sadece ID — nesnenin tamamı DEĞİL
+  'sla-reminder',                              // işin adı
+  { workOrderId: 1042 },                       // işe verilen tek bilgi: KİMLİK NUMARASI
+                                               // (iş emrinin tamamı gönderilmiyor —
+                                               //  kuyrukta beklerken eskiyebilirdi)
   {
+    // Kaç milisaniye sonra çalışsın. Hatırlatma zamanına kalan süre.
     delay: remindAt.diffNow().milliseconds,
-    jobId: `sla-reminder-1042`,                // aynı iş iki kez sıraya girmez
-    attempts: 3,
-    backoff: { type: 'exponential', delay: 5000 },
+
+    // İşin benzersiz kimliği. Aynı kimlikle ikinci kez eklenirse
+    // kuyruk onu kabul etmiyor — mükerrer hatırlatma olmuyor.
+    jobId: `sla-reminder-1042`,
+
+    attempts: 3,                                        // hata alırsa 3 kez dene
+    backoff: { type: 'exponential', delay: 5000 },      // her denemede daha uzun bekle
   },
 );
 
-// TEKRARLAYAN: "her 15 dakikada bir SLA'sı geçenleri tara"
+// TEKRARLAYAN İŞ — kimse tetiklemese de düzenli çalışır
 await queue.add('sla-breach-scan', {}, {
+  // Cron biçimi: "her 15 dakikada bir"
   repeat: { pattern: '*/15 * * * *' },
 });
 ```
@@ -1066,15 +1123,22 @@ aynı iş ikinci kez çalışır. Önlem alınmazsa kullanıcı **iki bildirim**
 Bu projede üç katmanlı korunuyor:
 
 ```ts
+// Bu iş saatler önce kuyruğa bırakılmıştı. Şimdi çalışıyor.
 async handleSlaBreach(workOrderId: number) {
-  // 1) Durumu İŞİN İÇİNDEN oku — parametreden gelen bilgiye güvenme
+
+  // 1) İş emrinin GÜNCEL hâlini veritabanından oku.
+  //    Kuyruğa girerken gönderilen bilgiye güvenmiyoruz — o bilgi eskimiş olabilir.
   const wo = await this.prisma.workOrder.findUnique({ where: { id: workOrderId } });
 
-  // 2) Kapanmışsa hiçbir şey yapma
+  // 2) Bu arada iş kapanmış veya iptal edilmişse hiçbir şey yapma, sessizce çık
   if (!wo || wo.status === 'CLOSED' || wo.status === 'CANCELLED') return;
-  if (wo.slaBreached) return;                       // zaten işaretlenmiş
 
-  // 3) İşaretleme + bildirim tek transaction, bildirimde unique index var
+  // Zaten ihlal olarak işaretlenmişse tekrar işaretleme (iş ikinci kez çalışmış olabilir)
+  if (wo.slaBreached) return;
+
+  // 3) İşaretleme ve bildirim BİRLİKTE yazılıyor.
+  //    Bildirim tablosundaki benzersiz kural, aynı olay için ikinci
+  //    bildirimin yazılmasını veritabanı seviyesinde engelliyor.
   await this.prisma.$transaction(async (tx) => {
     await tx.workOrder.update({ where: { id: wo.id }, data: { slaBreached: true } });
     await tx.notification.create({
@@ -1133,14 +1197,24 @@ bellekteki bir sözlüktür. Şunları **uygulamaz**:
 ```ts
 let container: StartedPostgreSqlContainer;
 
+// beforeAll = "testler başlamadan önce bir kez çalış"
 beforeAll(async () => {
+  // 1) Docker'da gerçek bir PostgreSQL konteyneri başlat
   container = await new PostgreSqlContainer('postgres:18-alpine').start();
-  process.env.DATABASE_URL = container.getConnectionUri();   // rastgele port
-  execSync('npx prisma migrate deploy');                      // şemayı kur
-}, 60_000);
 
+  // 2) Uygulamaya "veritabanın burada" de.
+  //    Adres rastgele bir porta çıkıyor, bilgisayardaki diğer
+  //    veritabanlarıyla çakışmıyor.
+  process.env.DATABASE_URL = container.getConnectionUri();
+
+  // 3) Tabloları oluştur — gerçek migration dosyaları çalışıyor
+  execSync('npx prisma migrate deploy');
+}, 60_000);   // konteyner inmesi uzun sürebilir, 60 saniye süre tanı
+
+// afterAll = "tüm testler bittikten sonra çalış"
 afterAll(async () => {
-  await container.stop();          // konteyner silinir, iz kalmaz
+  // Konteyneri kapat ve sil. Bilgisayarda hiçbir kalıntı bırakma.
+  await container.stop();
 });
 ```
 
@@ -1159,11 +1233,16 @@ Dört adım:
 
 ```ts
 it('aynı olay için ikinci bildirim yazılamaz', async () => {
+  // 1) Birinci bildirimi yaz — bu başarılı olmalı
   await createNotification(userId, 'SLA_BREACH:1042');
 
+  // 2) Aynı bildirimi tekrar yazmayı dene — bu HATA VERMELİ
   await expect(
     createNotification(userId, 'SLA_BREACH:1042'),
-  ).rejects.toThrow(/Unique constraint/);       // ← gerçek Postgres hatası
+  ).rejects.toThrow(/Unique constraint/);
+  // Gelen hata gerçek PostgreSQL'in benzersizlik hatası.
+  // Sahte bir veritabanında bu kural hiç uygulanmaz, test yeşil yanar
+  // ve koruma hiç doğrulanmamış olurdu.
 });
 ```
 
@@ -1199,19 +1278,24 @@ hâle gelmiştir ve mimari kâğıt üstünde kalmıştır.
 Projenin başında kural dosyası yazılır:
 
 ```js
-// .dependency-cruiser.js
+// Dosya: .dependency-cruiser.js — mimari kuralların yazılı hâli
 forbidden: [
   {
     name: 'domain-altyapiya-bagimli-olamaz',
-    severity: 'error',
+    severity: 'error',                    // ihlal = hata, uyarı değil
+    // KİM: domain klasöründeki dosyalar
     from: { path: '^packages/domain' },
+    // NEYİ ÇAĞIRAMAZ: veritabanı aracı, Nest çatısı veya API klasörü
     to:   { path: '(node_modules/@prisma|@nestjs|^apps/api)' },
   },
   {
     name: 'web-veritabanina-erisemez',
     severity: 'error',
+    // KİM: arayüz projesi
     from: { path: '^apps/web' },
+    // NEYİ ÇAĞIRAMAZ: veritabanı aracını doğrudan
     to:   { path: 'node_modules/@prisma' },
+    // Sebep: veritabanına yalnızca API üzerinden gidilmeli.
   },
 ]
 ```
@@ -1263,16 +1347,19 @@ ortaya çıkıyor.
 **Yazılımda:** Düz JavaScript'te hatayı ancak kod **çalışırken** görürsünüz:
 
 ```js
-// JavaScript — sessizce yanlış
-const gun = isEmri.slaBitis;        // alanın gerçek adı slaDueAt
-console.log(gun);                    // undefined — hata YOK, sadece boş
+// JavaScript — hata vermiyor ama yanlış çalışıyor
+const gun = isEmri.slaBitis;   // Alanın gerçek adı slaDueAt. Yanlış yazdık.
+console.log(gun);              // Sonuç: undefined. Uyarı yok, çökme yok.
+                               // Bu hatayı büyük ihtimalle KULLANICI bulacak.
 ```
 
 ```ts
-// TypeScript — daha yazarken uyarır
+// TypeScript — aynı hatayı yazarken yakalıyor
 const gun = isEmri.slaBitis;
-//                 ~~~~~~~~~ Property 'slaBitis' does not exist on type 'WorkOrder'.
-//                           Did you mean 'slaDueAt'?
+//                 ~~~~~~~~~ Editör anında altını çiziyor:
+//                 "WorkOrder tipinde slaBitis diye bir alan yok.
+//                  slaDueAt demek mi istediniz?"
+// Yani hata kullanıcıya değil, geliştirme sırasında sana gidiyor.
 ```
 
 Fark şu: birinde hatayı **kullanıcı** bulur, diğerinde **derleyici**.
@@ -1296,15 +1383,20 @@ ekranda `undefined` olarak değil, geliştirme sırasında kırmızı çizgi ola
 En katı ayar açık. En çok işe yarayan kısmı **boş değer kontrolü**:
 
 ```ts
-// strict AÇIK — bu kod derlenmez
+// strict modu açık — bu kod DERLENMİYOR
 function ata(wo: WorkOrder) {
   return wo.assigneeId.toString();
-//        ~~~~~~~~~~~~ 'assigneeId' is possibly 'null'.
+//        ~~~~~~~~~~~~ "assigneeId boş (null) olabilir" uyarısı.
+// ⚠️ İş emri henüz kimseye atanmamışsa bu alan boş olur; boş bir değer
+//    üzerinde işlem yapmak uygulamayı çalışma anında çökertir.
 }
 
-// Kontrolü yazmak ZORUNLU
+// Derleyici, boş olma ihtimalini ele almanı ZORUNLU kılıyor
 function ata(wo: WorkOrder) {
+  // Atanmamış iş emri durumunu açıkça düşünmek zorundasın
   if (wo.assigneeId === null) throw new NotAssignedError(wo.id);
+
+  // Buradan sonrası güvenli: derleyici artık boş olmadığını biliyor
   return wo.assigneeId.toString();
 }
 ```
@@ -1397,18 +1489,25 @@ bir şeyi bozarsa haberi olsun.**
 
 ```ts
 describe('İş emri kapatma', () => {
+
   it('çözüm açıklaması boşsa kapatılamaz', () => {
+    // HAZIRLIK: çözülmüş durumda bir iş emri oluştur
     const wo = workOrder({ status: 'RESOLVED' });
 
+    // ÇALIŞTIR ve BEKLE: boş açıklamayla kapatmayı dene, hata fırlatmalı
     expect(() => wo.close('', clock)).toThrow(ResolutionNoteRequired);
   });
 
   it('RESOLVED olmayan iş emri kapatılamaz', () => {
+    // HAZIRLIK: henüz üzerinde çalışılan bir iş emri
     const wo = workOrder({ status: 'IN_PROGRESS' });
 
+    // Açıklama dolu olsa bile durum uygun değil → geçiş hatası bekleniyor
     expect(() => wo.close('Tamam', clock)).toThrow(InvalidTransition);
   });
 });
+// Dikkat: bu testlerde veritabanı, HTTP veya NestJS yok.
+// Kural saf bir sınıfta durduğu için test milisaniyede bitiyor.
 ```
 
 ⭐ Dikkat: bu testlerde **veritabanı yok, HTTP yok, Nest yok.** İş kuralları
@@ -1421,9 +1520,14 @@ SLA kuralları "şu an saat kaç" bilgisine bağlı. Gerçek saati beklemek imk�
 
 ```ts
 it('SLA süresi geçmiş iş emri ihlal olarak işaretlenir', () => {
+  // Saati sabitliyoruz: "şu an 10:00" diyoruz.
+  // Gerçek saati beklemeden zamana bağlı kuralı test edebiliyoruz.
   const clock = fixedClock('2026-08-21T10:00:00Z');
+
+  // SLA bitişi 09:00 olan bir iş emri — yani süre bir saat önce dolmuş
   const wo = workOrder({ slaDueAt: '2026-08-21T09:00:00Z' });
 
+  // Sonuç: ihlal edilmiş sayılmalı
   expect(isBreached(wo, clock)).toBe(true);
 });
 ```
@@ -1493,7 +1597,15 @@ sorusunun yeniden cevaplanması gerekir. Her seferinde şifre sormak mümkün de
 Jetonun içi şuna benzer:
 
 ```json
-{ "sub": 42, "role": "TECHNICIAN", "exp": 1755503600 }
+{
+  "sub": 42,                  // kullanıcının kimlik numarası
+  "role": "TECHNICIAN",       // rolü — yetki kontrolü buna bakıyor
+  "exp": 1755503600           // son kullanma zamanı; geçince jeton geçersiz
+}
+// ⛔ Bu içerik ŞİFRELİ DEĞİL, herkes okuyabilir — sadece imzalı.
+//    Bu yüzden jetona TCKN, telefon gibi kişisel veri KONMAZ.
+// ⭐ İmza sayesinde içerik değiştirilemez: biri "role": "ADMIN" yapmaya
+//    kalkarsa imza tutmaz ve sunucu jetonu reddeder.
 ```
 
 Üzerinde oynanamaz: biri `"role": "ADMIN"` yapmaya kalkarsa **imza tutmaz** ve
@@ -1516,21 +1628,33 @@ uzundur, tek işi yeni bir erişim jetonu almaktır.
 Eskisi geçersiz olur.
 
 ```ts
+// Kullanıcı "oturumumu yenile" dedi. Tüm adımlar tek işlemde.
 await prisma.$transaction(async (tx) => {
+
+  // 1) Gelen yenileme jetonunu veritabanında ara.
+  //    Jetonun kendisi değil, karıştırılmış hâli (hash) saklanıyor.
   const stored = await tx.refreshToken.findUnique({ where: { hash } });
 
+  // 2) Böyle bir jeton hiç yoksa istek reddedilir
   if (!stored)          throw new UnauthorizedException();
+
+  // 3) Jeton var AMA daha önce kullanılıp iptal edilmiş.
+  //    Bir kez kullanılmış jetonun tekrar gelmesi = kopyalanmış demektir.
   if (stored.revokedAt) {
-    // Bu jeton daha önce kullanılmış ve iptal edilmişti.
-    // Yeniden ortaya çıkması = çalınmış demektir.
+    // ⭐ Güvenlik önlemi: o kullanıcının AÇIK TÜM oturumlarını kapat.
+    //    Saldırgan da meşru kullanıcı da yeniden giriş yapmak zorunda kalır.
+    //    Jetonun çalındığını anlamanın tek güvenilir yolu bu.
     await tx.refreshToken.updateMany({
       where: { userId: stored.userId, revokedAt: null },
-      data:  { revokedAt: clock.now() },        // TÜM oturumları düşür
+      data:  { revokedAt: clock.now() },
     });
     throw new UnauthorizedException('Token reuse detected');
   }
 
+  // 4) Jeton geçerli: kullanıldığı için hemen iptal et (bir daha kullanılamaz)
   await tx.refreshToken.update({ where: { hash }, data: { revokedAt: clock.now() } });
+
+  // 5) Yeni bir jeton çifti üret ve kullanıcıya ver
   return issueNewPair(stored.userId);
 });
 ```
@@ -1563,10 +1687,13 @@ sızarsa tüm kullanıcıların şifresi ele geçer — üstelik insanlar aynı 
 başka yerlerde de kullandığı için zarar o sistemle sınırlı kalmaz.
 
 ```ts
-// Kayıt sırasında
+// KAYIT SIRASINDA — kullanıcının şifresini geri döndürülemez hâle getir.
+// Veritabanına yazılan şey şifre değil, bu karıştırılmış çıktı.
 const hash = await argon2.hash(password, { type: argon2.argon2id });
 
-// Girişte — şifre asla geri çözülmez, aynı işlem tekrar edilip karşılaştırılır
+// GİRİŞTE — şifre asla geri çözülmüyor.
+// Kullanıcının yazdığı şifre aynı işlemden geçiriliyor ve
+// veritabanındaki çıktıyla karşılaştırılıyor. Eşleşirse giriş başarılı.
 const ok = await argon2.verify(user.passwordHash, password);
 ```
 
@@ -1647,9 +1774,16 @@ motorları bu metni anlamlandıramaz.
 **JSON (yapılandırılmış):** Log alanlara ayrılır:
 
 ```json
-{"level":"info","time":1755500000,"correlationId":"9f3c…","userId":42,
- "method":"POST","path":"/api/v1/work-orders/1042/close",
- "statusCode":200,"durationMs":63}
+{
+  "level": "info",           // önem derecesi: info | warn | error
+  "time": 1755500000,        // olayın zamanı
+  "correlationId": "9f3c…",  // bu isteğin takip numarası — tüm izler bununla bulunur
+  "userId": 42,              // işlemi yapan kullanıcı
+  "method": "POST",          // HTTP yöntemi
+  "path": "/api/v1/work-orders/1042/close",   // hangi uç çağrıldı
+  "statusCode": 200,         // sonuç: 200 başarılı, 4xx/5xx hata
+  "durationMs": 63           // kaç milisaniye sürdü — yavaş uçları bulmak için
+}
 ```
 
 Bu sayede DevOps ekipleri log toplayıcı araçlarda (Loki, ELK, CloudWatch)
@@ -1803,16 +1937,24 @@ olabilir. Dışarıdan bakınca "çalışıyor" görünür; gerçekte her istek 
 @Controller('health')
 export class HealthController {
 
-  @Get('live')                            // "Süreç ayakta mı?"
+  // GET /health/live — "Uygulama süreci yaşıyor mu?"
+  @Get('live')
   live() {
-    return { status: 'ok' };              // hiçbir bağımlılığı yoklamaz
+    // Hiçbir şeyi kontrol etmiyor, sadece cevap veriyor.
+    // Cevap gelmiyorsa süreç donmuş demektir → izleme sistemi yeniden başlatır.
+    return { status: 'ok' };
   }
 
-  @Get('ready')                           // "İstek almaya hazır mı?"
+  // GET /health/ready — "İstek almaya HAZIR mı?"
+  @Get('ready')
   ready() {
     return this.health.check([
+      // Veritabanına kısa bir sorgu atıp cevap verip vermediğine bakıyor.
+      // 1.5 saniyede cevap gelmezse hazır değil sayılıyor.
       () => this.db.pingCheck('database', { timeout: 1500 }),
     ]);
+    // Hazır değilse bu kopyaya trafik yönlendirilmiyor —
+    // ama süreç yeniden başlatılmıyor da. Farkı bu.
   }
 }
 ```
@@ -1864,16 +2006,19 @@ Doküman **Zod şemalarından otomatik üretiliyor** — yani doğrulama kuralı
 dokümanda yazan da odur:
 
 ```ts
-// Şema tek kaynak
+// TEK KAYNAK: iş emri oluşturma isteğinin kuralları
 export const CreateWorkOrder = z.object({
-  title: z.string().min(5).max(200),
-  priority: z.enum(['LOW','NORMAL','HIGH','CRITICAL']),
-  assetId: z.number().int().positive(),
+  title: z.string().min(5).max(200),                    // 5-200 karakter
+  priority: z.enum(['LOW','NORMAL','HIGH','CRITICAL']), // bu dört değerden biri
+  assetId: z.number().int().positive(),                 // pozitif tam sayı
 });
 
-// Aynı şema hem doğrular hem dokümana dönüşür
+// Aynı şema iki işi birden yapıyor:
+//   1) gelen isteği doğruluyor
+//   2) Swagger dokümanını üretiyor
+// Yani kural değişince doküman kendiliğinden güncelleniyor.
 @Post()
-@ApiOperation({ summary: 'Yeni iş emri oluşturur' })
+@ApiOperation({ summary: 'Yeni iş emri oluşturur' })   // dokümandaki açıklama
 create(@Body() dto: CreateWorkOrderDto) { ... }
 ```
 
@@ -1936,23 +2081,33 @@ Ekranlar sadece bu ortak katmanı çağırır.
 ### Ortak katman pratikte neye benziyor
 
 ```ts
-// apps/web/hooks/use-work-orders.ts — TEK yer
+// Dosya: apps/web/hooks/use-work-orders.ts
+// Tüm ekranlar iş emri listesini BURADAN alıyor. Tek yer.
 export function useWorkOrders(filters: WorkOrderFilters) {
   return useQuery({
-    queryKey: ['work-orders', filters],        // filtre değişince otomatik yeniden çeker
+    // Bu verinin "adresi". Filtre değişince adres de değişir ve
+    // kütüphane otomatik olarak yeni veriyi çeker.
+    queryKey: ['work-orders', filters],
+
+    // Veriyi fiilen getiren fonksiyon: API'ye istek atıyor
     queryFn:  () => api.get('/work-orders', { params: filters }),
-    staleTime: 30_000,                          // 30 sn içinde tekrar istenirse ağa çıkmaz
+
+    // 30 saniye içinde aynı veri tekrar istenirse ağa çıkmıyor,
+    // hafızadaki kopyayı veriyor. Ekranlar arası geçiş anında oluyor.
+    staleTime: 30_000,
   });
 }
 ```
 
 ```tsx
 // Ekran tarafı — üç satır, isLoading ve error hazır geliyor
+// Ekran tarafı üç satır. Yükleniyor ve hata durumları hazır geliyor —
+// her ekranda elle yazmak gerekmiyor.
 const { data, isLoading, error } = useWorkOrders({ status: 'OPEN' });
 
-if (isLoading) return <TabloIskeleti />;
-if (error)     return <HataKutusu error={error} />;
-return <WorkOrderTable rows={data.items} />;
+if (isLoading) return <TabloIskeleti />;          // veri gelene kadar iskelet göster
+if (error)     return <HataKutusu error={error} />; // hata varsa mesaj göster
+return <WorkOrderTable rows={data.items} />;       // veri geldi, tabloyu çiz
 ```
 
 ⭐ `queryKey` bu yapının kalbi: aynı anahtarla iki ekran veri isterse **ağa tek
@@ -1964,10 +2119,16 @@ Bir iş emrinin durumu değiştiğinde, liste ekranındaki verinin artık **eski
 bilir** ve otomatik tazeler. Kullanıcı sayfayı elle yenilemek zorunda kalmaz.
 
 ```ts
+// Veri DEĞİŞTİREN işlemler useMutation ile yapılıyor (okuma değil, yazma)
 const kapat = useMutation({
+  // Kapatma isteğini API'ye gönderen fonksiyon
   mutationFn: (id: number) => api.post(`/work-orders/${id}/close`),
+
+  // İşlem başarılı olunca çalışıyor
   onSuccess: () => {
-    // "Bu anahtarla tutulan veri artık eski" → ekranlar kendiliğinden tazelenir
+    // "İş emri listesi artık eski" diyoruz.
+    // O listeyi gösteren tüm ekranlar kendiliğinden yeniden çekiyor —
+    // kullanıcının sayfayı elle yenilemesi gerekmiyor.
     queryClient.invalidateQueries({ queryKey: ['work-orders'] });
   },
 });
@@ -1991,11 +2152,16 @@ buton anında mavi, köşeleri yuvarlak ve içi genişlemiş hâle gelir. Ekstra
 dosyalarıyla uğraşmadan, tasarımı kodun içinden çok hızlı bitirmenizi sağlar.
 
 ```tsx
-// Klasik yöntem: ayrı CSS dosyası + sınıf adı uydurma
+// KLASİK YÖNTEM: burada sadece bir isim var.
+// Bu ismin ne yaptığını görmek için ayrı bir CSS dosyası açman gerekiyor.
 <button className="birincil-buton">Kaydet</button>
 
-// Tailwind: stil doğrudan burada, CSS dosyası yok
-<button className="bg-blue-600 hover:bg-blue-700 text-white rounded px-4 py-2">
+// TAILWIND: stilin tamamı burada, okunabiliyor.
+<button className="bg-blue-600      // arka plan: mavi
+                   hover:bg-blue-700 // fare üstüne gelince koyu mavi
+                   text-white        // yazı rengi beyaz
+                   rounded           // köşeler yuvarlak
+                   px-4 py-2">       // içeriden boşluk: yanlarda 4, üst-altta 2
   Kaydet
 </button>
 ```
@@ -2039,16 +2205,23 @@ o Zod kuralını — örneğin `price: z.number().min(10)` — alır, frontend f
 içine bağlarsınız.
 
 ```tsx
-// Backend'in kullandığı ŞEMANIN AYNISI forma bağlanıyor
+// Sunucunun doğrulama için kullandığı şemanın AYNISINI alıyoruz.
+// Ayrı bir kural yazmıyoruz — tek kaynak.
 import { CreateWorkOrder } from '@contracts/work-order';
 
 const form = useForm({
-  resolver: zodResolver(CreateWorkOrder),      // ← köprü burası
+  // Köprü burası: Zod şemasını React Hook Form'a tanıtan çevirici
+  resolver: zodResolver(CreateWorkOrder),
 });
 
+// Form alanını kütüphaneye bağlıyoruz — yazılan her harfi o takip ediyor
 <input {...form.register('title')} />
+
+// Kural ihlal edildiyse hata mesajını göster
 {form.formState.errors.title && (
-  <span>{form.formState.errors.title.message}</span>   // "Başlık en az 5 karakter olmalı"
+  // Mesaj da şemadan geliyor: "Başlık en az 5 karakter olmalı"
+  // Sunucu hangi metni dönerse kullanıcı "Gönder"e basmadan aynısını görüyor
+  <span>{form.formState.errors.title.message}</span>
 )}
 ```
 
@@ -2087,14 +2260,16 @@ oluşan **görsel bir veritabanı diyagramı (ERD)** çizer.
 
 ```dbml
 Table WorkOrder {
-  id          int       [pk, increment]
-  number      varchar   [unique, note: 'IE-2026-000148']
-  status      varchar   [not null]
-  assetId     int       [not null]
-  slaDueAt    timestamp
+  id          int       [pk, increment]   // pk = birincil anahtar, otomatik artar
+  number      varchar   [unique, note: 'IE-2026-000148']  // benzersiz, insan okur
+  status      varchar   [not null]        // boş bırakılamaz
+  assetId     int       [not null]        // hangi varlığa ait
+  slaDueAt    timestamp                   // SLA bitiş zamanı (boş olabilir)
 }
 
-Ref: WorkOrder.assetId > Asset.id      // bir varlığın çok iş emri olur
+// İlişki tanımı: bir varlığın birden çok iş emri olabilir.
+// dbdiagram.io gibi araçlar bu satırı okuyup iki kutu arasına ok çiziyor.
+Ref: WorkOrder.assetId > Asset.id
 ```
 
 ### Problem: elle yazılan doküman ilk şema değişikliğinde eskir
@@ -2142,9 +2317,16 @@ an sunucuda otomatik çalışan bir test robotudur.
    engeller
 
 ```yaml
-# CI adımı — dosya güncel değilse burada durur
+# CI adımı — doküman güncel değilse build burada durur
+
+# 1) Veritabanının GERÇEK yapısını dışa aktar (veriyi değil, sadece şemayı)
 - run: pg_dump --schema-only "$DATABASE_URL" > /tmp/schema.sql
+
+# 2) O yapıyı okunabilir DBML biçimine çevir
 - run: npx sql2dbml /tmp/schema.sql --postgres -o /tmp/database.dbml
+
+# 3) Yeni üretilen dosyayla depodakini karşılaştır.
+#    Tek karakter fark varsa diff hata koduyla çıkar ve CI kırmızı yanar.
 - run: diff /tmp/database.dbml docs/database.dbml
 ```
 
@@ -2182,12 +2364,20 @@ sürümde kalır.
 ### Nasıl çalışıyor
 
 ```json
-// renovate.json
+// Dosya: renovate.json — güncelleme botunun ayarları
 {
+  // Hazır önerilen ayar setini temel al
   "extends": ["config:recommended"],
+
+  // Ne zaman tarasın: pazartesi sabahı, mesai başlamadan
   "schedule": ["before 6am on monday"],
+
   "packageRules": [
+    // Küçük güncellemeleri TEK bir öneride topla (haftada bir istek)
     { "matchUpdateTypes": ["minor", "patch"], "groupName": "küçük güncellemeler" },
+
+    // Büyük sürüm atlamaları genelde kırıcı değişiklik taşır —
+    // otomatik açılmasın, önce onay beklesin
     { "matchUpdateTypes": ["major"], "dependencyDashboardApproval": true }
   ]
 }
@@ -2275,11 +2465,19 @@ Mobil eklendiğinde API tarafında yazılacak tek şey, jetonu başlıktan da ka
 etmek — ve o zaten baştan yazılı:
 
 ```ts
-// Aynı strateji iki taşıma yolunu birden tanıyor
+// Jetonun nereden okunacağı. Sıra önemli: önce çerez, olmazsa başlık.
 jwtFromRequest: ExtractJwt.fromExtractors([
-  (req) => req?.cookies?.access_token,        // web
-  ExtractJwt.fromAuthHeaderAsBearerToken(),   // mobil / Swagger
+
+  // WEB: tarayıcı jetonu çerezde taşıyor.
+  // Çerez httpOnly olduğu için JavaScript okuyamıyor → XSS'te çalınamıyor.
+  (req) => req?.cookies?.access_token,
+
+  // MOBİL ve Swagger: çerez kavramı yok, jeton başlıkta geliyor.
+  // "Authorization: Bearer eyJhbGc..." biçiminde.
+  ExtractJwt.fromAuthHeaderAsBearerToken(),
 ]),
+// Aynı doğrulama kodu iki taşıma yolunu birden tanıdığı için
+// mobil eklendiğinde sunucu tarafında değişiklik gerekmiyor.
 ```
 
 ---
@@ -2312,16 +2510,18 @@ yazar. **Nesne** o kalıptan üretilmiş tek bir örnektir.
 **Bu projede:**
 
 ```ts
-// SINIF = kalıp. "Bir iş emri neye benzer, ne yapabilir?"
+// SINIF = kalıp. "Bir iş emri neye benzer, ne yapabilir?" sorusunun cevabı.
+// Burada henüz gerçek bir iş emri yok — sadece tarifi var.
 class WorkOrder {
-  id: number;
-  number: string;          // "IE-2026-000148"
-  status: Status;          // OPEN | ASSIGNED | IN_PROGRESS | ...
-  assigneeId: number | null;
-  resolutionNote: string | null;
+  id: number;                        // Veritabanının verdiği benzersiz numara
+  number: string;                    // İnsanın okuyacağı numara: "IE-2026-000148"
+  status: Status;                    // Hangi aşamada: OPEN | ASSIGNED | IN_PROGRESS ...
+  assigneeId: number | null;         // Atanan teknik personel. null = henüz atanmamış
+  resolutionNote: string | null;     // Çözüm açıklaması. Kapatılana kadar boş
 }
 
-// NESNE = o kalıptan üretilmiş tek bir kayıt
+// NESNE = o kalıptan üretilmiş TEK BİR gerçek kayıt.
+// Veritabanındaki her satır, kod tarafında böyle bir nesneye dönüşüyor.
 const isEmri = { id: 1042, number: 'IE-2026-000148', status: 'OPEN', ... };
 ```
 
@@ -2342,21 +2542,31 @@ kapasite) taşır; düğmeler **ne yapabildiğidir** (yıka, sık, durula).
 Kullanıcı iş emri detay ekranında **"Kapat"** butonuna basıyor. Arkada şu olur:
 
 ```ts
-// 1. Ekran (Next.js) → API'ye istek
+// 1. ADIM — Ekran (Next.js): kullanıcı "Kapat" butonuna bastı.
+//    Tarayıcı, 1042 numaralı iş emri için API'ye istek gönderiyor.
+//    Kullanıcının yazdığı çözüm açıklaması da isteğin içinde gidiyor.
 POST /api/v1/work-orders/1042/close   { resolutionNote: "Sigorta değiştirildi" }
 
-// 2. API katmanı (NestJS controller) → servisi çağırır
+// 2. ADIM — API katmanı (NestJS controller): isteği karşılayan yer.
+//    Burada iş kuralı YOK; sadece gelen bilgiyi alıp servise devrediyor.
 close(id, dto) {
-  return this.service.close(id, dto.resolutionNote);
+  return this.service.close(id, dto.resolutionNote);   // işi asıl yapan yere gönder
 }
 
-// 3. Domain katmanı → İŞTE METOT BURADA
+// 3. ADIM — Domain katmanı: kuralın fiilen çalıştığı yer.
+//    Bu sınıf veritabanını da interneti de tanımıyor; sadece kuralı biliyor.
 class WorkOrder {
   close(note: string, clock: Clock) {
+
+    // Kural 1: iş emri "Çözüldü" aşamasında değilse kapatılamaz
     if (this.status !== 'RESOLVED')  throw new InvalidTransition(this.status);
+
+    // ⛔ Kural 2: çözüm açıklaması boş bırakılamaz (ödevin §6 şartı)
     if (!note?.trim())               throw new ResolutionNoteRequired();
+
+    // Kurallar geçildi — kaydın durumunu değiştir
     this.status     = 'CLOSED';
-    this.closedAt   = clock.now();
+    this.closedAt   = clock.now();   // saati doğrudan değil Clock servisinden al
   }
 }
 ```
@@ -2383,17 +2593,22 @@ zorunda kalmaması için. Böylece yenisi eklendiğinde çağıran kod değişme
 **Bu projede — SLA politikaları:**
 
 ```ts
-// SÖZLEŞME: "SLA hesaplayan her şey şu ikisini yapabilmeli"
+// SÖZLEŞME (arayüz): "SLA hesaplayan her sınıf şu iki işi yapabilmeli."
+// Burada hesap YOK — sadece "ne yapabilmesi gerektiği" yazıyor.
 interface SlaPolicy {
-  supports(ctx: SlaContext): boolean;   // bu iş emri bana uyar mı?
-  calculate(ctx: SlaContext): SlaPlan;  // süreleri hesapla
+  supports(ctx: SlaContext): boolean;   // Soru: bu iş emri bana uyuyor mu?
+  calculate(ctx: SlaContext): SlaPlan;  // Soru: süreleri hesapla ve geri ver
 }
 
-// UYGULAYAN 1: kritik varlıkta arıza → 4 saat
+// SÖZLEŞMEYİ UYGULAYAN 1 — kritik varlıkta arıza çıktıysa 4 saat verir
 class CriticalAssetBreakdownPolicy implements SlaPolicy { ... }
 
-// UYGULAYAN 2: düşük öncelikli bakım → 15 gün
+// SÖZLEŞMEYİ UYGULAYAN 2 — düşük öncelikli bakım işine 15 gün verir
 class LowPriorityMaintenancePolicy implements SlaPolicy { ... }
+
+// ⭐ Bu ikisini kullanan kod, hangisinin geldiğini BİLMEK ZORUNDA DEĞİL.
+//    Tek bildiği: "elimde SlaPolicy sözü veren bir şey var, calculate
+//    diyebilirim." Yeni politika eklenince çağıran kod hiç değişmiyor.
 ```
 
 Factory (E.4) bu politikaları `SlaPolicy` olarak tanır — hangisinin geldiğini
@@ -2485,7 +2700,9 @@ alanlar hiç okunmuyor.** Bu alanlar detay ekranında zaten ayrıca isteniyor.
 yüzden sorguya da girmiyor, cevaba da (E.6).
 
 ```ts
-// Şema tek kaynak → select ondan türetiliyor
+// Veritabanına "bu kaydın hangi alanlarını istiyorum" diye söylüyoruz.
+// ⛔ true yazılmayan hiçbir kolon çekilmiyor — açıklama metni, çözüm notu,
+//    audit alanları ve hassas alanlar veritabanından hiç çıkmıyor.
 select: { id: true, number: true, title: true, status: true,
           priority: true, assigneeId: true, slaDueAt: true }
 ```
@@ -2524,26 +2741,32 @@ gerektiğine** dair kurumsal taahhüt. Üç zaman üretir:
 **Süre nereye yazılıyor — kod akışı:**
 
 ```ts
-// 1. İş emri oluşturulurken factory doğru politikayı seçiyor
+// 1. ADIM — Kullanıcının formdan gönderdiği üç bilgiyi factory'ye veriyoruz.
+//    Factory bunlara bakıp HANGİ SLA kuralının geçerli olduğunu seçiyor.
 const policy = this.slaFactory.resolve({
-  priority: dto.priority,                    // HIGH
-  assetCriticality: asset.criticality,       // HIGH
-  type: dto.type,                            // BREAKDOWN
+  priority: dto.priority,                    // Kullanıcının seçtiği öncelik: HIGH
+  assetCriticality: asset.criticality,       // Varlık kaydından okundu: HIGH
+  type: dto.type,                            // İş emri türü: BREAKDOWN (arıza)
 });
 
-// 2. Politika üç zamanı hesaplıyor
+// 2. ADIM — Seçilen kural üç zamanı hesaplıyor.
 const plan = policy.calculate(ctx);
-// → { dueAt: 14:00, remindAt: 13:00, escalateAt: 13:30 }
+// Sonuç → { dueAt: 14:00,     bitmesi gereken an
+//           remindAt: 13:00,  hatırlatma zamanı
+//           escalateAt: 13:30 } üst amire bildirme zamanı
 
-// 3. İş emriyle BİRLİKTE kaydediliyor (ayrı tablo değil, aynı satır)
+// 3. ADIM — Hesaplanan zamanlar iş emriyle AYNI SATIRA yazılıyor.
+//    Ayrı tabloya konsaydı, liste ekranındaki "SLA'sı yaklaşanlar" filtresi
+//    her seferinde iki tabloyu birleştirmek zorunda kalırdı.
 await tx.workOrder.create({
   data: { ...dto, slaDueAt: plan.dueAt, slaRemindAt: plan.remindAt },
 });
 
-// 4. Hatırlatma işi kuyruğa bırakılıyor
+// 4. ADIM — Hatırlatmayı şimdi değil, ileri bir saatte çalışacak şekilde
+//    kuyruğa bırakıyoruz. Kimse ekranı açmasa da o saatte kendisi çalışacak.
 await this.queue.add('sla-reminder', { workOrderId: created.id },
-  { delay: plan.remindAt.diffNow().milliseconds,
-    jobId: `sla-reminder-${created.id}` });   // aynı iş iki kez girmesin
+  { delay: plan.remindAt.diffNow().milliseconds,   // kaç milisaniye sonra çalışsın
+    jobId: `sla-reminder-${created.id}` });        // aynı iş iki kez sıraya girmesin
 ```
 
 ⭐ `slaDueAt`'in iş emriyle **aynı satırda** tutulması bilinçli: liste
@@ -2721,13 +2944,14 @@ hiçbirini iyi yapmaz; ekmek kesmeye kalkarsanız ekmek de çakı da zarar gör�
 **Bu projede — yanlış ve doğru:**
 
 ```ts
-// ⛔ YANLIŞ: tek servis her işi yapıyor
+// ⛔ YANLIŞ: tek sınıf birbiriyle ilgisiz dört işi birden yapıyor
 class WorkOrderService {
-  create()      { /* kayıt + SLA hesabı + bildirim + e-posta */ }
-  calculateSla(){ ... }
-  sendEmail()   { ... }
-  generatePdf() { ... }
+  create()      { /* kayıt + SLA hesabı + bildirim + e-posta hepsi burada */ }
+  calculateSla(){ ... }   // SLA kuralı değişince bu dosya açılır
+  sendEmail()   { ... }   // e-posta sağlayıcısı değişince de bu dosya açılır
+  generatePdf() { ... }   // rapor biçimi değişince de bu dosya açılır
 }
+// Sonuç: dört farklı sebeple aynı dosyaya dokunuluyor, çakışma kaçınılmaz.
 ```
 
 Bu sınıf **dört ayrı sebeple** değişir: iş kuralı değişirse, SLA kuralı
@@ -2735,10 +2959,10 @@ değişirse, e-posta sağlayıcısı değişirse, rapor formatı değişirse. D�
 aynı dosyaya dokunur.
 
 ```ts
-// ✅ DOĞRU: her sorumluluk kendi sınıfında
-class WorkOrderService      { /* sadece iş emri akışı */ }
-class SlaPolicyFactory      { /* sadece SLA seçimi */ }
-class NotificationService   { /* sadece bildirim */ }
+// ✅ DOĞRU: her sınıfın değişmek için TEK bir sebebi var
+class WorkOrderService      { /* sadece iş emri akışı — kural değişirse burası */ }
+class SlaPolicyFactory      { /* sadece SLA seçimi — süre kuralı değişirse burası */ }
+class NotificationService   { /* sadece bildirim — sağlayıcı değişirse burası */ }
 ```
 
 Ödev §8 bunu doğrudan söylüyor: *"Tek bir servis, sistemdeki bütün işlemlerden
@@ -2756,16 +2980,17 @@ tesisata dokunmazsınız**, çoklayıcıya bir fiş daha takarsınız.
 **Bu projede — SLA politikaları:**
 
 ```ts
-// ⛔ YANLIŞ: yeni kural = mevcut fonksiyonun İÇİNE girmek
+// ⛔ YANLIŞ: yeni bir kural gelince ÇALIŞAN fonksiyonun içini açmak gerekiyor
 function hesapla(wo) {
-  if (wo.priority === 'CRITICAL') return 4;
-  if (wo.priority === 'HIGH')     return 24;
-  // yeni kural buraya eklenecek → mevcut satırları bozma riski
+  if (wo.priority === 'CRITICAL') return 4;    // kritik iş → 4 saat
+  if (wo.priority === 'HIGH')     return 24;   // yüksek öncelik → 24 saat
+  // Yeni kural buraya girecek. Her giriş, üstteki iki satırı bozma riski taşır
+  // ve bu fonksiyonun tüm testleri yeniden koşmak zorunda.
 }
 
-// ✅ DOĞRU: yeni kural = yeni sınıf, mevcut koda dokunulmaz
+// ✅ DOĞRU: yeni kural = tamamen yeni bir sınıf. Mevcut hiçbir satır değişmiyor.
 class WeekendMaintenancePolicy implements SlaPolicy { ... }
-// modüle bir satır kayıt eklenir, gerisi aynı kalır
+// Modülde kayıt listesine tek satır eklenir; çalışan kod olduğu gibi kalır.
 ```
 
 **Neden bu kadar önemli:** Çalışan bir kodu her açtığınızda bozma riski
@@ -2785,14 +3010,18 @@ geçebilmelidir.
 **Bu projede:**
 
 ```ts
+// Arayüzün verdiği SÖZ: "calculate çağrılırsa MUTLAKA geçerli bir plan döner."
 interface SlaPolicy {
-  calculate(ctx: SlaContext): SlaPlan;   // SÖZ: her zaman geçerli bir plan döner
+  calculate(ctx: SlaContext): SlaPlan;
 }
 
-// ⛔ SÖZÜ BOZAN uygulama
+// ⛔ SÖZÜ BOZAN uygulama — derlenir ama çalışma anında patlar
 class BrokenPolicy implements SlaPolicy {
   calculate(ctx) {
-    if (ctx.type === 'INSPECTION') return null;  // ← söz "plan döner"di
+    // Kontrol işi türü ise hiçbir şey döndürmüyor. Oysa söz "plan döner"di.
+    if (ctx.type === 'INSPECTION') return null;
+    // ⚠️ Hata BURADA değil, bu kodu çağıran yerde görünecek: orası
+    //    plan.dueAt okumaya çalışıp null bulacak. Bulunması en zor hata türü.
   }
 }
 ```
@@ -2817,7 +3046,9 @@ düğmeleri var. **Kullanmadığınız şeyler yolunuza çıkıyor.**
 **Bu projede:**
 
 ```ts
-// ⛔ YANLIŞ: her şeyi bilen dev arayüz
+// ⛔ YANLIŞ: sekiz işi birden dayatan dev arayüz.
+// Sadece okuma yapan bir rapor servisi bunu uygulamak zorunda kalırsa,
+// kullanmayacağı yedi metodu boş bırakmak veya hata fırlatmak durumunda kalır.
 interface IWorkOrderRepository {
   find(); create(); update(); delete();
   archive(); export(); recalculateSla(); sendReminder();
@@ -2828,7 +3059,8 @@ Sadece okuma yapan bir rapor servisi bu arayüzü uygulamak zorunda kalırsa,
 kullanmayacağı yedi metodu boş bırakmak (veya hata fırlatmak) durumunda kalır.
 
 ```ts
-// ✅ DOĞRU: dar ve amaca özel arayüzler
+// ✅ DOĞRU: okuma ve yazma ayrı sözleşmeler.
+// Rapor servisi yalnızca Reader ister; testte sahtesini yazmak tek metot demek.
 interface WorkOrderReader { findMany(f: Filter): Promise<WorkOrder[]>; }
 interface WorkOrderWriter { save(wo: WorkOrder): Promise<void>; }
 ```
@@ -2861,14 +3093,17 @@ hatırlatma bildirimi üretilemez."* Bu kuralı uygulamak için mevcut bildiriml
 **bakması** gerekiyor — yani veriye ihtiyacı var.
 
 ```ts
-// ⛔ YANLIŞ (bağımlılık aşağı doğru): domain, Prisma'yı TANIYOR
-import { PrismaClient } from '@prisma/client';        // ← altyapı sızdı
+// ⛔ YANLIŞ — iş kuralı sınıfı doğrudan veritabanı aracını tanıyor
+import { PrismaClient } from '@prisma/client';   // ← altyapı, domain'e sızdı
 
 class NotificationRule {
+  // ⚠️ Bu sınıf artık Prisma olmadan çalışamaz — testi için bile veritabanı kurmak gerekir
   constructor(private prisma: PrismaClient) {}
+
   async canNotify(workOrderId: number) {
+    // Veritabanına gidip "bu bildirim daha önce yazılmış mı" diye bakıyor
     const existing = await this.prisma.notification.findFirst({ ... });
-    return !existing;
+    return !existing;   // yazılmamışsa bildirim üretilebilir
   }
 }
 ```
@@ -2880,25 +3115,32 @@ Bunun üç somut zararı var:
 3. `dependency-cruiser` (C.8) bu import'u görür ve **build'i kırmızı yakar**
 
 ```ts
-// ✅ DOĞRU (bağımlılık tersine çevrilmiş): domain yalnızca SÖZLEŞMEYİ tanıyor
+// ✅ DOĞRU — iş kuralı, veritabanını değil yalnızca bir SÖZÜ tanıyor
 
-// 1) Sözleşme DOMAIN katmanında tanımlanır — "şunu sorabilen bir şey lazım"
+// 1) SÖZLEŞME domain katmanında yazılıyor: "bana şunu sorabilen bir şey lazım."
+//    Nasıl cevaplanacağı burada yazmıyor — sadece sorunun kendisi tanımlı.
 interface NotificationChecker {
   wasNotifiedToday(workOrderId: number, kind: NotificationKind): Promise<boolean>;
 }
 
-// 2) Kural, sözleşmeye bağlanır. Prisma'yı, veritabanını, SQL'i BİLMEZ.
+// 2) İş kuralı yalnızca bu söze bağlanıyor.
+//    Prisma'yı, SQL'i, veritabanının varlığını bile bilmiyor.
 class NotificationRule {
-  constructor(private checker: NotificationChecker) {}
+  constructor(private checker: NotificationChecker) {}   // dışarıdan verilecek
+
   async canNotify(workOrderId: number) {
+    // "Bugün bu bildirim gitti mi?" diye soruyor. Cevabı kimin verdiği önemsiz.
     return !(await this.checker.wasNotifiedToday(workOrderId, 'SLA_REMINDER'));
   }
 }
 
-// 3) Sözleşmeyi INFRASTRUCTURE katmanı uygular — Prisma burada
+// 3) SÖZÜ TUTAN sınıf altyapı katmanında. Prisma ancak burada görünüyor.
+//    Testte bunun yerine sahte bir sınıf verilir, iş kuralı farkı anlamaz.
 class PrismaNotificationChecker implements NotificationChecker {
   constructor(private prisma: PrismaClient) {}
+
   wasNotifiedToday(workOrderId, kind) {
+    // Sorunun veritabanı karşılığı: böyle bir kayıt var mı?
     return this.prisma.notification.findFirst({ ... }).then(Boolean);
   }
 }
@@ -2962,15 +3204,21 @@ Bu kural en az dört yerde gerekir: yeni iş emri formu (tarayıcı), iş emri
 düzenleme formu (tarayıcı), oluşturma ucu (sunucu), güncelleme ucu (sunucu).
 
 ```ts
-// ⛔ YANLIŞ: her yerde elle tekrar
-// web/create-form.tsx
+// ⛔ YANLIŞ: aynı kural dört ayrı dosyada elle yazılmış
+
+// Tarayıcı — yeni iş emri formu
 if (title.length < 5)  setError('Başlık çok kısa');
-// web/edit-form.tsx
-if (title.length < 5)  setError('Başlık en az 5 karakter olmalı');   // metin bile farklı
-// api/create.ts
+
+// Tarayıcı — düzenleme formu. Kural aynı ama HATA METNİ farklı yazılmış
+if (title.length < 5)  setError('Başlık en az 5 karakter olmalı');
+
+// Sunucu — oluşturma ucu
 if (dto.title.length < 5) throw new BadRequest();
-// api/update.ts
-if (dto.title.length < 3) throw new BadRequest();   // ← 3?! biri unutulmuş
+
+// Sunucu — güncelleme ucu. Burada sınır 3 yazılmış!
+// Yani kullanıcı düzenleme ekranından 4 karakterlik başlık kaydedebiliyor,
+// oluşturma ekranından kaydedemiyor. Aynı sistem iki farklı davranıyor.
+if (dto.title.length < 3) throw new BadRequest();
 ```
 
 Son satır tam da olan şeydir: kural bir yerde güncellenir, diğerleri geride
@@ -2978,11 +3226,18 @@ kalır. Sonuç: kullanıcı düzenleme ekranından 4 karakterlik başlık kayded
 oluşturma ekranından kaydedemez. **Aynı sistem iki farklı davranır.**
 
 ```ts
-// ✅ DOĞRU: kural tek yerde
-// packages/contracts/work-order.ts
+// ✅ DOĞRU: kural tek dosyada tanımlı, üç yer birden bunu kullanıyor
+// Dosya: packages/contracts/work-order.ts
+
 export const CreateWorkOrder = z.object({
+  // Başlık: metin olmalı, en az 5 en fazla 200 karakter.
+  // Hata mesajı da burada — tarayıcı ve sunucu AYNI metni gösteriyor.
   title: z.string().min(5, 'Başlık en az 5 karakter olmalı').max(200),
+
+  // Öncelik: yalnızca bu dört değerden biri olabilir, başkası reddedilir
   priority: z.enum(['LOW','NORMAL','HIGH','CRITICAL']),
+
+  // Varlık numarası: tam sayı ve pozitif olmalı (0 veya eksi kabul edilmez)
   assetId: z.number().int().positive(),
 });
 ```
@@ -3083,12 +3338,18 @@ ve **escalation** (yükseltme — süre aşılmadan önce üst amire haber verme
 ### Naif çözüm ve neden sürdürülemez
 
 ```ts
-// ⛔ Bu yaklaşım kullanılmadı
+// ⛔ Bu yaklaşım kullanılmadı — neden kullanılmadığı aşağıda
 function hesapla(wo: WorkOrder) {
+  // Kritik öncelikli iş + kritik varlık → 4 saat
   if (wo.priority === 'CRITICAL' && wo.asset.criticality === 'HIGH') return 4;
+  // Kritik öncelikli ama varlık kritik değil → 8 saat
   if (wo.priority === 'CRITICAL') return 8;
+  // Yüksek öncelikli arıza → 24 saat
   if (wo.priority === 'HIGH' && wo.type === 'BREAKDOWN') return 24;
-  // ...her yeni kural bu bloğun İÇİNE giriyor
+
+  // ⚠️ Her yeni kural bu bloğun İÇİNE yazılmak zorunda; yani çalışan kodu
+  //    her seferinde açıp değiştiriyorsun ve mevcut kuralları bozma riski
+  //    alıyorsun.
 }
 ```
 
@@ -3102,20 +3363,32 @@ mevcut kodda mümkün olduğunca az değişiklik yapılmalıdır."*
 Her kural kendi sınıfında, ortak bir **arayüz** (E.0) altında:
 
 ```ts
+// SÖZLEŞME: SLA hesaplayan her sınıf şu iki soruyu cevaplayabilmeli
 interface SlaPolicy {
-  supports(ctx: SlaContext): boolean;      // "bu iş emri bana uyar mı?"
-  calculate(ctx: SlaContext): SlaPlan;     // bitiş + hatırlatma + escalation
+  supports(ctx: SlaContext): boolean;      // "bu iş emri bana uyuyor mu?"
+  calculate(ctx: SlaContext): SlaPlan;     // bitiş + hatırlatma + yükseltme zamanı
 }
 
+// TEK BİR KURAL, kendi sınıfında. Başka kuralı bilmiyor, etkilemiyor.
 @Injectable()
 export class CriticalAssetBreakdownPolicy implements SlaPolicy {
+
+  // Bu kural yalnızca "kritik varlıkta arıza" durumunda devreye giriyor
   supports(ctx: SlaContext) {
     return ctx.assetCriticality === 'HIGH' && ctx.type === 'BREAKDOWN';
   }
+
+  // Uyduysa süreleri hesaplıyor
   calculate(ctx: SlaContext): SlaPlan {
+    // Şu andan itibaren 4 saat. Saati Clock servisinden alıyoruz ki
+    // testte "sen şu an şu andasın" diyebilelim.
     const due = this.clock.now().plus({ hours: 4 });
-    return { dueAt: due, remindAt: due.minus({ hours: 1 }),
-             escalateAt: due.minus({ minutes: 30 }) };
+
+    return {
+      dueAt:      due,                          // bitmesi gereken an
+      remindAt:   due.minus({ hours: 1 }),      // 1 saat kala hatırlat
+      escalateAt: due.minus({ minutes: 30 }),   // 30 dakika kala üst amire bildir
+    };
   }
 }
 ```
@@ -3125,11 +3398,19 @@ Factory, politikaları **enjeksiyonla** alır ve ilk uyanı seçer:
 ```ts
 @Injectable()
 export class SlaPolicyFactory {
+  // ⭐ Politikaların listesi DIŞARIDAN veriliyor — factory hiçbir yerden
+  //    kendisi arama yapmıyor. Bu ayrım, ödevin yasakladığı "Service Locator"
+  //    kullanımından kaçınmanın tam karşılığı.
   constructor(@Inject(SLA_POLICIES) private readonly policies: SlaPolicy[]) {}
 
   resolve(ctx: SlaContext): SlaPolicy {
+    // Listeyi sırayla gez, "bu iş emri sana uyar mı?" diye sor, ilk uyanı al
     const match = this.policies.find(p => p.supports(ctx));
-    if (!match) throw new NoSlaPolicyError(ctx);   // sessiz varsayılan YOK
+
+    // Hiçbiri uymadıysa sessizce varsayılan bir süre UYDURMUYORUZ.
+    // Hata fırlatıyoruz ki eksik kural fark edilsin.
+    if (!match) throw new NoSlaPolicyError(ctx);
+
     return match;
   }
 }
@@ -3138,6 +3419,11 @@ export class SlaPolicyFactory {
 Kayıt, modülde tek satır:
 
 ```ts
+// Politikaların kaydedildiği tek yer. Yeni kural eklemek = bu listeye bir
+// sınıf adı yazmak. Factory'ye ve diğer politikalara DOKUNULMUYOR.
+// ⭐ Open/Closed prensibinin somut karşılığı burası.
+// ⚠️ Sıra önemli: özel kurallar üstte, genel kural altta olmalı. Genel kural
+//    öne geçerse özel olanlara hiç sıra gelmez ve hata sessiz kalır.
 { provide: SLA_POLICIES, useFactory: (...p: SlaPolicy[]) => p,
   inject: [CriticalAssetBreakdownPolicy, HighPriorityPolicy, DefaultPolicy] }
 ```
@@ -3173,14 +3459,30 @@ geçerse hata sessiz kalırdı.
 Durum makinesi, izin verilen geçişlerin tek bir yerde tanımlanmasıdır:
 
 ```ts
+// Bu tablo şunu söylüyor: "soldaki durumdayken YALNIZCA sağdakilere geçilebilir."
+// Tabloda olmayan her geçiş otomatik olarak reddediliyor.
 const TRANSITIONS: Record<Status, Status[]> = {
+
+  // Yeni açılmış iş emri: ya birine atanır ya iptal edilir
   OPEN:        ['ASSIGNED', 'CANCELLED'],
-  ASSIGNED:    ['IN_PROGRESS', 'OPEN', 'CANCELLED'],   // OPEN = görevden alma
+
+  // Atanmış iş: çalışmaya başlanır, geri alınır (OPEN) veya iptal edilir
+  ASSIGNED:    ['IN_PROGRESS', 'OPEN', 'CANCELLED'],
+
+  // Üzerinde çalışılıyor: parça beklemeye alınır, çözülür veya iptal edilir
   IN_PROGRESS: ['WAITING_PART', 'RESOLVED', 'CANCELLED'],
+
+  // Parça bekliyor: parça gelince işe devam, gelmezse iptal
   WAITING_PART:['IN_PROGRESS', 'CANCELLED'],
-  RESOLVED:    ['CLOSED', 'IN_PROGRESS'],              // yeniden açma
-  CLOSED:      [],                                     // terminal
-  CANCELLED:   [],                                     // terminal
+
+  // Çözüldü: kapatılır — ya da sorun tekrarlarsa yeniden işleme alınır
+  RESOLVED:    ['CLOSED', 'IN_PROGRESS'],
+
+  // Kapatıldı: SON DURAK. Buradan çıkış yok, liste boş.
+  CLOSED:      [],
+
+  // İptal edildi: SON DURAK. Buradan da çıkış yok.
+  CANCELLED:   [],
 };
 ```
 
@@ -3220,11 +3522,19 @@ Geçiş kontrolü domain katmanında yaşar; Prisma'yı, HTTP'yi ve NestJS'i bil
 bütünlüğü içerisinde gerçekleştirilmelidir."*
 
 ```ts
+// $transaction = "ya ikisi birden olur ya hiçbiri".
+// Arada elektrik kesilse bile yarım kayıt kalmaz.
 await prisma.$transaction(async (tx) => {
+
+  // 1) İş emrinin durumunu değiştir.
+  //    "where" içindeki version, başkası bu arada değiştirdiyse yakalamak için.
   const updated = await tx.workOrder.update({
-    where: { id, version },                  // iyimser kilit (E.8)
-    data:  { status: next, version: { increment: 1 } },
+    where: { id, version },
+    data:  { status: next, version: { increment: 1 } },   // sürümü bir artır
   });
+
+  // 2) Aynı işlemde geçmiş satırını da yaz: kim, ne zaman, nereden nereye.
+  //    Bu olmadan durum değişir ama "kim değiştirdi" kaydı olmaz.
   await tx.workOrderHistory.create({
     data: { workOrderId: id, from: current, to: next, byUserId, at: clock.now() },
   });
@@ -3271,27 +3581,36 @@ görünmek amacıyla eklenen yapılar olumlu değerlendirilmeyecektir."*
 Şema **tek kaynak**, `select` ondan türetiliyor, çıkış şemadan geçiyor:
 
 ```ts
-// packages/contracts — tek tanım
+// Dosya: packages/contracts — liste ekranının cevabı BURADA tanımlı.
+// Bu şema hem sunucuyu hem tarayıcıyı besliyor, tek kaynak.
 export const WorkOrderListItem = z.object({
-  id: z.number(),
-  number: z.string(),
-  title: z.string(),
-  status: z.enum(STATUSES),
-  priority: z.enum(PRIORITIES),
-  assigneeName: z.string().nullable(),
-  slaDueAt: z.date(),
+  id: z.number(),                          // kaydın numarası
+  number: z.string(),                      // "IE-2026-000148"
+  title: z.string(),                       // iş emri başlığı
+  status: z.enum(STATUSES),                // yalnızca tanımlı durumlardan biri
+  priority: z.enum(PRIORITIES),            // yalnızca tanımlı önceliklerden biri
+  assigneeName: z.string().nullable(),     // atanmamışsa boş olabilir
+  slaDueAt: z.date(),                      // SLA bitiş zamanı
+  // ⛔ Burada olmayan hiçbir alan dışarı çıkamaz — şifre özeti, iç not, audit
 });
+
+// Yukarıdaki şemadan TypeScript tipi otomatik üretiliyor.
+// Yani tipi ayrıca elle yazmıyoruz; şema değişince tip de değişiyor.
 export type WorkOrderListItem = z.infer<typeof WorkOrderListItem>;
 ```
 
 ```ts
-// Prisma select, şemadan türetiliyor → DB yalnızca 7 kolon çekiyor
+// Veritabanı sorgusu. select listesi yukarıdaki şemadan üretiliyor,
+// yani veritabanı 25 kolonun tamamını değil yalnızca 7 tanesini çekiyor.
 const rows = await prisma.workOrder.findMany({
-  where, skip, take,
-  select: selectFrom(WorkOrderListItem),   // { id: true, number: true, ... }
+  where,                                   // filtreler (durum, lokasyon, tarih...)
+  skip, take,                              // sayfalama: kaçıncı sayfa, kaç kayıt
+  select: selectFrom(WorkOrderListItem),   // → { id: true, number: true, ... }
 });
 
-// Çıkışta şemadan geçirilir → şemada olmayan HER alan kırpılır
+// ⭐ SON KONTROL: veri şemadan geçiriliyor. Şemada olmayan bir alan
+//    yanlışlıkla sorguya girmiş olsa bile burada kırpılıyor.
+//    Koruma bir alışkanlık değil, mekanizma.
 return z.array(WorkOrderListItem).parse(rows);
 ```
 
@@ -3338,44 +3657,57 @@ koyduğunda sorun bitiyor.
 ### Çözüm: tek hata filtresi
 
 ```ts
-// ⛔ YANLIŞ: her uçta tekrar
+// ⛔ YANLIŞ: hata yakalama kodu her uç noktada yeniden yazılıyor
 @Post(':id/close')
 async close(@Param('id') id: number, @Body() dto: CloseDto) {
   try {
     return await this.service.close(id, dto.note);
   } catch (e) {
+    // Her hata türünü tek tek HTTP koduna çevirmek zorundasın
     if (e instanceof InvalidTransition) throw new ConflictException(e.message);
     if (e instanceof NotFound)          throw new NotFoundException();
-    throw new InternalServerErrorException();      // ...ve bunu 40 uçta tekrarla
+    throw new InternalServerErrorException();
+    // ...ve bu bloğu 40 uç noktada tekrarlıyorsun.
+    // Birinde unutursan orada uygulama çöküyor.
   }
 }
 
-// ✅ DOĞRU: uçta try/catch YOK
+// ✅ DOĞRU: uç noktada hata yakalama YOK — sadece işi devrediyor
 @Post(':id/close')
 close(@Param('id') id: number, @Body() dto: CloseDto) {
-  return this.service.close(id, dto.note);         // hata fırlarsa filtre yakalar
+  // Servis hata fırlatırsa aşağıdaki merkezî filtre otomatik yakalıyor
+  return this.service.close(id, dto.note);
 }
 ```
 
 Filtre tek yerde, tüm uygulamayı kapsar:
 
 ```ts
+// @Catch() = "uygulamanın HER YERİNDEKİ hatayı yakala" demek.
+// Tek bir yerde duruyor, 40 uç noktanın hepsini birden koruyor.
 @Catch()
 export class DomainExceptionFilter implements ExceptionFilter {
   catch(err: unknown, host: ArgumentsHost) {
     const res = host.switchToHttp().getResponse();
-    const correlationId = this.cls.get('correlationId');   // C.16
 
+    // İsteğin başında üretilen takip numarasını al (C.16).
+    // Aynı numara hem log'a hem kullanıcıya gidecek.
+    const correlationId = this.cls.get('correlationId');
+
+    // Hata türüne bakıp uygun HTTP kodunu belirle: 400 mü 409 mu 500 mü?
     const { status, code } = this.map(err);
 
-    this.logger.error({ err, correlationId, code });       // C.15
+    // Hatayı JSON olarak logla — sonradan aranabilir olsun diye (C.15)
+    this.logger.error({ err, correlationId, code });
 
+    // Kullanıcıya dönen cevap. Biçim her uçta AYNI, arayüz tek yerde ele alıyor.
     res.status(status).json({
-      type:     `https://api.example/errors/${code}`,
-      title:    this.title(code),
-      status,
-      code,                                                 // uygulama hata kodu
-      correlationId,                                        // kullanıcı bunu okur
+      type:     `https://api.example/errors/${code}`,   // hatanın dokümanı
+      title:    this.title(code),                       // kısa başlık
+      status,                                           // HTTP kodu
+      code,                                             // uygulama hata kodu
+      correlationId,                                    // kullanıcı ekranda bunu görür
+      // Doğrulama hatasıysa hangi alanın hatalı olduğu da gönderilir
       errors:   err instanceof ValidationError ? err.fields : undefined,
     });
   }
@@ -3445,28 +3777,38 @@ Her mutasyona uğrayan tabloda bir `version` sütunu var:
 
 ```prisma
 model WorkOrder {
-  id      Int @id @default(autoincrement())
-  version Int @default(0)
-  // ...
+  id      Int @id @default(autoincrement())   // birincil anahtar, otomatik artıyor
+  version Int @default(0)                     // her güncellemede 1 artacak sayaç
+  // Bu sayaç sayesinde "ben okuduktan sonra başkası değiştirmiş mi?"
+  // sorusunu cevaplayabiliyoruz.
 }
 ```
 
 Güncelleme, okunan sürümü **koşul olarak** taşır:
 
 ```ts
+// Güncelleme koşullu: "bu kaydı değiştir AMA sürümü hâlâ okuduğum sürümse."
 const result = await tx.workOrder.updateMany({
-  where: { id, version },                       // ← okunan sürüm
-  data:  { priority, version: { increment: 1 } },
+  where: { id, version },                          // ekranı açtığında okunan sürüm
+  data:  { priority, version: { increment: 1 } },  // değiştir ve sürümü artır
 });
 
+// ⭐ Bu arada başkası kaydı değiştirmişse sürüm artmış olur, koşul tutmaz
+//    ve HİÇBİR satır güncellenmez. Etkilenen satır sayısı 0 gelir —
+//    çakışmanın kanıtı bu.
 if (result.count === 0) throw new ConcurrencyConflictError(id);
 ```
 
 Üretilen SQL kabaca:
 
 ```sql
+-- Yukarıdaki kodun veritabanına gönderdiği gerçek komut:
+-- "Şu kaydın önceliğini değiştir ve sürümünü bir artır,
+--  AMA yalnızca sürümü hâlâ benim okuduğum değerse."
 UPDATE "WorkOrder" SET priority = $1, version = version + 1
 WHERE id = $2 AND version = $3;
+-- ⭐ Kontrol ve yazma TEK komutta. Ayrı yapılsaydı ikisinin arasına başka bir
+--    güncelleme girebilir ve kontrolün kendisi yarış koşulu üretirdi.
 ```
 
 Başkası araya girmişse `version` artmıştır, `WHERE` tutmaz, **etkilenen satır
@@ -3524,9 +3866,13 @@ sahipsiz kalırdı.
 
 ```prisma
 model Location {
-  id        Int       @id @default(autoincrement())
-  name      String
-  deletedAt DateTime?              // null = aktif, dolu = silinmiş
+  id        Int       @id @default(autoincrement())   // otomatik artan numara
+  name      String                                    // lokasyon adı
+  // Soft delete: kayıt gerçekten silinmiyor, buraya silinme tarihi yazılıyor.
+  // null  = kayıt aktif
+  // dolu  = silinmiş sayılıyor ama veritabanında duruyor
+  deletedAt DateTime?
+  // Her sorguda "silinmemiş olanlar" diye filtrelendiği için index gerekli
   @@index([deletedAt])
 }
 ```
@@ -3544,7 +3890,11 @@ Unutulursa silinmiş kayıtlar listede görünür. Bu yüzden koşul tek tek
 yazılmıyor, merkezî bir filtreyle uygulanıyor:
 
 ```ts
-const where = { deletedAt: null, ...userFilters };   // her sorguda ilk satır
+// Her listeleme sorgusunun ilk koşulu: silinmiş kayıtları getirme.
+// Kullanıcının seçtiği filtreler bunun ÜSTÜNE ekleniyor.
+// ⚠️ Bu koşul bir sorguda unutulursa silinmiş kayıtlar listede görünür —
+//    hata vermez, sessizce yanlış veri gösterir.
+const where = { deletedAt: null, ...userFilters };
 ```
 
 ---
@@ -3555,10 +3905,12 @@ Her kayıtta dört alan: **kim oluşturdu, ne zaman, kim güncelledi, ne zaman.*
 
 ```prisma
 model WorkOrder {
-  createdAt DateTime @default(now())
-  createdBy Int
-  updatedAt DateTime @updatedAt
-  updatedBy Int?
+  createdAt DateTime @default(now())   // kayıt açıldığı an, veritabanı doldurur
+  createdBy Int                        // kim açtı — Prisma eklentisi doldurur
+  updatedAt DateTime @updatedAt        // son değişiklik anı, otomatik güncellenir
+  updatedBy Int?                       // kim güncelledi. İlk kayıtta boş olabilir
+  // Bu dört alan servis kodunda ELLE doldurulmuyor; merkezî bir eklenti
+  // aktif kullanıcıyı okuyup kendisi yazıyor (C.16). Unutma ihtimali yok.
 }
 ```
 
@@ -3576,8 +3928,13 @@ o kaydın izi kaybolur.
 (`OPEN`, `ASSIGNED`). Bu projede **metin** tercih edildi.
 
 ```sql
--- Sayıyla:  status = 3      → "3 neydi?" Kod dosyasını açman gerekir
--- Metinle:  status = 'RESOLVED'   → kendi kendini açıklıyor
+-- Enum'u SAYI olarak saklarsak:
+-- Veritabanına bakan kişi 3'ün ne demek olduğunu bilemez, kod dosyasını açar.
+SELECT status FROM "WorkOrder";   -- sonuç: 3
+
+-- Enum'u METİN olarak saklarsak:
+-- Veritabanına bakan herkes ne olduğunu doğrudan anlar.
+SELECT status FROM "WorkOrder";   -- sonuç: 'RESOLVED'
 ```
 
 **Neden:** Veritabanına doğrudan bakan biri (DevOps, raporcu, denetçi) sayıyı
@@ -3639,20 +3996,32 @@ olduğu okunur. Kurumsal sistemlerde numara insanlar arasında konuşulan bir
 **Nasıl üretiliyor:**
 
 ```sql
+-- Veritabanının kendi sayacı. Her çağrıldığında bir sonraki sayıyı verir
+-- ve iki istek aynı anda gelse bile ikisine AYNI sayıyı vermez.
 CREATE SEQUENCE work_order_seq_2026 START 1;
 ```
 
 ```ts
+// Veritabanı sayacından sıradaki numarayı iste (örn. 148)
 const [{ nextval }] = await tx.$queryRaw`SELECT nextval('work_order_seq_2026')`;
+
+// İnsanın okuyacağı biçime çevir: başına sıfır ekleyip ön ek ve yıl koy
+// 148 → "IE-2026-000148"
 const number = `IE-2026-${String(nextval).padStart(6, '0')}`;
 ```
 
 ⛔ **Neden uygulama içinde "son numarayı bul, bir artır" yapılmıyor:**
 
 ```ts
-// ⛔ İki talep aynı anda gelirse ikisi de aynı numarayı alır
+// ⛔ YANLIŞ YOL: "son numarayı bul, bir artır"
+// Son kaydı oku
 const son = await prisma.workOrder.findFirst({ orderBy: { id: 'desc' } });
+// Bir artır
 const number = `IE-2026-${son.seq + 1}`;
+
+// ⚠️ İki talep aynı anda gelirse ikisi de AYNI son kaydı okur ve aynı
+//    numarayı üretir. Buna yarış koşulu denir; tek kullanıcılı testte
+//    asla görünmez, yük altında ortaya çıkar.
 ```
 
 Veritabanı sayacı (sequence) bu yarışı **yapısal olarak** engeller: iki eş
@@ -3691,22 +4060,33 @@ kontrolünü tarayıcıya devretmek demektir.
 ### Sorgu yapısı
 
 ```ts
+// Kullanıcının ekrandan seçtiği filtreler burada tek bir koşula dönüşüyor.
+// "&&" kalıbı şu demek: kullanıcı o filtreyi seçmediyse koşula hiç eklenmiyor.
 const where: Prisma.WorkOrderWhereInput = {
-  deletedAt: null,                                     // soft delete (E.9)
-  ...(status   && { status }),
-  ...(assignee && { assigneeId: assignee }),
-  ...(locationId && { locationId }),
-  ...(slaBreached !== undefined && { slaBreached }),
+  deletedAt: null,                                     // silinmişler hiç gelmesin
+
+  ...(status   && { status }),                         // durum seçildiyse ekle
+  ...(assignee && { assigneeId: assignee }),           // personel seçildiyse ekle
+  ...(locationId && { locationId }),                   // lokasyon seçildiyse ekle
+  ...(slaBreached !== undefined && { slaBreached }),   // "SLA ihlali" kutusu
+
+  // Tarih aralığı: başlangıç girildiyse iki tarih arasını filtrele
   ...(createdFrom && { createdAt: { gte: createdFrom, lte: createdTo } }),
-  ...(q && { OR: [                                     // metin araması (C.5)
+
+  // Arama kutusuna yazı girildiyse: başlıkta VEYA numarada ara.
+  // mode:'insensitive' = büyük/küçük harf farkı gözetme
+  ...(q && { OR: [
     { title:  { contains: q, mode: 'insensitive' } },
     { number: { contains: q, mode: 'insensitive' } },
   ]}),
 };
 
+// İki sorgu birlikte çalışıyor: hem o sayfanın kayıtları hem toplam sayı.
+// Aynı işlem içinde oldukları için arada yeni kayıt eklenip sayı ile
+// liste tutarsız hâle gelemiyor.
 const [rows, total] = await prisma.$transaction([
-  prisma.workOrder.findMany({ where, orderBy, skip, take, select }),
-  prisma.workOrder.count({ where }),
+  prisma.workOrder.findMany({ where, orderBy, skip, take, select }),  // sayfanın kayıtları
+  prisma.workOrder.count({ where }),                                   // kaç kayıt var
 ]);
 ```
 
@@ -3731,10 +4111,13 @@ arada bir kayıt eklenip toplam ile sayfa tutarsız olabilirdi.
 
 ```json
 {
-  "items": [ ... ],
-  "page": 2, "pageSize": 20,
-  "totalCount": 431, "totalPages": 22,
-  "hasNext": true, "hasPrevious": true
+  "items": [ ... ],        // bu sayfadaki kayıtlar (en fazla pageSize kadar)
+  "page": 2,               // kaçıncı sayfadayız
+  "pageSize": 20,          // sayfa başına kaç kayıt
+  "totalCount": 431,       // filtreye uyan TOPLAM kayıt sayısı
+  "totalPages": 22,        // toplam kaç sayfa var
+  "hasNext": true,         // sonraki sayfa var mı — arayüz butonu buna bakıyor
+  "hasPrevious": true      // önceki sayfa var mı
 }
 ```
 
@@ -3821,18 +4204,22 @@ yeniden toslanır.
 # ADR-004 — Mapping kütüphanesi kullanılmaması
 
 ## Durum
+<!-- Karar hangi aşamada: Önerildi / Kabul edildi / Geçersiz kılındı -->
 Kabul edildi — 2026-08-21
 
 ## Bağlam
+<!-- Hangi sorunla karşılaşıldı, hangi kısıtlar vardı -->
 Ödev AutoMapper veya Mapster kullanımını zorunlu tutuyor. JS tarafındaki
 adaylar ölçüldü: class-transformer (12M/hafta ama son yayın 2022),
 @automapper/core (bakımda ama 106K/hafta).
 
 ## Karar
+<!-- Ne yapılmasına karar verildi -->
 Mapping kütüphanesi kullanılmayacak. Response şekli Zod şemasında tanımlanacak,
 Prisma select ondan türetilecek, çıkışta schema.parse() ile fazla alan kırpılacak.
 
 ## Sonuçlar
+<!-- Artılar VE eksiler birlikte. Eksileri yazmak kararın düşünüldüğünün kanıtı -->
 + Hatalar derleme zamanında yakalanıyor
 + Hassas alan sızması yapısal olarak engelleniyor
 − Ödevin harfi harfine istediği araç kullanılmadı; sunumda gerekçelendirilecek
@@ -3896,6 +4283,127 @@ ve yerine konan çözümün **daha sağlam** olduğunu.
 *"varsayımlar"*. Ödev ikisini de açıkça istiyor. Bunları yazmak zayıflık değil,
 **projeye hâkimiyet** göstergesidir — neyin eksik olduğunu bilmek, eksik
 olmadığını iddia etmekten daha güvenilirdir.
+
+---
+
+---
+
+## E.13 Değerlendirilip seçilmeyen alternatifler
+
+Teknik incelemede en sık gelen sorulardan biri *"şunu düşündün mü?"* olur.
+Aşağıdakiler düşünüldü, ölçüldü ve **bilerek** seçilmedi.
+
+---
+
+### Neden Express, Fastify değil (NestJS'in altındaki HTTP katmanı)
+
+NestJS bir HTTP sunucusu değil; altına bir adaptör takılıyor. İki seçenek var:
+**Express** (varsayılan) ve **Fastify** (daha hızlı).
+
+**Darboğaz** = zincirin en yavaş halkası. Yalnızca onu hızlandırmanın anlamı
+var; diğerlerini hızlandırmak toplam süreyi değiştirmez.
+
+Bir iş emri listesi isteğinin süresi kabaca şöyle dağılıyor:
+
+| Aşama | Süre |
+|---|---|
+| HTTP katmanı (Express/Fastify) | ~0.3 ms |
+| Doğrulama + yetki kontrolü | ~0.5 ms |
+| **Veritabanı sorgusu** | **20–80 ms** |
+| Cevabı JSON'a çevirme | ~1 ms |
+
+Fastify HTTP katmanında yaklaşık iki kat hızlı: 0.3 ms → 0.15 ms.
+**60 ms'lik bir istekte kazanç %0.25** — ölçüm aleti zor görür.
+
+Aynı emeği doğru bir index'e harcamak 80 ms'yi 5 ms'ye indiriyor: **16 kat.**
+
+⭐ **Savunma cümlesi:** *"Fastify daha hızlı, doğru. Ama isteğimizin süresinin
+%95'i veritabanında geçiyor; HTTP katmanını iki katına çıkarmak toplamda
+ölçülemeyen bir kazanç veriyor. Emeği index'lere harcadım. Nest'te adaptör tek
+satır — ölçüp gerekirse geçeriz, bu karar bizi bağlamıyor."*
+
+Ayrıca yaygınlık farkı büyük: Nest'in Express adaptörü haftada ~6.6M, Fastify
+adaptörü ~1.3M indiriliyor.
+
+---
+
+### Neden REST, GraphQL değil
+
+**Önce yaygın bir yanılgıyı düzeltelim:** *"REST tüm veriyi getirir, GraphQL
+sadece isteneni"* — bu, **kötü tasarlanmış REST'in belirtisi**, kuralı değil.
+
+Bu projedeki REST zaten sadece gerekeni döndürüyor: liste ekranı için 7 alan,
+detay ekranı için 25 alan, ve veritabanından da yalnızca o alanlar çekiliyor
+(E.6). Yani mobil veri kotası argümanı burada geçerliliğini kaybediyor.
+
+| | REST | GraphQL |
+|---|---|---|
+| HTTP önbelleği | Kendiliğinden çalışır (CDN, tarayıcı, proxy) | Çalışmaz; kendi cache katmanını kurarsın |
+| İzleme | Her uç ayrı adres — hangisi yavaş, hangisi hata veriyor doğrudan görünür | Tek adres (`/graphql`); izleme aracı hepsini aynı görür |
+| Yetkilendirme | Uç bazında | **Alan bazında** — çok daha karmaşık |
+| N+1 sorgu riski | Düşük | Yüksek; ek çözüm (DataLoader) gerekir |
+| Nest'te yaygınlık | Varsayılan | `@nestjs/graphql` ~846K/hafta ile azınlıkta |
+
+⭐ **Belirleyici olan izleme maddesi:** Bu sistemi canlıda sen izlemeyeceksin,
+kurumun DevOps ekibi izleyecek. GraphQL'de *"hangi uç yavaşladı"* sorusu izleme
+aracında görünmez; kurumsal ortamda bu ciddi bir eksiktir.
+
+**GraphQL'in gerçekten kazandığı durum:** *senin kontrol etmediğin* çok sayıda
+istemcinin farklı alan kombinasyonları istemesi. Buradaki istemciler kendi
+web'in ve kendi mobilin — ikisini de sen yazıyorsun, ihtiyaçlarını biliyorsun.
+
+⚠️ Gün gelir de başka kurumlar API'yi tüketmeye başlarsa, REST'in üstüne
+GraphQL katmanı **eklenebilir**. Bugünden ödenmesi gereken bir bedel değil.
+
+---
+
+### Neden Repository Pattern kullanılmadı
+
+Ödev §12 bunu **zorunlu tutmuyor**, ama kullanılırsa gerekçe istiyor —
+kullanılmaması da açıklanmalı.
+
+**Repository Pattern nedir:** Veritabanı erişimini bir ara katmanın arkasına
+saklamak. Amacı, iş kodunun veritabanı aracını doğrudan tanımaması.
+
+**Neden bu projede eklenmedi:**
+
+1. **Prisma zaten o soyutlamadır.** Prisma Client, SQL'i saklayan ve tip güvenli
+   bir arayüz sunan katmanın kendisi. Üstüne ikinci bir katman koymak, aynı işi
+   iki kez yapmak olur.
+2. **`select` ve `include` yeteneklerini kısıtlar.** Repository arkasına
+   saklanınca, her ekranın ihtiyaç duyduğu farklı alan kümesi için ya ayrı metot
+   yazılır ya da her şey döndürülür. İkisi de E.6'daki projeksiyon kazancını
+   yok eder.
+3. **Ödevin uyardığı tuzağa götürür:** *"Her entity için birbirinin aynısı
+   generic CRUD servisleri oluşturulmamalıdır."* Repository katmanı çoğu projede
+   tam olarak buna dönüşür.
+
+**Peki iş kuralları veritabanına nasıl bağımsız kalıyor:** Repository ile değil,
+**bağımlılığın tersine çevrilmesiyle** (E.2 → D harfi). Domain katmanı ihtiyaç
+duyduğu soruyu kendi arayüzü olarak tanımlıyor; onu Prisma ile cevaplayan sınıf
+altyapı katmanında duruyor.
+
+⭐ **Savunma cümlesi:** *"Repository eklemedim çünkü Prisma'nın kendisi o
+soyutlama. İkinci bir katman `select` yeteneklerini kısıtlar ve ödevin uyardığı
+generic CRUD tuzağına götürür. Domain'in bağımsızlığını Repository ile değil,
+bağımlılığı tersine çevirerek sağladım — ve bunu `dependency-cruiser` testiyle
+zorunlu kıldım."*
+
+---
+
+### Neden BullMQ, pg-boss değil
+
+`pg-boss` işleri Redis yerine **PostgreSQL'de** tutuyor. Ödevin *"Hangfire
+verileri PostgreSQL üzerinde saklanmalıdır"* maddesine daha yakındı ve dördüncü
+bir konteyner gerektirmiyordu.
+
+Seçilmeme sebebi **yaygınlık**: BullMQ ~7.9M indirme/hafta, pg-boss ~1.35M.
+Uzun ömürlü ve devredilecek bir kurum sisteminde daha az bilinen aracı seçmek,
+projeyi devralacak geliştiriciyi zorlar.
+
+⚠️ Redis'in eklenmesi tek amaçlı değil: iş kuyruğunun yanında **hız sınırı
+sayacı** ve **dağıtık kilit** için de kullanılıyor. Yani dördüncü konteynerin
+karşılığı yalnızca kuyruk değil.
 
 ---
 
