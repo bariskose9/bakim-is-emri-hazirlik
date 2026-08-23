@@ -1,7 +1,7 @@
 # Teknik Sunum — Anlatım Planı
 
 > **Bu dosya içerik değil, plan.** Anlatılacak her şeyin kaynağı
-> `proje-teknoloji-rehberi.md` dosyasıdır (~58 sayfa). Burada yalnızca *hangi
+> `proje-teknoloji-ve-plan.md` dosyasıdır (~58 sayfa). Burada yalnızca *hangi
 > sırayla, ne kadar sürede ve nasıl* anlatılacağı duruyor.
 >
 > Aynı bilgi iki dosyada tutulmuyor: bir konunun gerekçesi değiştiğinde tek yer
