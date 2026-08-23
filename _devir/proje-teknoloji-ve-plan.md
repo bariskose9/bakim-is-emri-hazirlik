@@ -4572,14 +4572,146 @@ göstermek** demektir.
 yapılacağını** gösteriyor: her adımda ne üretiliyor, hangi teknolojiyle, hangi
 klasöre yazılıyor ve neye bağlanıyor.
 
-> **ℹ️ Neden sıra önemli**
+## Bu plan nasıl kuruldu
+
+Sıra keyfi değil. Dört kurala göre dizildi; her adımın neden orada olduğu bu
+kurallarla açıklanabiliyor.
+
+---
+
+### Kural 1 — Bağımlılık: bir şey, dayandığı şeyden sonra gelir
+
+En bariz olanı. Bir adım, kendinden önce var olması gereken şeyi bekler:
+
+```
+Ortam kurulumu
+     └─► İskelet (boş ama çalışan sistem)
+              └─► Veri modeli ──────────────┐
+                       └─► Kimlik doğrulama │
+                                └─► Modüller (lokasyon, varlık)
+                                         └─► İş emri + durum makinesi
+                                                  ├─► SLA hesabı
+                                                  │        └─► Arka plan işleri
+                                                  │                 └─► Bildirimler
+                                                  └─► Arayüz ekranları
+                                                           └─► Testler
+                                                                └─► Doküman + teslim
+```
+
+**Neden bu yönde:** Veri modeli olmadan API yazılamaz — hangi tabloya
+yazacağını bilmez. API olmadan ekran veri çekemez — çağıracak bir şey yoktur.
+Durum makinesi olmadan SLA hesaplanamaz — hangi iş emrinin hâlâ açık olduğu
+bilinmez.
+
+> **ℹ️ Gerçek hayattan karşılığı**
 >
-> İnşaatta temel atılmadan duvar örülmez, duvar olmadan çatı kurulmaz. Yazılımda
-> da aynı bağımlılık var: veri modeli olmadan API yazılamaz, API olmadan ekran
-> veri çekemez, kimlik doğrulama olmadan yetki kontrolü test edilemez.
+> İnşaatta temel atılmadan duvar örülmez, duvar olmadan çatı kurulmaz. Kimse
+> "çatıyı önce yapalım, temeli sonra atarız" demez — çünkü çatının duracağı bir
+> yer yoktur.
 >
-> Aşağıdaki sıra bu bağımlılıklara göre kuruldu; adım atlanırsa sonraki adım
-> boşlukta kalır.
+> Yazılımda bu bağımlılık **görünmez** olduğu için atlanabiliyor: kod yazılır,
+> derlenir, hatta çalışır gibi görünür — ta ki dayandığı şeyin olmadığı ortaya
+> çıkana kadar.
+
+---
+
+### Kural 2 — Yatay kesen işler erken yapılır
+
+Bazı şeyler tek bir modüle ait değildir; **her modülü kesip geçer**. Kimlik
+doğrulama, hata yönetimi, sayfalama, audit alanları böyledir.
+
+Bunlar sonraya bırakılırsa, yazılmış her modüle **geri dönmek** gerekir.
+
+| Yatay kesen iş | Sonraya bırakılırsa |
+|---|---|
+| Kimlik doğrulama (Adım 4) | Yazılmış her uç noktaya geri dönüp yetki kontrolü eklenir |
+| Merkezî hata yönetimi (Adım 5) | Her uçtaki `try/catch` tek tek sökülür |
+| Sayfalama kalıbı (Adım 5) | Her listeleme ucu yeniden yazılır |
+| Audit alanları (Adım 4) | Yazılmış her kayıt işlemine elle alan doldurma eklenir |
+
+> **ℹ️ Gerçek hayattan karşılığı**
+>
+> Binada elektrik tesisatı **sıva atılmadan önce** döşenir. Sonra döşenecekse
+> duvarların kırılması gerekir.
+>
+> Kimlik doğrulama yazılımın tesisatıdır: her odaya uğrar. Sıvadan sonra
+> eklemek, her odayı yeniden açmak demektir.
+
+---
+
+### Kural 3 — En riskli parça erken denenir
+
+Projede belirsizliği en yüksek, hata ihtimali en fazla olan parça **öne alınır**.
+Sebebi şu: geç kalırsa, sürpriz çıktığında geri dönüş pahalıdır.
+
+Bu projede o parçalar **durum makinesi (Adım 6)** ve **SLA Factory (Adım 7)**.
+İkisi de ödevin en çok puan verdiği yerler ve ikisi de yanlış tasarlanırsa
+üstüne kurulan her şey etkilenir.
+
+⚠️ Ekranlar ise **düşük riskli**: ne yapacakları bellidir, sürpriz çıkmaz.
+Bu yüzden sona bırakıldılar — erken yapılsalardı, arka uçtaki bir tasarım
+değişikliği hepsini yeniden yazdırırdı.
+
+> **ℹ️ Gerçek hayattan karşılığı**
+>
+> Bir yemeği ilk kez pişirirken en zor adımı (hamurun tutması, sosun kesilmemesi)
+> önce dener, sonra süslemeye geçersiniz. Süslemeyi önce yapıp hamurun tutmadığını
+> görmek, iki işi birden çöpe atmak demektir.
+
+---
+
+### Kural 4 — Kalıp, basit yerde oturtulur
+
+Aynı işi birçok kez yapacaksanız, **ilk yaptığınız yer en basit olan**
+seçilir. Orada oturttuğunuz kalıbı sonrakiler tekrarlar.
+
+Bu projede **lokasyon ve varlık modülleri (Adım 5)** bu yüzden iş emrinden
+önce geliyor. İkisi de basit CRUD; karmaşık kural yok. Ama orada kurulan
+şeyler sonraki her modülde kullanılıyor:
+
+- Zod şeması nasıl tanımlanır ve nereye konur
+- Sayfalama yardımcısı nasıl çağrılır
+- Hata filtresi hangi hatayı hangi koda çevirir
+- Soft delete filtresi nereye yazılır
+
+⭐ İş emri modülü doğrudan yazılsaydı, hem karmaşık iş kurallarıyla hem de
+henüz oturmamış kalıplarla aynı anda uğraşılırdı — ve çıkan hatanın hangisinden
+geldiği ayırt edilemezdi.
+
+---
+
+### Sıranın dört evresi
+
+Yukarıdaki kurallar birleşince plan dört evreye ayrılıyor:
+
+| Evre | Adımlar | Ne üretiliyor | Bittiğinde ne kanıtlanmış olur |
+|---|---|---|---|
+| **1. Temel** | 0–2 | Çalışan boş sistem | Altyapı ayakta: dört servis birbirini görüyor |
+| **2. Çekirdek** | 3–9 | Veri, kurallar, arka plan | Sistem **kullanıcısız** çalışıyor: API üzerinden her şey yapılabiliyor |
+| **3. Yüzey** | 10–12 | Ekranlar | İnsan kullanabiliyor |
+| **4. Teslim** | 13–16 | Testler, doküman, paket | Başkası çalıştırabiliyor ve devralabiliyor |
+
+⭐ **2. evrenin sonunda sistem tamamdır — ekran olmadan.** Bu bilinçli: iş
+kuralları arayüzden bağımsız olduğu için (E.1), doğruluğu ekran yazılmadan
+kanıtlanabiliyor. Ekran yalnızca **var olan** bir yeteneği insana açıyor.
+
+---
+
+### Bu plan neyi kabul etmiyor
+
+⛔ **"Önce ekranı yapalım, arkasını sonra bağlarız."** Yaygın ama pahalı: ekran,
+henüz var olmayan bir veri şekline göre tasarlanır; arka uç yazılınca şekil
+değişir ve ekran baştan yazılır.
+
+⛔ **"Testleri sona bırakalım."** Testler Adım 13'te *tamamlanıyor* ama her
+adımda **yazılıyor.** Sona bırakılan test, yazıldığında çoktan çalışan bir kodu
+onaylamaktan ibaret kalır — hata bulmaz.
+
+⛔ **"Dokümanı en sonda yazarız."** Adım 14 derleme adımıdır, yazma adımı değil.
+Her adımın kararı o adım biterken yazılır; gerekçe, kararı verirken en net
+hatırlanır.
+
+---
 
 **Kutucuklar:** ⬜ yapılmadı · ✅ bitti. Her adım tamamlandığında kutucuk
 işaretlenir; böylece projeye ara verilip dönüldüğünde nerede kalındığı tek
@@ -4616,6 +4748,16 @@ iş emri numarası hangi biçimde, hangi rol neyi görebilir, kapsam dışı ne.
 
 ⛔ **Bu adım atlanamaz.** Cevabı bilinmeyen bir kural kodlanırsa, yanlış varsayım
 tüm katmanlara yayılır ve geri dönüşü pahalı olur.
+
+> **ℹ️ Neden en başta**
+>
+> *"SLA süresi kaç saat"* sorusunun cevabı veri modelini (hangi kolonlar),
+> iş kurallarını (hangi eşik) ve arka plan işlerini (ne zaman tetiklenecek)
+> birden etkiliyor. Yani bu tek cevap **üç ayrı adımı** belirliyor.
+>
+> Kod yazıldıktan sonra öğrenilirse, üçünü birden değiştirmek gerekir.
+> Terzi ölçü almadan kumaş kesmez; kesildikten sonra ölçü öğrenmek kumaşı
+> çöpe atmaktır.
 
 ---
 
@@ -4673,8 +4815,19 @@ Hepsinin gerekçesi E.9'da.
 | **Bitti sayılır** | Yanlış şifre 401 · yetkisiz rol 403 · pasif kullanıcı giremiyor · jeton yenileme eskisini iptal ediyor |
 | **Rehberde** | C.13 JWT ve argon2 · C.16 `nestjs-cls` |
 
-⚠️ **Neden bu kadar erken:** Sonraki her modülün yetki kontrolüne ihtiyacı var.
-Sonra eklenirse, yazılmış her uç noktaya geri dönüp Guard takmak gerekir.
+⚠️ **Neden bu kadar erken — Kural 2 (yatay kesen iş):** Sonraki her modülün
+yetki kontrolüne ihtiyacı var. Sonra eklenirse yazılmış her uç noktaya geri
+dönüp Guard takmak gerekir.
+
+Ayrıca **audit alanları buna bağlı**: "kim oluşturdu" bilgisi ancak aktif
+kullanıcı bilinirse doldurulabiliyor. Kimlik doğrulama olmadan yazılan her
+kayıt, sahibi belirsiz kayıt olur.
+
+> **ℹ️ Gerçek hayattan karşılığı**
+>
+> Bir kuruma giriş kartı sistemi, odalar döşenmeden önce kurulur. Sonra
+> kurulacaksa her kapının yeniden sökülmesi gerekir — ve o ana kadar içeri kimin
+> girip çıktığının kaydı yoktur.
 
 ---
 
@@ -4694,6 +4847,16 @@ burada oturtuyoruz**; sonraki modüller bu kalıbı tekrarlayacak.
 **Burada kurulan ve tekrar kullanılacak parçalar:** ortak sayfalama yardımcısı,
 merkezî hata filtresi, response şeması kalıbı, soft delete filtresi.
 
+> **ℹ️ Neden iş emrinden önce — Kural 4 (kalıp basit yerde oturur)**
+>
+> Lokasyon ve varlık basit modüller: karmaşık iş kuralı yok, durum geçişi yok,
+> eşzamanlılık sorunu yok. Kalıbı burada oturtmak, yalnızca **kalıpla**
+> uğraşmak demek.
+>
+> Doğrudan iş emriyle başlansaydı, hem oturmamış kalıpla hem karmaşık kuralla
+> aynı anda uğraşılırdı — ve çıkan hatanın hangisinden geldiği ayırt edilemezdi.
+> Yeni bir tarifi önce basit malzemeyle denemek gibi.
+
 ---
 
 ## ⬜ Adım 6 — İş emri çekirdeği ve durum makinesi
@@ -4711,6 +4874,16 @@ değiştirme ve her değişikliğin geçmişe yazılması.
 
 ⛔ **Kurallar `packages/domain` içinde, Prisma'yı tanımadan yazılıyor.** Bu,
 `dependency-cruiser` ile CI'da zorlanıyor (C.8).
+
+> **ℹ️ Neden bu kadar erken — Kural 3 (riskli parça öne alınır)**
+>
+> Durum makinesi projenin en belirsiz parçası: hangi geçişe izin verileceği,
+> hangi koşulun aranacağı, geçmişin nasıl tutulacağı burada kararlaşıyor.
+> Yanlış tasarlanırsa **üstüne kurulan her şey** etkileniyor — SLA hesabı,
+> bildirimler, ekranlar.
+>
+> Ekranlar ise düşük riskli; ne yapacakları belli. Bu yüzden riskli olan başa,
+> belirli olan sona alındı.
 
 ---
 
@@ -4745,6 +4918,15 @@ taraması, günlük özet, arşiv adayı belirleme.
 ⚠️ **İşler yalnızca kimlik numarası alıyor**, nesnenin tamamını değil — kuyrukta
 beklerken veri eskiyebilir.
 
+> **ℹ️ Neden SLA'dan sonra**
+>
+> Arka plan işlerinin çoğu SLA zamanlarına bakıyor: "süresi yaklaşan" ve
+> "süresi geçen" iş emirlerini buluyor. O zamanlar hesaplanmadan bu işler
+> neye bakacağını bilemez.
+>
+> Sıra tersine çevrilseydi, işler yazılır ama test edilemezdi — kontrol
+> edecekleri alan henüz dolmuyor olurdu.
+
 ---
 
 ## ⬜ Adım 9 — Bildirimler ve yönetim istatistikleri
@@ -4774,6 +4956,17 @@ beklerken veri eskiyebilir.
 | **Rehberde** | C.2 Next.js · **C.19 TanStack Query** · C.20 Tailwind/shadcn |
 
 ⚠️ **Ekranda buton gizlemek güvenlik değildir** — asıl kontrol sunucuda (Adım 4).
+Butonu gizlemek kullanıcıya kolaylıktır; yetkisi olmayan biri isteği elle de
+gönderebilir ve sunucu onu reddetmek zorundadır.
+
+> **ℹ️ Neden ekranlar bu kadar geç**
+>
+> Bu noktada arka uç **tamamen çalışıyor**: her işlem API üzerinden
+> yapılabiliyor, kurallar test edilmiş durumda. Ekran, var olan bir yeteneği
+> insana açıyor — yeni bir yetenek eklemiyor.
+>
+> Ekranlar önce yazılsaydı, henüz var olmayan bir veri şekline göre tasarlanır
+> ve arka uç yazılınca baştan elden geçirilirdi.
 
 ---
 
