@@ -1,4 +1,4 @@
-# Bakım ve İş Emri Yönetim Sistemi — Teknoloji ve Karar Rehberi
+# Bakım ve İş Emri Yönetim Sistemi — Teknoloji ve Plan Rehberi
 
 > Bu doküman şu soruyu baştan sona cevaplar: **"Kurumun istediği her maddeyi
 > hangi teknolojiyle karşılıyorum, o teknoloji nedir, ne işe yarar ve bu
@@ -7,6 +7,11 @@
 > Her bölüm **kendi içinde yeterlidir** — bir teknolojiyi okurken başa dönmeniz
 > gerekmez; o teknoloji orada yeniden ve tam olarak anlatılır. Kavramlar,
 > prensipler ve tasarım desenleri Bölüm E'de ayrıca ele alınır.
+>
+> **Sadece "ne yapılacak" sorusunun cevabı aranıyorsa:** doğrudan **BÖLÜM G —
+> Yapım planı**'na gidilebilir. Orada her adımın ne ürettiği, hangi teknolojiyle,
+> hangi klasöre yazıldığı ve neye bağlandığı tablo hâlinde duruyor; ayrıntı
+> gerektiğinde ilgili bölüme işaret ediyor.
 
 ---
 
@@ -4558,6 +4563,323 @@ kadar hangi katman devreye giriyor, hangi kural nerede çalışıyor.
 ⭐ **Sunumda en çok işe yarayacak bölüm budur.** *"Mimariyi anlat"* dendiğinde
 katman isimlerini saymak yerine bu yolculuğu anlatmak, mimariyi **anlatmadan
 göstermek** demektir.
+
+---
+
+# BÖLÜM G — Yapım planı: adım adım ne, neyle, nereye
+
+Önceki bölümler **neyi neden** seçtiğimizi anlattı. Bu bölüm **hangi sırayla
+yapılacağını** gösteriyor: her adımda ne üretiliyor, hangi teknolojiyle, hangi
+klasöre yazılıyor ve neye bağlanıyor.
+
+> **ℹ️ Neden sıra önemli**
+>
+> İnşaatta temel atılmadan duvar örülmez, duvar olmadan çatı kurulmaz. Yazılımda
+> da aynı bağımlılık var: veri modeli olmadan API yazılamaz, API olmadan ekran
+> veri çekemez, kimlik doğrulama olmadan yetki kontrolü test edilemez.
+>
+> Aşağıdaki sıra bu bağımlılıklara göre kuruldu; adım atlanırsa sonraki adım
+> boşlukta kalır.
+
+**Kutucuklar:** ⬜ yapılmadı · ✅ bitti. Her adım tamamlandığında kutucuk
+işaretlenir; böylece projeye ara verilip dönüldüğünde nerede kalındığı tek
+bakışta görülür.
+
+---
+
+## ⬜ Adım 0 — Ortam kurulumu
+
+**Amaç:** Geliştirme yapılabilir bir makine.
+
+| | |
+|---|---|
+| **Teknoloji** | Node.js 24, pnpm, Docker Desktop, Git, VS Code, Claude Code eklentileri |
+| **Nereye** | Makinenin kendisi — projeye dosya yazılmıyor |
+| **Neye bağlanıyor** | Sonraki her adım buna dayanıyor |
+| **Bitti sayılır** | `node -v`, `pnpm -v`, `docker -v`, `gh --version` hepsi sürüm veriyor |
+| **Rehberde** | C.10 Docker · `_devir/NE-YAPACAGIM.md` |
+
+---
+
+## ⬜ Adım 1 — PRD: sistemin ne yapacağının yazılı hâli
+
+**Amaç:** Ödevde yazmayan onlarca kararı netleştirmek. SLA süreleri kaç saat,
+iş emri numarası hangi biçimde, hangi rol neyi görebilir, kapsam dışı ne.
+
+| | |
+|---|---|
+| **Teknoloji** | Yok — bu bir görüşme adımı |
+| **Nereye** | `docs/project/PRD.md` |
+| **Neye bağlanıyor** | Veri modeli (Adım 3) ve iş kuralları (Adım 6-7) buradan türüyor |
+| **Bitti sayılır** | PRD'de "açık soru" kalmadı |
+| **Rehberde** | BÖLÜM B — sistemin yapması istenen 12 şey |
+
+⛔ **Bu adım atlanamaz.** Cevabı bilinmeyen bir kural kodlanırsa, yanlış varsayım
+tüm katmanlara yayılır ve geri dönüşü pahalı olur.
+
+---
+
+## ⬜ Adım 2 — İskelet: boş ama çalışan sistem
+
+**Amaç:** Dört parçanın (web, api, worker, veritabanı) birbirini görerek ayağa
+kalkması. Henüz hiçbir özellik yok — sadece iskele.
+
+| | |
+|---|---|
+| **Teknoloji** | pnpm workspaces + Turborepo · NestJS · Next.js · Docker Compose |
+| **Nereye** | `apps/web`, `apps/api`, `apps/worker`, `packages/contracts`, `docker-compose.yml` |
+| **Neye bağlanıyor** | Web → API'ye "merhaba" isteği atıyor, API → veritabanına bağlanabiliyor |
+| **Bitti sayılır** | `docker compose up --build` dörtünü birden ayağa kaldırıyor · `/health/ready` yeşil |
+| **Rehberde** | C.1 NestJS · C.2 Next.js · C.10 Docker · C.14 Turborepo · C.17 Terminus |
+
+> **ℹ️ Neden önce boş iskelet**
+>
+> Bir özellik yazıp sonra "acaba Docker'da çalışır mı" diye bakmak, iki sorunu
+> aynı anda çözmek demektir: hem özelliğin hatası hem altyapının hatası aynı
+> anda karşına çıkar, hangisi olduğunu ayıramazsın.
+>
+> Boş iskelet ayağa kalktığında altyapı **kanıtlanmış** olur; sonraki her hata
+> yazdığın koda aittir.
+
+---
+
+## ⬜ Adım 3 — Veri modeli
+
+**Amaç:** Tablolar, ilişkiler, index'ler ve ilk örnek veri.
+
+| | |
+|---|---|
+| **Teknoloji** | Prisma (şema + migration) · PostgreSQL · `@dbml/cli` |
+| **Nereye** | `apps/api/prisma/schema.prisma` · `prisma/migrations/` · `docs/database.dbml` |
+| **Neye bağlanıyor** | Migration veritabanına tabloları kuruyor; DBML dosyası aynı şemadan **otomatik** üretiliyor |
+| **Bitti sayılır** | Migration boş veritabanına uygulanıyor · seed verisi yükleniyor · CI'daki DBML kontrolü yeşil |
+| **Rehberde** | C.3 Prisma · C.5 PostgreSQL · C.21 `@dbml/cli` · **E.9 veri modeli kararları** |
+
+**Bu adımda verilen kararlar:** soft delete hangi tablolarda, enum metin mi sayı
+mı, tarihler UTC mi, hangi kolonlara index, iş emri numarası nasıl üretiliyor.
+Hepsinin gerekçesi E.9'da.
+
+---
+
+## ⬜ Adım 4 — Kimlik doğrulama ve yetkilendirme
+
+**Amaç:** Giriş, oturum yenileme, rol bazlı yetki, pasif kullanıcı engeli.
+
+| | |
+|---|---|
+| **Teknoloji** | `@nestjs/jwt` · argon2 · NestJS Guard · `nestjs-cls` |
+| **Nereye** | `apps/api/src/modules/auth/` · Guard'lar `apps/api/src/common/guards/` |
+| **Neye bağlanıyor** | Giriş → jeton üretiliyor → sonraki her istekte Guard jetonu çözüp kullanıcıyı `nestjs-cls` bağlamına koyuyor → audit alanları oradan doluyor |
+| **Bitti sayılır** | Yanlış şifre 401 · yetkisiz rol 403 · pasif kullanıcı giremiyor · jeton yenileme eskisini iptal ediyor |
+| **Rehberde** | C.13 JWT ve argon2 · C.16 `nestjs-cls` |
+
+⚠️ **Neden bu kadar erken:** Sonraki her modülün yetki kontrolüne ihtiyacı var.
+Sonra eklenirse, yazılmış her uç noktaya geri dönüp Guard takmak gerekir.
+
+---
+
+## ⬜ Adım 5 — Lokasyon ve varlık modülleri
+
+**Amaç:** İlk gerçek CRUD ekranlarının arka ucu. Basit oldukları için **kalıbı
+burada oturtuyoruz**; sonraki modüller bu kalıbı tekrarlayacak.
+
+| | |
+|---|---|
+| **Teknoloji** | NestJS modülü · Zod (`packages/contracts`) · Prisma · Exception Filter |
+| **Nereye** | `apps/api/src/modules/locations/`, `.../assets/` · şemalar `packages/contracts/` |
+| **Neye bağlanıyor** | İstek → Zod doğrulaması → servis → Prisma → veritabanı. Cevap dönerken şemadan geçip fazla alanlar kırpılıyor |
+| **Bitti sayılır** | Liste, detay, oluştur, güncelle, pasife al çalışıyor · pasif lokasyonda yeni varlık açılamıyor |
+| **Rehberde** | C.4 Zod · E.6 mapping · E.7 hata yönetimi · E.10 sayfalama |
+
+**Burada kurulan ve tekrar kullanılacak parçalar:** ortak sayfalama yardımcısı,
+merkezî hata filtresi, response şeması kalıbı, soft delete filtresi.
+
+---
+
+## ⬜ Adım 6 — İş emri çekirdeği ve durum makinesi
+
+**Amaç:** Sistemin kalbi. Talep açma, iş emrine dönüştürme, atama, durum
+değiştirme ve her değişikliğin geçmişe yazılması.
+
+| | |
+|---|---|
+| **Teknoloji** | Saf TypeScript (domain katmanı) · `prisma.$transaction` · `version` kolonu |
+| **Nereye** | Kurallar `packages/domain/work-order/` · akış `apps/api/src/modules/work-orders/` |
+| **Neye bağlanıyor** | Durum değişikliği + geçmiş kaydı **tek transaction** içinde yazılıyor; eş zamanlı güncelleme `version` ile yakalanıp 409 dönüyor |
+| **Bitti sayılır** | Geçersiz geçiş reddediliyor · kapalı iş emri güncellenemiyor · iki kişi aynı anda değiştirince biri 409 alıyor |
+| **Rehberde** | **E.5 durum makinesi** · **E.8 transaction ve eşzamanlılık** · E.1 katmanlar |
+
+⛔ **Kurallar `packages/domain` içinde, Prisma'yı tanımadan yazılıyor.** Bu,
+`dependency-cruiser` ile CI'da zorlanıyor (C.8).
+
+---
+
+## ⬜ Adım 7 — SLA hesabı ve Factory Pattern
+
+**Amaç:** İş emrine uygulanacak süre politikasının seçilmesi ve üç zamanın
+(bitiş, hatırlatma, yükseltme) hesaplanması.
+
+| | |
+|---|---|
+| **Teknoloji** | NestJS bağımlılık enjeksiyonu (çoklu sağlayıcı) · Factory Pattern · `Clock` soyutlaması |
+| **Nereye** | `packages/domain/sla/` — her politika ayrı dosya, factory bir dosya |
+| **Neye bağlanıyor** | İş emri oluşturulurken factory çağrılıyor → hesaplanan zamanlar iş emriyle **aynı satıra** yazılıyor → hatırlatma işi kuyruğa bırakılıyor |
+| **Bitti sayılır** | Her politika ayrı ayrı test edilmiş · factory'nin doğru politikayı seçtiği test edilmiş · yeni politika eklemek mevcut kodu değiştirmiyor |
+| **Rehberde** | **E.4 Factory Pattern** · E.0 → SLA · E.2 → O harfi |
+
+---
+
+## ⬜ Adım 8 — Arka plan işleri
+
+**Amaç:** Kimse ekranı açmasa da çalışan dört iş: SLA hatırlatma, ihlal
+taraması, günlük özet, arşiv adayı belirleme.
+
+| | |
+|---|---|
+| **Teknoloji** | BullMQ + Redis · ayrı worker süreci (`apps/worker`) |
+| **Nereye** | İş tanımları `apps/worker/src/jobs/`, kuyruğa bırakma `apps/api` içinden |
+| **Neye bağlanıyor** | API işi kuyruğa bırakıyor → Redis'te bekliyor → worker zamanı gelince alıp çalıştırıyor → sonuç veritabanına yazılıyor |
+| **Bitti sayılır** | İş iki kez çalışsa da tek bildirim üretiyor · kapalı iş emrinde hiçbir şey yapmıyor · hatada yeniden deniyor |
+| **Rehberde** | **C.6 BullMQ + Redis** · C.16 → worker bağlamı |
+
+⚠️ **İşler yalnızca kimlik numarası alıyor**, nesnenin tamamını değil — kuyrukta
+beklerken veri eskiyebilir.
+
+---
+
+## ⬜ Adım 9 — Bildirimler ve yönetim istatistikleri
+
+**Amaç:** Kullanıcıya sistem içi bildirim, yöneticiye özet sayılar.
+
+| | |
+|---|---|
+| **Teknoloji** | Prisma benzersiz index · Prisma toplama sorguları |
+| **Nereye** | `apps/api/src/modules/notifications/`, `.../dashboard/` |
+| **Neye bağlanıyor** | Durum değişikliği ve arka plan işleri bildirim üretiyor; benzersiz index mükerrerini engelliyor |
+| **Bitti sayılır** | Aynı olay iki kez işlense de tek bildirim var · sayılar veritabanında hesaplanıyor, bellekte değil |
+| **Rehberde** | C.5 → unique constraint · E.10 → sayma |
+
+---
+
+## ⬜ Adım 10 — Arayüz temeli
+
+**Amaç:** Giriş ekranı, oturum yönetimi, korumalı sayfalar, ortak API katmanı.
+
+| | |
+|---|---|
+| **Teknoloji** | Next.js App Router · TanStack Query · Tailwind + shadcn/ui |
+| **Nereye** | `apps/web/app/(auth)/`, `apps/web/app/(protected)/`, `apps/web/hooks/` |
+| **Neye bağlanıyor** | Ekran → `hooks/` içindeki ortak katman → API. Hiçbir ekran doğrudan istek atmıyor |
+| **Bitti sayılır** | Girişsiz kullanıcı korumalı sayfaya giremiyor · jeton süresi dolunca sessizce yenileniyor · rol bazlı butonlar gizleniyor |
+| **Rehberde** | C.2 Next.js · **C.19 TanStack Query** · C.20 Tailwind/shadcn |
+
+⚠️ **Ekranda buton gizlemek güvenlik değildir** — asıl kontrol sunucuda (Adım 4).
+
+---
+
+## ⬜ Adım 11 — İş emri listesi
+
+**Amaç:** Sunucu tarafı filtreleme, arama, sıralama, sayfalama ve filtrelerin
+adres çubuğuyla senkronu.
+
+| | |
+|---|---|
+| **Teknoloji** | Prisma `where`/`skip`/`take` · `pg_trgm` + GIN index · Next.js `searchParams` |
+| **Nereye** | Uç `apps/api/.../work-orders/`, ekran `apps/web/app/(protected)/is-emirleri/` |
+| **Neye bağlanıyor** | Kullanıcı filtre seçiyor → adres çubuğuna yazılıyor → API'ye gidiyor → veritabanı yalnızca o sayfayı dönüyor |
+| **Bitti sayılır** | Filtreli liste adresi paylaşıldığında aynı sonucu açıyor · azami sayfa boyutu sınırı çalışıyor |
+| **Rehberde** | **E.10 listeleme ve sayfalama** · C.5 → metin araması |
+
+---
+
+## ⬜ Adım 12 — İş emri detayı ve kalan ekranlar
+
+**Amaç:** 12 ekranın tamamlanması: detay, düzenleme, durum değiştirme, atama,
+yorum, geçmiş, bildirimler, hata ekranları.
+
+| | |
+|---|---|
+| **Teknoloji** | React Hook Form + Zod resolver · TanStack Query mutation |
+| **Nereye** | `apps/web/app/(protected)/**` |
+| **Neye bağlanıyor** | Form doğrulaması backend ile **aynı Zod şemasını** kullanıyor; işlem başarılı olunca liste otomatik tazeleniyor |
+| **Bitti sayılır** | 12 ekranın hepsi çalışıyor · backend hata mesajları kullanıcıya gösteriliyor |
+| **Rehberde** | C.20 React Hook Form · C.19 → `invalidateQueries` |
+
+---
+
+## ⬜ Adım 13 — Test tamamlama
+
+**Amaç:** Üç test türünün de yeşil olması.
+
+| | |
+|---|---|
+| **Teknoloji** | Vitest (birim) · Testcontainers (entegrasyon) · dependency-cruiser (mimari) · Playwright (uçtan uca) |
+| **Nereye** | Her modülün yanında `*.spec.ts`, entegrasyon `apps/api/test/` |
+| **Neye bağlanıyor** | CI bu dört zinciri sırayla koşuyor; biri kırmızıysa kod ana dala giremiyor |
+| **Bitti sayılır** | Ödev §23'teki senaryoların tamamı test edilmiş · koruma testleri geçici kaldırma yöntemiyle **kanıtlanmış** |
+| **Rehberde** | C.7 Testcontainers · C.11 Vitest · C.8 dependency-cruiser · C.12 Playwright |
+
+---
+
+## ⬜ Adım 14 — Dokümantasyon ve sunum
+
+**Amaç:** Ödevin istediği sekiz doküman, ADR'ler, `AI_USAGE.md` ve sunumun
+derlenmesi.
+
+| | |
+|---|---|
+| **Teknoloji** | Yok — yazı işi |
+| **Nereye** | `README.md`, `AI_USAGE.md`, `docs/**`, `docs/decisions/` |
+| **Neye bağlanıyor** | Her session'da alınan kararlar buraya birikmiş oluyor |
+| **Bitti sayılır** | Sekiz dosyanın hepsi var · en az üç ADR yazılmış · bilinen eksikler listelenmiş |
+| **Rehberde** | **E.12 ADR ve AI_USAGE** |
+
+⚠️ Bu adım **en sona bırakılmaz.** Her session'ın kararları o session biterken
+yazılır; gerekçe, kararı verirken en net hatırlanır.
+
+---
+
+## ⬜ Adım 15 — Teslim paketi
+
+**Amaç:** DevOps'un sorunsuz çalıştırabileceği paket.
+
+| | |
+|---|---|
+| **Teknoloji** | Çok aşamalı Dockerfile · Docker Compose · GitLab CI |
+| **Nereye** | `Dockerfile`, `docker-compose.yml`, `.env.example`, `.gitlab-ci.yml` |
+| **Neye bağlanıyor** | Tek komut dört servisi ayağa kaldırıyor; migration açılışta uygulanıyor |
+| **Bitti sayılır** | Temiz bir makinede `docker compose up --build` çalışıyor · `.env.example` eksiksiz |
+| **Rehberde** | C.10 Docker · E.11 CI · BÖLÜM 0 → sistem nasıl çalışıyor |
+
+---
+
+## ⬜ Adım 16 — Kite geri yazma
+
+**Amaç:** Bu projede öğrenilen ve **stack'ten bağımsız** olan kuralların bir
+sonraki projeye taşınması.
+
+| | |
+|---|---|
+| **Teknoloji** | `/kit-senkron` |
+| **Nereye** | `proje-kiti` eklentisi |
+| **Neye bağlanıyor** | Kural kite yazılınca sonraki her projede otomatik geçerli oluyor |
+| **Bitti sayılır** | Öğrenilen kurallar kite işlendi ve sürüm yayınlandı |
+| **Rehberde** | — |
+
+---
+
+## Her adımın sonunda yapılacaklar
+
+Bir adım bittiğinde, **oturum kapatılmadan önce** sırayla:
+
+1. Testler yeşil mi (`pnpm ci:verify`)
+2. Bu adımın kararları ilgili dokümana yazıldı mı
+3. Commit atıldı ve değişiklik önerisi açıldı mı
+4. **Yukarıdaki kutucuk ⬜ → ✅ yapıldı mı**
+5. Bir sonraki adımı tarif eden not güncellendi mi
+
+⛔ **4. madde atlanmaz.** Projeye bir hafta ara verilip dönüldüğünde, nerede
+kalındığını hatırlamanın tek güvenilir yolu bu liste.
 
 ---
 

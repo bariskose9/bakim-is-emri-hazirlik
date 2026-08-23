@@ -1,7 +1,7 @@
 # Teknik Sunum — Anlatım Planı
 
 > **Bu dosya içerik değil, plan.** Anlatılacak her şeyin kaynağı
-> `proje-teknoloji-rehberi.md` dosyasıdır (~52 sayfa). Burada yalnızca *hangi
+> `proje-teknoloji-rehberi.md` dosyasıdır (~58 sayfa). Burada yalnızca *hangi
 > sırayla, ne kadar sürede ve nasıl* anlatılacağı duruyor.
 >
 > Aynı bilgi iki dosyada tutulmuyor: bir konunun gerekçesi değiştiğinde tek yer
@@ -44,6 +44,7 @@ sona anlatırsan, mimariyi *anlatmadan göstermiş* olursun.
 | Test ve teslim | **C.7** Testcontainers · **C.11** Vitest · **C.8** mimari testi · **C.10** Docker |
 | Dokümantasyon | **E.12** ADR ve AI_USAGE |
 | Reddedilen alternatifler | **E.13** — Fastify, GraphQL, Repository, pg-boss |
+| Yapım sırası ve durum | **BÖLÜM G** — 17 adım, kutucuklarla ilerleme |
 
 ### Kod örneklerini sunumda kullanmak
 
