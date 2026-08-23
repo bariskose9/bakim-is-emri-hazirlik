@@ -4352,8 +4352,92 @@ aracında görünmez; kurumsal ortamda bu ciddi bir eksiktir.
 istemcinin farklı alan kombinasyonları istemesi. Buradaki istemciler kendi
 web'in ve kendi mobilin — ikisini de sen yazıyorsun, ihtiyaçlarını biliyorsun.
 
-⚠️ Gün gelir de başka kurumlar API'yi tüketmeye başlarsa, REST'in üstüne
-GraphQL katmanı **eklenebilir**. Bugünden ödenmesi gereken bir bedel değil.
+#### Önce terim: REST ile GraphQL aynı türden şeyler değil
+
+Bu ayrım mülakatta sorulabilir ve çoğu kişi karıştırır.
+
+| | **REST** | **GraphQL** |
+|---|---|---|
+| Ne türden şey | Mimari **stil** — bir kısıtlar bütünü | **Sorgu dili** + çalıştırma **şartnamesi** |
+| Sıfat hâli | **RESTful** ("bu API RESTful'dur") | Yok — yalnızca *"GraphQL API"* denir |
+| Kim tanımladı | Roy Fielding, 2000 doktora tezi | Facebook 2012; 2015'te açık kaynak, bugün GraphQL Foundation |
+| Uyum nasıl ölçülür | **Dereceli** — bir API "şu kadar RESTful" olabilir | **İkili** — şartnameyi uygular ya da uygulamaz |
+
+⭐ Son satır önemli: REST bir yelpazedir, bir API'nin ne kadar RESTful olduğu
+tartışılır. GraphQL'de böyle bir tartışma yoktur — şartname ya uygulanır ya
+uygulanmaz.
+
+#### İkisi AYNI ANDA kullanılabilir mi — evet
+
+Bu, "birini seç" sorusu değil. İkisi aynı sistemde yan yana çalışabilir, çünkü
+ikisi de **yalnızca giriş kapısıdır**; arkalarındaki iş kuralları ortaktır.
+
+```
+                    ┌─ REST uçları  (/api/v1/work-orders)  ─┐
+Dış dünya ─────────►│                                       ├──► servis katmanı ──► veritabanı
+                    └─ GraphQL ucu  (/graphql)             ─┘
+```
+
+⭐ Bu, katmanlı mimarinin (E.1) somut karşılığı: **iş kuralları HTTP'yi
+tanımadığı için** giriş kapısı değiştirilebiliyor ya da çoğaltılabiliyor.
+Servis katmanı, doğrulama, yetki ve veritabanı erişimi hiç değişmiyor.
+
+Pratik sonuç: bugün REST yazmak, yarın GraphQL eklemeyi **engellemiyor.**
+Mevcut REST tüketicileri de çalışmaya devam ediyor.
+
+#### "Başka kurumlar tüketirse" — belediyede somut karşılığı
+
+Bugün bu API'yi yalnızca **senin yazdığın** web arayüzü çağırıyor. İhtiyacı olan
+alanları biliyorsun, uçları ona göre tasarlıyorsun.
+
+Şu durumlar ortaya çıkarsa tablo değişir:
+
+| Senaryo | Neden farklı |
+|---|---|
+| Başka bir müdürlüğün panosu iş emri verilerini göstermek istiyor | Onların ihtiyacı senin liste ekranınla aynı değil |
+| İzmirim Kart uygulaması vatandaşın açtığı talebin durumunu göstermek istiyor | Yalnızca 3–4 alan istiyor; senin 7 alanlık listen fazla |
+| Yüklenici firma portalı kendi ekibine atanmış işleri çekiyor | Kendi alan kümesi var, üstelik **onların kodunu sen yazmıyorsun** |
+| Merkezî bir sistem entegrasyon istiyor | Alan adları ve biçimleri onların şartnamesine göre |
+| Açık veri portalı anonim istatistik yayınlıyor | Kişisel veri içermeyen bambaşka bir kesit |
+
+Ortak nokta: **her tüketici farklı alan kombinasyonu istiyor ve sen o
+istemcileri yazmıyorsun.**
+
+**REST'te bu durumda iki kötü seçenek doğar:**
+
+1. Her tüketici için ayrı uç açmak — `/work-orders/for-izmirim-kart`,
+   `/work-orders/for-yuklenici`… Uç sayısı tüketici sayısıyla birlikte artar,
+   her biri ayrı bakım ister
+2. Herkese her şeyi döndürmek — gereksiz veri, gereksiz yük ve
+   ⛔ **ihtiyacı olmayan tarafa kişisel veri göndermek**
+
+GraphQL'in kazandığı yer tam burasıdır: her istemci kendi alanlarını sorar,
+sen yeni uç yazmazsın.
+
+#### Karar bugün nasıl veriliyor
+
+Dört soru sorulur; **hepsine "hayır" ise REST tek başına yeterlidir**:
+
+| Soru | Bu projede |
+|---|---|
+| API'yi **senin yazmadığın** istemciler tüketecek mi? | Hayır — web ve ileride mobil, ikisi de senin |
+| Tüketicilerin veri ihtiyaçları birbirinden **belirgin farklı** mı? | Hayır — aynı ekranların aynı alanları |
+| Tüketicileri **sen güncelleyemiyor** musun? | Hayır — ikisini de sen yayınlıyorsun |
+| İzleme ve önbellek **kurumun altyapısına** bağlı mı? | **Evet** → bu, GraphQL'in aleyhine bir cevap |
+
+Dördüncü soru bu projede belirleyici: sistemi canlıda **DevOps ekibi** izleyecek.
+GraphQL'de tüm istekler tek adrese (`/graphql`) gittiği için *"hangi uç
+yavaşladı"* sorusu izleme aracında görünmez.
+
+⚠️ **Bugün GraphQL eklemenin bedeli** — hiçbir karşılığı yokken ödenirdi:
+HTTP önbelleğinin devre dışı kalması, izlemenin körleşmesi, yetkinin alan
+bazına inmesi ve N+1 sorgu riski.
+
+⭐ **Savunma cümlesi:** *"REST ile GraphQL birbirini dışlamıyor; ikisi de giriş
+kapısı ve arkalarındaki iş kuralları ortak. Bugün tek tüketici biziz, bu yüzden
+REST yeterli ve izlenebilir. Yarın kontrol etmediğimiz istemciler bağlanmak
+isterse, servis katmanına dokunmadan GraphQL kapısı eklenebilir — bunu baştan
+mümkün kılmak için iş kurallarını HTTP'den bağımsız tuttum."*
 
 ---
 
