@@ -2799,12 +2799,17 @@ taksiye biniyor.** Trafik varsa gecikir, taksi bulunamazsa hiç gidemez.
 | Nerede çalışır | Tek süreç | Ayrı süreçler, genelde ayrı sunucular |
 | Yayın | Tek seferde hepsi | Her servis ayrı ayrı |
 
-**Sorduğun soruya net cevap — mikroservisler nasıl konuşur:** Genellikle
-**HTTP/REST API** ile veya bir **mesaj kuyruğu** üzerinden. Ama bu trafik
-internetten değil, kurumun **iç ağından** geçer. Yani "internet üzerinden"
-değil, "ağ üzerinden" — servisler aynı veri merkezinde bile olsa aradaki çağrı
-bir ağ çağrısıdır ve **başarısız olabilir.** Monolitte bir fonksiyon çağrısı
-başarısız olmaz; mikroserviste olur ve bunu yönetmek zorundasınız.
+> **ℹ️ Sık karıştırılan nokta — mikroservisler nasıl konuşur**
+>
+> Mikroservisler genellikle **HTTP/REST API** ile veya bir **mesaj kuyruğu**
+> üzerinden haberleşir. Bu trafik internetten değil, kurumun **iç ağından**
+> geçer — yani "internet üzerinden" değil, **"ağ üzerinden"**.
+>
+> Fark önemsiz görünüyor ama sonucu büyük: servisler aynı veri merkezinde bile
+> olsa aradaki her çağrı bir **ağ çağrısıdır ve başarısız olabilir.** Monolitte
+> bir fonksiyon çağrısı başarısız olmaz; mikroserviste olur ve bu durumun
+> yönetilmesi (yeniden deneme, zaman aşımı, kısmi başarısızlık) mimarinin
+> parçası hâline gelir.
 
 ---
 
@@ -4378,11 +4383,26 @@ Dış dünya ─────────►│                                  
                     └─ GraphQL ucu  (/graphql)             ─┘
 ```
 
-⭐ Bu, katmanlı mimarinin (E.1) somut karşılığı: **iş kuralları HTTP'yi
-tanımadığı için** giriş kapısı değiştirilebiliyor ya da çoğaltılabiliyor.
-Servis katmanı, doğrulama, yetki ve veritabanı erişimi hiç değişmiyor.
+> **ℹ️ Bunu mümkün kılan şey ne — mimarinin somut getirisi**
+>
+> İkinci bir kapı açmak, ancak arkadaki kod o kapıyı tanımıyorsa mümkün olur.
+>
+> Bu projede iş kuralları **HTTP'yi bilmiyor**: `WorkOrder.close()` metodu bir
+> isteğin nereden geldiğini, hangi biçimde geldiğini, hatta bir istek olup
+> olmadığını bilmiyor. Yalnızca kuralı biliyor (E.1 → Clean Architecture).
+>
+> Sonuç: giriş kapısı **değiştirilebilir veya çoğaltılabilir.** REST'in yanına
+> GraphQL eklendiğinde servis katmanı, doğrulama, yetki kontrolü ve veritabanı
+> erişimi **tek satır değişmez.**
+>
+> Aynı özellik başka kapılar için de geçerli: yarın bir mesaj kuyruğu tüketicisi
+> veya bir komut satırı aracı eklense, onlar da aynı servisleri çağırır.
+>
+> ⛔ Bunun bozulduğu tek durum: iş kuralının controller'ın içine yazılması. O an
+> kural HTTP'ye yapışır ve ikinci kapı açmak "aynı kuralı bir daha yazmak"
+> hâline gelir.
 
-Pratik sonuç: bugün REST yazmak, yarın GraphQL eklemeyi **engellemiyor.**
+Pratik sonuç: **bugün REST yazmak, yarın GraphQL eklemeyi engellemiyor.**
 Mevcut REST tüketicileri de çalışmaya devam ediyor.
 
 #### "Başka kurumlar tüketirse" — belediyede somut karşılığı
