@@ -100,3 +100,25 @@ Sonra /yeni-proje çalıştır. Kurulum bitince korunanları yerleştir:
 ⛔ **"_devir klasörünü sil" deme.** İçinde 40 sayfalık teknoloji rehberi ve
 sunum taslağı var; ikisi de projenin kalıcı dokümanları. Yalnızca kurulum
 yönergesi dosyaları silinir.
+
+## PDF sürümleri
+
+Her doküman iki PDF olarak üretiliyor:
+
+| Dosya | Ne için |
+|---|---|
+| `*.pdf` | **Aydınlık** — sunum, ekrandan gösterme, yazdırma |
+| `*-KARANLIK.pdf` | **Karanlık** — telefonda ve loş ortamda okuma |
+
+⚠️ Karanlık sürüm **yazdırılmaz** — sayfayı simsiyah basar, kartuşu bitirir.
+
+ℹ️ OLED ekranlarda (çoğu modern telefon) siyah piksel kapandığı için karanlık
+sürüm gerçekten pil tasarrufu sağlar. LCD ekranda fark olmaz.
+
+ℹ️ Okuma açısından ikisi farklı ortamlarda kazanır: aydınlık ortamda koyu
+yazı/açık zemin okuma keskinliğini artırır, loş ortamda karanlık zemin parlamayı
+azaltır.
+
+**Yeniden üretmek için:** markdown dosyasının sonuna karanlık mod CSS bloğu
+eklenip PDF üretilir. Stil bloğu **dosyanın sonunda** olmalı — başa konursa ilk
+sayfa boş çıkıyor.
