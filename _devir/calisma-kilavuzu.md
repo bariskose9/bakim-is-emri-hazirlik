@@ -21,6 +21,11 @@ kılar.
 | **PRD** (Product Requirements Document) | *"Sistem tam olarak ne yapacak"* sorusunun **yazılı ve eksiksiz** hâli. Analiz dokümanından **üretilir** | Roller, iş kuralları, kapsam dışı, hata durumları |
 | **API dokümanı** | Var olan bir servisin **nasıl çağrılacağını** anlatan belge | Aşağıda açıldı |
 | **Veritabanı şeması** | Var olan bir veritabanında **hangi tablolar ve ilişkiler** olduğunu gösteren belge | Aşağıda açıldı |
+| **ADR** (Architecture Decision Record) | Önemli bir teknik kararın **neden** alındığını yazan kısa belge | *"Repository Pattern kullanmadık, çünkü…"* |
+| **Roadmap** | Yapılacak adımların **sırayla** listesi, kutucuklu | *"Adım 4 — kimlik doğrulama ✅"* |
+
+⚠️ **Analiz dokümanı ile PRD karıştırılmaz.** Analiz **girdidir**, sana verilir
+ve eksiktir. PRD **çıktıdır**, sorular sorularak üretilir ve eksiği kalmaz.
 
 ### Bu üç belge fiilen neye benziyor
 
@@ -57,11 +62,6 @@ gelebilir.
 
 ⚠️ **Üçü de yoksa sorun değil** — yeni bir sistem kuruyorsan zaten olmaz.
 Kit soru sorarak eksiği tamamlar.
-| **ADR** (Architecture Decision Record) | Önemli bir teknik kararın **neden** alındığını yazan kısa belge | *"Repository Pattern kullanmadık, çünkü…"* |
-| **Roadmap** | Yapılacak adımların **sırayla** listesi, kutucuklu | *"Adım 4 — kimlik doğrulama ✅"* |
-
-⚠️ **Analiz dokümanı ile PRD karıştırılmaz.** Analiz **girdidir**, sana verilir
-ve eksiktir. PRD **çıktıdır**, sorular sorularak üretilir ve eksiği kalmaz.
 
 ## Teknik terimler
 
@@ -152,7 +152,10 @@ WEB_PORT=3100
    Eklentinin tam adı `proje-kiti@bariskose-skills` — `proje-kiti` eklenti adı,
    `bariskose-skills` ise geldiği kaynak.
 
-   Sonra pencereyi yenile (aşağıda anlatıldı).
+   Sonra **pencereyi yenile** — yoksa eski sürüm çalışmaya devam eder:
+   üst menüde **View → Command Palette…** → kutuya `Reload Window` yaz →
+   çıkan **Developer: Reload Window** satırına tıkla.
+   *(Klavyeyle: `Cmd+Shift+P` / `Ctrl+Shift+P`)*
 
    ⚠️ Kite sürekli yeni kural ekleniyor. Eski sürümle başlarsan o kurallar
    projeye hiç gelmez.
