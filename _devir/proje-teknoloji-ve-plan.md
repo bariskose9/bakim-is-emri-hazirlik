@@ -8,10 +8,15 @@
 > gerekmez; o teknoloji orada yeniden ve tam olarak anlatılır. Kavramlar,
 > prensipler ve tasarım desenleri Bölüm E'de ayrıca ele alınır.
 >
-> **Sadece "ne yapılacak" sorusunun cevabı aranıyorsa:** doğrudan **BÖLÜM G —
+> **Sadece "ne yapılacak" sorusunun cevabı aranıyorsa:** doğrudan **BÖLÜM H —
 > Yapım planı**'na gidilebilir. Orada her adımın ne ürettiği, hangi teknolojiyle,
 > hangi klasöre yazıldığı ve neye bağlandığı tablo hâlinde duruyor; ayrıntı
 > gerektiğinde ilgili bölüme işaret ediyor.
+>
+> **Sistemi tek bir örnek üzerinden baştan sona görmek için iki bölüm var:**
+> **BÖLÜM F** bir isteğin *sunucu* tarafındaki yolculuğunu, **BÖLÜM G** bir
+> ekranın *arayüz (UI)* tarafındaki yolculuğunu anlatıyor. İkisi birlikte
+> okunduğunda sistemin tamamı görülüyor.
 
 ---
 
@@ -2501,6 +2506,31 @@ Bu bölümdeki her şey birkaç temel kavrama dayanıyor. Her birini üç adımd
 açıyoruz: **gerçek hayattan karşılığı → yazılımdaki tanımı → bu projede tam
 olarak nerede.**
 
+### ⭐ Önce sözlük: aynı şeyin Türkçesi ve İngilizcesi
+
+Bu belgede bazı şeyler hem Türkçe hem İngilizce adıyla geçiyor. Karşılıklarını
+bir kere burada veriyorum; metinde her seferinde tekrar etmiyorum.
+
+| Bu belgede yazan | İngilizcesi | Ne demek |
+|---|---|---|
+| **uç**, uç noktası | **endpoint** | API'nin dışarıya açtığı tek bir adres: `POST /api/v1/work-orders` |
+| **arayüz (UI)** | user interface | Kullanıcının gördüğü **ekran**: sayfa, buton, form, tablo |
+| **arayüz** *(kod bağlamında)* | interface | Bir sınıfın söz verdiği **metot listesi** — ekranla ilgisi yok (E.2 → I) |
+| **arka uç** | **backend** | Sunucuda çalışan taraf: API + veritabanı + worker |
+| **ön uç** | **frontend** | Tarayıcıda çalışan taraf — bu projede Next.js arayüzü |
+| **istemci** | **client** | API'yi *tüketen* taraf: web arayüzü, mobil uygulama, başka bir kurum |
+| **jeton** | **token** | Kullanıcının kim olduğunu kanıtlayan, süresi olan dijital bilet |
+| **kap** | **container** | Uygulamayı bağımlılıklarıyla paketleyen izole çalışma birimi (Docker) |
+| **kuyruk** | **queue** | Sonra yapılacak işlerin sıraya alındığı yer (BullMQ) |
+| **iş** | **job** | Kuyruğa bırakılan tek bir görev |
+| **kütüphane** | **library** | Sen çağırırsın, işini yapar, geri döner (Zod) |
+| **çatı** | **framework** | O seni çağırır — iskeleti o kurar (NestJS, Next.js) |
+
+⚠️ **En çok karıştırılan iki satır 2. ve 3. satırdır.** Türkçede tek kelime
+("arayüz") İngilizcede iki farklı kavramı karşılıyor. Bu belgede ekran
+kastediliyorsa **arayüz (UI)** yazıyorum; kod sözleşmesi kastediliyorsa
+yalnızca *arayüz* yazıp bağlamı belirtiyorum.
+
 ---
 
 ### Sınıf ve nesne
@@ -2582,7 +2612,7 @@ mobil uygulamadan da, arka plan işinden de kapatılsa aynı kural çalışır.
 
 ---
 
-### Arayüz (interface)
+### Arayüz (interface) — ⚠️ ekran DEĞİL, kod sözleşmesi
 
 **Gerçek hayat:** Elektrik prizi. Priz bir **söz** verir: *"iki delik, 220
 volt."* Fişi takan cihazın ütü mü, şarj aleti mi, buzdolabı mı olduğunu
@@ -3047,6 +3077,26 @@ mutlaka plan üretmeli.
 
 ### I — Interface Segregation (arayüz ayrımı)
 
+> **⚠️ Buradaki "arayüz" EKRAN DEĞİLDİR — kelime iki ayrı şeyi karşılıyor**
+>
+> Türkçede tek kelime, İngilizcede de tek kelime (*interface*) — ama iki apayrı
+> kavram. Karıştırılınca bu bölüm hiç anlaşılmıyor:
+>
+> | Hangi "arayüz" | İngilizcesi | Nedir | Kim görür |
+> |---|---|---|---|
+> | Kullanıcı arayüzü | **UI** (User Interface) | Ekrandaki sayfa, buton, form | **İnsan** |
+> | Kod arayüzü | **interface** | Bir sınıfın söz verdiği **metot listesi** — "bende şu işlemler var" | **Sadece kod** |
+>
+> **Bu bölümün tamamı ikinci anlamda.** SOLID'in I harfi ekranla hiç ilgili
+> değil; bir kod parçasının diğerine verdiği **sözü** düzenliyor.
+>
+> **Kod arayüzü nedir — gerçek hayat:** Bir işe alım ilanı. *"Bu pozisyondaki
+> kişi şunları yapabilmeli: A, B, C."* İlan işi kimin yapacağını söylemez,
+> **hangi işlerin yapılabileceğini** söyler. Kod arayüzü de aynen böyle:
+> `WorkOrderReader` demek *"bunu uygulayan her şey `findMany` metodunu
+> sunacaktır"* demek. Prisma mı sunuyor, testteki sahte bir nesne mi sunuyor —
+> çağıran taraf bilmez ve umursamaz.
+
 **Gerçek hayat:** Otel odasındaki 30 düğmeli kumanda. Siz sadece ışığı açmak
 istiyorsunuz ama önünüzde perde, klima, müzik ve "temizlik istemiyorum"
 düğmeleri var. **Kullanmadığınız şeyler yolunuza çıkıyor.**
@@ -3184,7 +3234,7 @@ doğrularsınız. `new Date()` doğrudan çağrılsaydı bu test yazılamazdı.
 |---|---|
 | *"Controller'da iş kuralı bulunmamalı"* | Kurallar domain'de; controller yalnızca isteği alıp cevabı döner (E.0 → metot) |
 | *"Tek servis her işten sorumlu olmamalı"* | S harfi — modül başına ayrı servis |
-| *"Geniş arayüzlerde toplanmamalı"* | I harfi — `Reader` / `Writer` ayrımı |
+| *"Geniş arayüzlerde toplanmamalı"* | I harfi (E.2 → I) — okuma ve yazma **ayrı sözleşmeler**: `WorkOrderReader` / `WorkOrderWriter`. Buradaki "arayüz" ekran değil, **kod sözleşmesi** |
 | *"Yeni kural mevcut kodu büyük ölçüde değiştirmemeli"* | O harfi — Factory deseni (E.4) |
 
 ## E.3 DRY prensibi (§9)
@@ -4283,7 +4333,7 @@ ve yerine konan çözümün **daha sağlam** olduğunu.
 | `docs/database.dbml` | Veri modeli (C.21 — otomatik üretiliyor) |
 | `docs/database-decisions.md` | E.9'daki kararlar |
 | `docs/architecture.md` | Katmanlar, bağımlılık yönleri, istek yaşam döngüsü, transaction sınırları |
-| `docs/api.md` | Uç listesi ve sözleşmeler |
+| `docs/api.md` | Uç *(endpoint)* listesi ve sözleşmeler |
 | `docs/testing.md` | Test stratejisi ve nasıl koşulacağı |
 | `docs/lifecycle.md` | Servis yaşam döngüsü tablosu (C.1 §4) |
 | `docs/background-jobs.md` | Dört iş, zamanlamaları, idempotency yaklaşımı |
@@ -4327,6 +4377,29 @@ Fastify HTTP katmanında yaklaşık iki kat hızlı: 0.3 ms → 0.15 ms.
 
 Aynı emeği doğru bir index'e harcamak 80 ms'yi 5 ms'ye indiriyor: **16 kat.**
 
+> **ℹ️ "Emeği index'lere harcadım" tam olarak ne demek**
+>
+> **Index nedir:** Kitabın arkasındaki **dizin**. Bir kelimenin hangi sayfada
+> geçtiğini bulmak için kitabı baştan sona okumazsın — dizine bakarsın.
+> Veritabanı index'i de aynı şey: *"durumu AÇIK olan iş emirleri"* sorusunun
+> cevabını, 500 bin satırı tek tek okumadan bulmayı sağlayan yardımcı bir yapı.
+>
+> **"Emek" burada ne:** Bir mühendisin sınırlı zamanı. O zamanı iki yere
+> harcayabilirsin:
+>
+> | Nereye harcarsan | Ne kadar iş | Ne kazanırsın |
+> |---|---|---|
+> | Express yerine Fastify'a geçmek | Adaptörü değiştir, uyumsuz eklentileri düzelt, ekibe yeni aracı öğret | **0.15 ms** |
+> | Doğru index'i eklemek | Yavaş sorguyu bul, `EXPLAIN` ile plana bak, tek satırlık index tanımı yaz | **75 ms** |
+>
+> **Cümlenin anlamı:** *"Hızlanmak istiyorsan darboğazın olduğu yeri
+> hızlandır."* İsteğin süresinin %95'i veritabanında geçiyorsa, HTTP katmanını
+> iyileştirmek ölçülemeyen bir kazanç verir. Aynı emek veritabanına
+> harcandığında 500 kat büyük bir kazanç veriyor.
+>
+> ⭐ Değerlendirmeci bunu sorduğunda anlatılacak şey teknoloji değil, **öncelik
+> muhakemesi**: hangi optimizasyonun ölçülebilir karşılığı var.
+
 ⭐ **Savunma cümlesi:** *"Fastify daha hızlı, doğru. Ama isteğimizin süresinin
 %95'i veritabanında geçiyor; HTTP katmanını iki katına çıkarmak toplamda
 ölçülemeyen bir kazanç veriyor. Emeği index'lere harcadım. Nest'te adaptör tek
@@ -4355,27 +4428,106 @@ detay ekranı için 25 alan, ve veritabanından da yalnızca o alanlar çekiliyo
 | Nest'te yaygınlık | Varsayılan | `@nestjs/graphql` ~846K/hafta ile azınlıkta |
 
 ⭐ **Belirleyici olan izleme maddesi:** Bu sistemi canlıda sen izlemeyeceksin,
-kurumun DevOps ekibi izleyecek. GraphQL'de *"hangi uç yavaşladı"* sorusu izleme
-aracında görünmez; kurumsal ortamda bu ciddi bir eksiktir.
+kurumun DevOps ekibi izleyecek. GraphQL'de *"hangi uç (endpoint) yavaşladı"*
+sorusu izleme aracında görünmez; kurumsal ortamda bu ciddi bir eksiktir.
 
-**GraphQL'in gerçekten kazandığı durum:** *senin kontrol etmediğin* çok sayıda
-istemcinin farklı alan kombinasyonları istemesi. Buradaki istemciler kendi
-web'in ve kendi mobilin — ikisini de sen yazıyorsun, ihtiyaçlarını biliyorsun.
+#### Tablodaki "N+1 sorgu riski" satırı ne demek
 
-#### Önce terim: REST ile GraphQL aynı türden şeyler değil
+Bu terim mülakatta da sorulur, gerçek sistemleri de gerçekten yavaşlatır.
 
-Bu ayrım mülakatta sorulabilir ve çoğu kişi karıştırır.
+**Gerçek hayat:** 50 kişilik bir sınıfın velilerinin telefonlarını topluyorsun.
+İki yöntem var:
 
-| | **REST** | **GraphQL** |
+| Yöntem | Kaç kez arşive gidersin |
+|---|---|
+| Her öğrenci için ayrı ayrı dosya çekmek | 1 (sınıf listesi) + 50 (her öğrenci) = **51** |
+| Sınıf listesini alıp *"bu 50 kişinin dosyasını birden ver"* demek | 1 + 1 = **2** |
+
+İlk yöntem **N+1**'dir: 1 ana sorgu + N tane ek sorgu. Sonuç aynı, maliyet
+25 kat.
+
+**Yazılımdaki hâli:** *"İş emirlerini listele, her birinin atandığı personelin
+adını da göster."*
+
+```ts
+// ⛔ N+1 — bu kod ÇALIŞIR ve test ortamında HIZLI görünür
+const isEmirleri = await prisma.workOrder.findMany();   // 1 sorgu: 50 iş emri geldi
+for (const emir of isEmirleri) {                        // sonra 50 kez döngü
+  emir.personel = await prisma.user.findUnique({        // ⛔ her tur AYRI sorgu → 50 sorgu
+    where: { id: emir.assignedToId },
+  });
+}
+// Toplam: 51 veritabanı gidiş-gelişi. 10 kayıtla fark edilmez, 500 kayıtla ekran donar.
+```
+
+```ts
+// ✅ Tek sorgu — Prisma ilişkiyi aynı sorguda getiriyor
+const isEmirleri = await prisma.workOrder.findMany({
+  include: { assignedTo: { select: { id: true, fullName: true } } },
+  //         ↑ "personeli de getir"          ↑ sadece bu iki kolonu (E.6)
+});
+// Toplam: 1 veritabanı gidiş-gelişi.
+```
+
+**REST'te risk neden düşük:** Cevabın şeklini **sen** yazıyorsun. Yukarıdaki
+`include`'u bir kez doğru yazarsın, o uç hep tek sorgu atar.
+
+**GraphQL'de risk neden yüksek:** Cevabın şeklini **istemci** belirliyor. İstemci
+*"iş emirlerini ver, her birinin personelini ver, her personelin de bağlı olduğu
+lokasyonu ver"* diye sorabilir. GraphQL bu isteği alan alan çözer ve **her alan
+için ayrı çağrı** yapar — kimse yanlış kod yazmadığı hâlde N+1 kendiliğinden
+oluşur.
+
+**Çözümü — DataLoader:** Aynı turda istenen tekil kayıtları **biriktirip tek
+sorguda** getiren küçük bir kütüphane. "50 kez tek tek sor" yerine "50'sini bir
+kerede sor"a çevirir; yukarıdaki tablodaki 51 → 2 dönüşümünün kod karşılığıdır.
+
+⭐ **2026 Ağustos itibarıyla ölçüldü:** `dataloader` haftada **13.6M** indiriliyor
+ve GraphQL dünyasında bunun yerini alan bir alternatif çıkmadı. Son yayını
+2024-12 — ama bu terk edilmişlik değil, **tamamlanmışlık**: kütüphane tek bir iş
+yapıyor ve o işi bitirmiş durumda. Sunucu tarafında `graphql-yoga` (1.7M/hafta)
+ve `@apollo/server` (2.9M/hafta) ikisi de aktif ve ikisi de DataLoader'ı
+öneriyor.
+
+⚠️ **Bu satırın maliyeti:** GraphQL'e geçmek yalnızca "yeni bir kapı açmak"
+değil; yanında **DataLoader kurmayı ve her ilişki için ayrı loader yazmayı** da
+getirir. REST'te bu iş `include` satırıyla bitiyor.
+
+#### GraphQL gerçekten ne zaman kazanır — örnekle
+
+Kazandığı tek durum şu: **cevabın şeklini senin belirleyemediğin, sayısını
+bilmediğin istemciler.**
+
+**Bu projede DEĞİL:**
+
+| İstemci | Kim yazıyor | Ne isteyeceğini biliyor muyum |
 |---|---|---|
-| Ne türden şey | Mimari **stil** — bir kısıtlar bütünü | **Sorgu dili** + çalıştırma **şartnamesi** |
-| Sıfat hâli | **RESTful** ("bu API RESTful'dur") | Yok — yalnızca *"GraphQL API"* denir |
-| Kim tanımladı | Roy Fielding, 2000 doktora tezi | Facebook 2012; 2015'te açık kaynak, bugün GraphQL Foundation |
-| Uyum nasıl ölçülür | **Dereceli** — bir API "şu kadar RESTful" olabilir | **İkili** — şartnameyi uygular ya da uygulamaz |
+| Web arayüzü (UI) | Sen | Evet — listede 7 alan, detayda 25 alan |
+| Mobil uygulama | Sen | Evet — aynı uçları çağıracak |
 
-⭐ Son satır önemli: REST bir yelpazedir, bir API'nin ne kadar RESTful olduğu
-tartışılır. GraphQL'de böyle bir tartışma yoktur — şartname ya uygulanır ya
-uygulanmaz.
+İki istemci de senin. Yeni bir alan gerekirse uca eklersin, bir hafta sonra
+mobilde de kullanırsın. Ortada çözülecek bir problem yok.
+
+**Kazandığı durum — somut senaryo:** Diyelim İzmir Büyükşehir bu iş emri
+verisini **kurum dışına** açtı:
+
+| Tüketici | Ne istiyor |
+|---|---|
+| İlçe belediyesi paneli | Yalnızca kendi ilçesindeki iş emirlerinin sayısı ve durumu |
+| Yüklenici firma | Kendisine atanmış iş emirlerinin tamamı + geçmişi + fotoğrafları |
+| Merkezî 153 sistemi | Yalnızca vatandaş talebinin durumu ve tahmini bitiş saati |
+| Açık veri portalı | Kişisel veri **hariç** aylık toplamlar |
+| Bir üniversitenin araştırma ekibi | Coğrafi dağılım + kapanma süreleri |
+
+Beş tüketici, beş farklı alan kombinasyonu — ve **hiçbirini sen yazmıyorsun.**
+REST'te bunun iki kötü çözümü var: ya beş ayrı uç yazarsın (her yeni tüketicide
+bir tane daha), ya tek uçtan herkese her şeyi verirsin (fazla veri + gereksiz
+kişisel veri riski). GraphQL'de her tüketici kendi alanlarını seçer.
+
+⭐ **Ayrım cümlesi:** *"İstemci sayısı sabit ve hepsi bende ise REST; istemci
+sayısı açık uçlu ve ihtiyaçlarını ben bilmiyorsam GraphQL."* Bu projede birinci
+durum geçerli. Yarın kurum dışına açılırsa karar yeniden değerlendirilir —
+mimari buna hazır (aşağıdaki bölüm).
 
 #### İkisi AYNI ANDA kullanılabilir mi — evet
 
@@ -4518,7 +4670,7 @@ karşılığı yalnızca kuyruk değil.
 
 ---
 
-# BÖLÜM F — Bir iş emrinin hayatı (uçtan uca akış)
+# BÖLÜM F — Bir iş emrinin hayatı (sunucu tarafı, uçtan uca akış)
 
 Önceki bölümler parçaları tek tek anlattı. Bu bölüm hepsini **tek bir isteğin
 yolculuğunda** birleştiriyor: bir talep açıldığı andan iş emri kapandığı ana
@@ -4528,7 +4680,7 @@ kadar hangi katman devreye giriyor, hangi kural nerede çalışıyor.
 
 1. **Talep açılıyor** — Kullanıcı formu doldurur → Next form doğrulaması
    (`packages/contracts` şeması) → API'ye gider → **aynı şema** sunucuda tekrar
-   doğrular *(istemciye asla güvenilmez)*
+   doğrular *(istemciye asla güvenilmez)* — ayrıntısı hemen aşağıda
 2. **İş kuralları** — Lokasyon pasif mi? Varlık kullanım dışı mı? Bu kontroller
    `packages/domain` içinde, veritabanı bilmeden
 3. **SLA hesabı** — `SlaPolicyFactory` devreye girer *(§6.1)*
@@ -4538,11 +4690,209 @@ kadar hangi katman devreye giriyor, hangi kural nerede çalışıyor.
 7. **Durum değişikliği** — Durum makinesi geçerli mi diye bakar; geçersizse
    domain hatası → merkezî filtre → **409**
 8. **Eş zamanlı güncelleme** — İki kişi aynı anda değiştirirse `version` kolonu
-   çakışmayı yakalar → **409 Conflict**
+   çakışmayı yakalar → **409 Conflict** — `version` kolonunun ne olduğu aşağıda
 9. **SLA aşımı** — Worker tarar, işaretler, bildirim üretir — **iki kez
    çalışsa da tek bildirim** (unique index + job anahtarı)
 10. **Kapanış** — Çözüm açıklaması zorunlu; kapalı kayıt normal güncellemeyle
     değiştirilemez
+
+---
+
+## ⭐ 1. adımın açılımı: "aynı şema sunucuda tekrar doğrular" tam olarak nerede
+
+Bu cümle en çok soru alan yer, çünkü **iki ayrı bilgisayardan** bahsediyor.
+
+### Şema nerede duruyor
+
+`packages/contracts` bir **paylaşılan paket**. Ne web'e ne API'ye ait — ikisi de
+onu içeri alıyor:
+
+```
+packages/contracts/work-order.ts        ← ŞEMA BURADA, TEK KOPYA
+        │
+        ├──► apps/web  içeri alır  (kullanıcının tarayıcısında çalışır)
+        └──► apps/api  içeri alır  (belediyenin sunucusunda çalışır)
+```
+
+```ts
+// packages/contracts/work-order.ts — TEK tanım, iki yerde kullanılıyor
+import { z } from 'zod';
+
+export const talepOlusturSemasi = z.object({
+  baslik:      z.string().min(5).max(200),   // en az 5, en çok 200 karakter
+  aciklama:    z.string().min(10),           // en az 10 karakter
+  lokasyonId:  z.uuid(),                     // geçerli bir kimlik biçimi olmalı
+  oncelik:     z.enum(['DUSUK','ORTA','YUKSEK','KRITIK']), // yalnızca bu dört değer
+});
+```
+
+### Akış — hangi satır hangi bilgisayarda çalışıyor
+
+| # | Nerede | Ne oluyor | Hangi dosya |
+|---|---|---|---|
+| 1 | **Tarayıcı** (kullanıcının bilgisayarı) | Kullanıcı formu doldurur, "Gönder"e basar | `apps/web/.../talep-formu.tsx` |
+| 2 | **Tarayıcı** | Şema burada çalışır. Başlık 3 harfse form **hiç gönderilmez**, kullanıcı anında uyarı görür | aynı dosya — `zodResolver(talepOlusturSemasi)` |
+| 3 | **Ağ** | Veri JSON olarak internete çıkar: `POST /api/v1/work-orders` | — |
+| 4 | **Sunucu** (belediyenin makinesi) | İstek NestJS'e ulaşır. Controller metodu **henüz çalışmaz** | `apps/api/.../work-orders.controller.ts` |
+| 5 | **Sunucu** | ⭐ **Şema İKİNCİ KEZ burada çalışır** — controller'a girmeden önce, `ZodValidationPipe` içinde | `nestjs-zod` · `app.useGlobalPipes(...)` |
+| 6 | **Sunucu** | Geçersizse controller hiç çağrılmaz → **400 Bad Request** döner | merkezî hata filtresi (E.7) |
+| 7 | **Sunucu** | Geçerliyse controller çağrılır, servise iletir, iş kuralları çalışır | `packages/domain` |
+
+```ts
+// apps/api/.../work-orders.controller.ts
+import { talepOlusturSemasi } from '@bakim/contracts';   // ⭐ AYNI şema, web ile aynı dosya
+import { ZodValidationPipe } from 'nestjs-zod';
+
+@Post()
+@UsePipes(new ZodValidationPipe(talepOlusturSemasi))
+// ↑ Bu satır "kapıda bekçi" gibidir: gövde şemaya uymuyorsa
+//   aşağıdaki metot HİÇ çalışmaz, istek 400 ile geri döner.
+async talepOlustur(@Body() gövde: TalepOlusturDto) {
+  // Buraya ulaşan veri şemadan GEÇMİŞTİR — burada tekrar kontrol etmeye gerek yok.
+  return this.servis.olustur(gövde);
+}
+```
+
+### ⛔ Neden iki kez — "zaten tarayıcıda kontrol ettik" yeterli değil
+
+**Tarayıcıdaki doğrulama bir güvenlik önlemi değildir, bir nezakettir.**
+
+Kullanıcı senin ekranını kullanmak zorunda değil. `F12` ile geliştirici
+araçlarını açıp, ya da hiç tarayıcı kullanmadan tek satır komutla isteği
+doğrudan gönderebilir:
+
+```bash
+# Ekranı hiç açmadan, senin form doğrulamandan geçmeden gönderilen istek:
+curl -X POST https://bakim.izmir.bel.tr/api/v1/work-orders   -H "Content-Type: application/json"   -d '{"baslik":"x","oncelik":"YONETICI_OL"}'
+```
+
+Sunucudaki şema olmasaydı bu istek veritabanına düşerdi. **Şema orada olduğu
+için 400 ile geri döner.**
+
+| Doğrulama | Amacı | Atlanabilir mi |
+|---|---|---|
+| Tarayıcıda (adım 2) | Kullanıcıya **anında** geri bildirim; boşuna ağ isteği atılmasın | ✅ Evet — kullanıcı isterse atlar |
+| Sunucuda (adım 5) | **Güvenlik ve veri bütünlüğü** | ⛔ Hayır — son kapı burasıdır |
+
+⭐ **Kazanç şu:** iki doğrulama var ama **tek şema** var. Bir kural değişince
+(*"başlık en az 10 karakter olsun"*) `packages/contracts` içinde tek satır
+değişir; iki taraf da aynı anda güncellenir. İki ayrı yere yazsaydın biri
+güncellenir, diğeri unutulurdu — bu, **E.3 (DRY)**'ın somut karşılığı.
+
+---
+
+## ⭐ 8. adımın açılımı: `version` kolonu tam olarak nedir
+
+**Kısa cevap: veritabanı tablosunda sıradan bir sayı kolonu.** Kütüphane değil,
+teknoloji değil, araç değil — kendi elinle koyduğun bir sütun. Değeri olan şey
+kolonun kendisi değil, **onunla kurulan kural.**
+
+### Gerçek hayat
+
+İki kişi aynı Word belgesini indirip düzeltiyor. İkisi de kaydediyor. İkincinin
+kaydı, birincinin düzeltmelerinin **üstüne yazıyor** ve birinci kişi bunu hiç
+öğrenmiyor. Buna **kayıp güncelleme** denir.
+
+Çözüm: belgenin üstüne bir **baskı numarası** yaz. Kaydederken *"ben 7. baskıyı
+düzelttim"* dersin. Arşivdeki belge hâlâ 7. baskıysa kabul edilir ve 8 olur.
+Başkası araya girip 8 yaptıysa **senin kaydın reddedilir** — sen de yeni hâli
+okuyup tekrar düzeltirsin.
+
+### Nerede duruyor
+
+```prisma
+// apps/api/prisma/schema.prisma — veri modelinin tanımlandığı dosya
+model WorkOrder {
+  id        String   @id @default(uuid())
+  baslik    String
+  durum     Durum
+  version   Int      @default(0)   // ⭐ İŞTE BU. Sıradan bir tam sayı kolonu.
+  //                                  Her başarılı güncellemede 1 artar.
+}
+```
+
+`prisma migrate` çalıştığında PostgreSQL'de şu kolon oluşur:
+
+```sql
+ALTER TABLE "WorkOrder" ADD COLUMN "version" INTEGER NOT NULL DEFAULT 0;
+```
+
+| Soru | Cevap |
+|---|---|
+| Hangi teknoloji? | **Hiçbiri.** PostgreSQL'de `INTEGER` kolon, Prisma şemasında `Int` alan |
+| Kim üretir? | Sen — `schema.prisma`'ya elle yazarsın |
+| Kim artırır? | Güncelleme kodu, her başarılı yazmada `version + 1` |
+| Kullanıcı görür mü? | Hayır. Cevapta gider ama ekranda gösterilmez; tarayıcı onu geri gönderir |
+| Adı `version` olmak zorunda mı? | Hayır. `rowVersion`, `revision` de olur. Yaygın adı `version` |
+
+### Nasıl çalışıyor
+
+```ts
+// 1) Kullanıcı iş emrini açar. API cevabında version da gider.
+//    { id: "abc", baslik: "Pompa arızası", durum: "ACIK", version: 7 }
+
+// 2) Kullanıcı "Kaydet"e basar. Tarayıcı OKUDUĞU version'ı geri yollar: 7
+
+// 3) Sunucu güncellemeyi ŞARTLI yapar:
+const sonuc = await prisma.workOrder.updateMany({
+  where: {
+    id:      girdi.id,
+    version: girdi.version,   // ⭐ ŞART: kayıt HÂLÂ 7. sürümde mi?
+  },
+  data: {
+    durum:   girdi.durum,
+    version: { increment: 1 },  // başarılıysa 7 → 8
+  },
+});
+
+// 4) updateMany kaç satır etkilediğini SAYI olarak döner.
+if (sonuc.count === 0) {
+  // ⛔ Hiçbir satır güncellenmedi = kayıt artık 7. sürümde DEĞİL.
+  //    Demek ki aramızda başka biri kaydetti. Üstüne yazMIYORUZ.
+  throw new ConflictException('Bu kayıt siz bakarken değiştirildi. Yenileyip tekrar deneyin.');
+  // → merkezî hata filtresi bunu 409 Conflict'e çevirir (E.7)
+}
+```
+
+Üretilen SQL tek satır ve **atomik** — PostgreSQL bu işlemi bölmez:
+
+```sql
+UPDATE "WorkOrder" SET durum = 'DEVAM', version = version + 1
+WHERE id = 'abc' AND version = 7;
+-- Sonuç 1 satır → kabul.  Sonuç 0 satır → çakışma, 409.
+```
+
+### İki kişi aynı anda kaydederse
+
+| Zaman | Ayşe | Mehmet | Veritabanı |
+|---|---|---|---|
+| 10:00 | Kaydı açar, `version=7` okur | | `version=7` |
+| 10:01 | | Kaydı açar, `version=7` okur | `version=7` |
+| 10:05 | Kaydeder → `WHERE version=7` **eşleşir** → 1 satır | | `version=8` |
+| 10:06 | | Kaydeder → `WHERE version=7` **eşleşmez** → 0 satır | `version=8` |
+| 10:06 | | **409 Conflict** alır, ekranda uyarı görür | değişmez |
+
+⛔ **`version` kolonu olmasaydı:** Mehmet'in kaydı 10:06'da Ayşe'nin
+değişikliğinin üstüne yazardı. Kimse hata görmezdi, sistem "başarılı" derdi ve
+Ayşe'nin yazdığı çözüm açıklaması **sessizce kaybolurdu.**
+
+⚠️ **Bu hata tek kullanıcılı testte HİÇ görünmez.** Ancak iki kullanıcı aynı
+kaydı aynı dakikada açtığında ortaya çıkar — yani canlıda. Bu yüzden ödev
+§20'de açıkça isteniyor.
+
+> **ℹ️ Adı neden "iyimser" (optimistic)**
+>
+> İki yaklaşım var:
+>
+> | | Kötümser kilit | **İyimser kilit (bizim seçimimiz)** |
+> |---|---|---|
+> | Mantığı | "Çakışma olacak, kaydı baştan kilitle" | "Çakışma nadirdir, kaydederken kontrol et" |
+> | Nasıl | Ayşe açınca satır kilitlenir, Mehmet bekler | Kimse beklemez, ikisi de çalışır |
+> | Maliyeti | Ayşe kahve içmeye giderse Mehmet 20 dakika bekler | Nadiren biri 409 alır ve tekrar dener |
+> | Ne zaman doğru | Çakışma **sık** ise (bilet/koltuk satışı) | Çakışma **seyrek** ise |
+>
+> İş emri sisteminde aynı kaydı aynı dakikada iki kişinin düzenlemesi
+> seyrektir — bu yüzden iyimser doğru seçim.
 
 ---
 
@@ -4566,7 +4916,374 @@ göstermek** demektir.
 
 ---
 
-# BÖLÜM G — Yapım planı: adım adım ne, neyle, nereye
+# BÖLÜM G — Bir ekranın hayatı (arayüz / UI tarafı)
+
+BÖLÜM F **sunucu tarafını** anlattı: bir isteğin ağdan girip veritabanına
+ulaşana kadarki yolculuğu. Bu bölüm aynı şeyi **arayüz tarafı** için yapıyor:
+kullanıcı bir adrese gittiği andan ekrandaki tabloyu gördüğü ana kadar hangi
+teknoloji nerede devreye giriyor.
+
+> **ℹ️ Terim: "arayüz" bu bölümde ekran demek**
+>
+> Bu belgede *arayüz* kelimesi iki farklı şeyi karşılıyor ve karıştırmamak
+> gerekiyor (E.2 → I harfindeki uyarının aynısı):
+>
+> | Bu bölümde | Nedir | İngilizcesi |
+> |---|---|---|
+> | ✅ **Kullanıcı arayüzü** | Ekrandaki sayfa, buton, tablo, form | **UI** |
+> | ❌ Kod arayüzü | Sınıfların birbirine verdiği metot sözü | *interface* |
+>
+> Bundan sonra **arayüz (UI)** yazacağım — hangisi olduğu tereddütsüz belli
+> olsun diye.
+
+---
+
+## G.0 Önce sıra sorusu: arka uç mu önce, arayüz (UI) mü
+
+### Bu projedeki cevap: önce arka uç, sonra arayüz (UI)
+
+Yapım planında (BÖLÜM H) arayüz (UI) ekranları **Adım 10'da** başlıyor; ondan
+öncesindeki dokuz adım arka uç. Sebebi üç madde:
+
+| # | Sebep | Somut karşılığı |
+|---|---|---|
+| 1 | **Ekran, veri şeklini bilmeden çizilemez** | İş emri listesinde hangi kolonlar var? `sla_bitis` bir tarih mi, kalan dakika mı? Bu cevap veri modelinden (Adım 3) gelir |
+| 2 | **Ekran yeni yetenek eklemez, var olanı insana açar** | "İş emrini kapat" düğmesi, arkada `kapat()` kuralı yoksa hiçbir şey yapmaz |
+| 3 | **Arka uç bittiğinde ekran GERÇEK veriyle geliştirilebilir** | Uydurma (mock) veriyle geliştirilen ekran, gerçek veri gelince hep bir yerinden patlar: boş liste, çok uzun metin, `null` alan |
+
+### ⛔ Bu plan neyi kabul etmiyor
+
+> *"Önce ekranı yapalım, arkasını sonra bağlarız."*
+
+Yaygın ama pahalı. Ekran, **henüz var olmayan** bir veri şekline göre tasarlanır;
+arka uç yazılınca şekil değişir ve ekran baştan yazılır. İki kez iş yapılır.
+
+⚠️ Bunun sinsi tarafı şu: ilk hafta **çok verimli görünür.** Ortada tıklanabilir
+ekranlar vardır, herkes memnundur. Maliyet üçüncü haftada, gerçek veri
+bağlanırken çıkar.
+
+### ⚠️ Ama bu kural EVRENSEL DEĞİL — üç durumda tersine döner
+
+Bu, "her projede önce backend" demek değildir. **Kuralın gerçek hâli şu:**
+
+> ⭐ Sıra "önce arka uç" değil — **"önce VERİ ŞEKLİ kesinleşsin".**
+> Arka uç yazmak, veri şeklini kesinleştirmenin bir yoludur. Zaten
+> kesinleşmişse o iş bitmiştir, doğrudan arayüzden başlanır.
+
+| Durum | Doğru sıra | Neden |
+|---|---|---|
+| **Arka uç zaten var** — API'ler yazılmış, veritabanı ayakta, yalnızca yüz yenileniyor | **Önce arayüz (UI)** | Veri şekli sabit ve değişmeyecek. Bekleyecek bir şey yok |
+| **Yalnızca arayüz değişiyor** — arka uca hiç dokunulmuyor (yeniden tasarım) | **Sadece arayüz (UI)** | Zaten tek taraflı iş |
+| **Ürün belirsiz** — ne isteneceği bilinmiyor, önce görülmesi gerekiyor | **Tıklanabilir taslak → arka uç → gerçek arayüz** | Taslak *atılmak üzere* yapılır; içine iş kuralı yazılmaz. Kararı hızlandırır, koda dönüşmez |
+
+⭐ **İzmir Büyükşehir'de karşılaşacağın en olası durum birincisidir:** kurumda
+API'ler ve veritabanı çoktan yazılmış olur, senden istenen yeni bir arayüz (UI)
+olur. O zaman bu plandaki Adım 1–9 **atlanır**, Adım 10'dan başlanır — ama
+öncesinde bir iş vardır: **mevcut API'nin sözleşmesini `packages/contracts`
+içine Zod şeması olarak yazmak.** Böylece G.2'deki akış aynen kurulur.
+
+⛔ **Bu karar proje BAŞINDA verilir, ortasında değil.** Kurulumda
+`/yeni-proje` bunu soruyor; cevap `docs/project/teknoloji-ve-plan.md` içine
+yazılıyor. Yarısında sıra değiştirmek, iki yaklaşımın maliyetini birden ödemek
+demektir.
+
+---
+
+## G.1 Arayüz (UI) tarafında hangi teknoloji nerede duruyor
+
+Arka uçta olduğu gibi burada da her aracın **tek bir işi** var. Üst üste
+binmiyorlar; biri diğerinin bıraktığı yerden alıyor.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  TypeScript          Dil. Aşağıdaki HER dosya .ts / .tsx     │
+│  └─ React            "Veriye göre ekranı çiz" motoru         │
+│     └─ Next.js       React'i çalıştıran çatı: adres, sunucu, │
+│        │             derleme                                 │
+│        ├─ Tailwind CSS      Görünüm: renk, boşluk, yerleşim  │
+│        ├─ shadcn/ui         Hazır parçalar: buton, tablo…    │
+│        ├─ TanStack Query    Sunucudaki veriyi getir/tazele   │
+│        ├─ React Hook Form   Form durumu ve gönderimi         │
+│        └─ Zod (contracts)   Doğrulama — backend ile AYNI şema│
+└─────────────────────────────────────────────────────────────┘
+```
+
+Her biri **hangi soruyu** cevaplıyor:
+
+| Soru | Cevaplayan | Kart |
+|---|---|---|
+| Bu değişkenin tipi ne, yanlış alan adı yazdım mı? | **TypeScript** | C.3 |
+| Veri değişti, ekranın hangi parçası yeniden çizilecek? | **React** | C.2 |
+| `/is-emirleri/42` adresi hangi dosyaya karşılık geliyor? | **Next.js** (App Router) | C.2 |
+| Bu tablo nasıl görünecek — kenarlık, boşluk, renk? | **Tailwind CSS** | C.20 |
+| Açılır menüyü, modalı, tabloyu sıfırdan mı yazacağım? | **shadcn/ui** | C.20 |
+| Veriyi ne zaman çekeyim, önbellekte tutayım mı, ne zaman tazeleyeyim? | **TanStack Query** | C.19 |
+| Formdaki 12 alanın değerini ve hata mesajlarını kim tutuyor? | **React Hook Form** | C.20 |
+| Bu form değeri geçerli mi? | **Zod** — `packages/contracts` | C.4 |
+
+> **ℹ️ Neden bu kadar çok parça var — tek bir şey olamaz mıydı**
+>
+> Olabilirdi ve o şeye **framework** denirdi; Next.js zaten öyle. Ama Next.js
+> bilerek **görünüm** ve **veri getirme** konularında tarafsız kalıyor:
+> bunlarda tek doğru yok, projeye göre değişiyor.
+>
+> Bunun karşılığı şu: her parça **ayrı ayrı değiştirilebilir.** Tailwind'den
+> vazgeçsen TanStack Query çalışmaya devam eder. Tek parça olsaydı biri
+> eskidiğinde hepsini birden değiştirmen gerekirdi. Bu, E.1'deki
+> *"bağımsız değiştirilebilirlik"* ilkesinin arayüz tarafındaki karşılığı.
+
+### ⚠️ Sunucu bileşeni / istemci bileşeni ayrımı
+
+Next.js App Router'da her bileşen **varsayılan olarak sunucuda** çalışır.
+Tarayıcıya hiç JavaScript inmez, sadece hazır HTML iner.
+
+```tsx
+// apps/web/app/(protected)/is-emirleri/page.tsx
+// Dosyanın başında "use client" YOK → bu bileşen SUNUCUDA çalışır.
+// Faydası: ilk açılış hızlı, arama motoru içeriği görür,
+//          ve buradaki kod tarayıcıya HİÇ inmez.
+export default async function IsEmirleriSayfasi() { … }
+```
+
+```tsx
+// apps/web/.../is-emri-filtresi.tsx
+'use client';   // ⭐ Bu satır sınırdır: buradan itibarısı TARAYICIDA çalışır.
+// Neden gerekli: kullanıcı etkileşimi (tıklama, yazma, durum tutma)
+// yalnızca tarayıcıda mümkün.
+```
+
+⛔ **Kural:** `'use client'` mümkün olan **en aşağı** yazılır. Bir sayfanın en
+üstüne yazarsan altındaki her şey tarayıcıya iner ve sunucu bileşenlerinin tüm
+kazancı kaybolur.
+
+---
+
+## G.2 Bir ekranın hayatı — on adım
+
+Örnek ekran: **iş emri listesi** (`/is-emirleri`). Kullanıcı adrese gidiyor,
+filtreliyor, bir iş emrinin durumunu değiştiriyor.
+
+### 1 — Kullanıcı adrese gidiyor
+
+```
+Tarayıcı → https://bakim.izmir.bel.tr/is-emirleri?durum=ACIK&sayfa=2
+```
+
+Next.js adresi **dosya yoluna** çevirir. Ayrı bir rota tablosu yoktur — klasör
+yapısının kendisi rotadır:
+
+```
+apps/web/app/
+└── (protected)/            ← Parantezli klasör ADRESTE GÖRÜNMEZ.
+    │                         Sadece gruplar: altındakiler aynı korumadan geçer.
+    └── is-emirleri/
+        ├── page.tsx        ← /is-emirleri
+        └── [id]/
+            └── page.tsx    ← /is-emirleri/42   ([id] = değişken parça)
+```
+
+### 2 — Oturum kontrolü (arayüz / UI tarafındaki)
+
+`(protected)` grubunun ortak `layout.tsx`'i oturumu kontrol eder; yoksa giriş
+sayfasına yönlendirir.
+
+⛔ **Bu güvenlik değildir.** Asıl kontrol sunucuda, API tarafında (BÖLÜM F,
+Adım 4). Buradaki kontrol yalnızca **kullanıcı deneyimi**: girişsiz birinin boş
+bir ekranla karşılaşmasını engeller. Kullanıcı bu kontrolü atlasa bile API
+isteği **401** döner.
+
+### 3 — Adres çubuğu filtrelerin tek doğru kaynağı
+
+Filtreler bileşen içinde bir değişkende değil, **adreste** tutuluyor:
+
+```tsx
+// Sunucu bileşeni — filtreleri doğrudan adresten okuyor
+export default async function IsEmirleriSayfasi({
+  searchParams,          // ← Next.js adresteki ?durum=ACIK&sayfa=2 kısmını buraya verir
+}: { searchParams: Promise<Record<string, string>> }) {
+  const filtre = filtreSemasi.parse(await searchParams);
+  //             ↑ ⭐ Adresten gelen veri de DOĞRULANIYOR.
+  //               Kullanıcı adres çubuğuna ?sayfa=-5 yazabilir; şema bunu keser.
+  return <IsEmriListesi filtre={filtre} />;
+}
+```
+
+⭐ **Kazancı somut:** Kullanıcı filtreli listenin adresini kopyalayıp WhatsApp'ta
+gönderdiğinde karşı taraf **aynı listeyi** açar. Geri tuşu çalışır. Sayfa
+yenilendiğinde filtreler kaybolmaz. Filtreler bileşen içinde tutulsaydı üçü de
+olmazdı.
+
+### 4 — Veri çekiliyor: TanStack Query
+
+```tsx
+'use client';
+import { useQuery } from '@tanstack/react-query';
+import type { IsEmriListesi } from '@bakim/contracts';   // ⭐ Tip backend'le AYNI paketten
+
+export function IsEmriListesi({ filtre }: { filtre: Filtre }) {
+  const { data, isPending, isError, error } = useQuery({
+    queryKey: ['is-emirleri', filtre],
+    // ↑ ⭐ ÖNBELLEK ANAHTARI. filtre değişince anahtar değişir → yeni istek atılır.
+    //   Aynı filtreye geri dönülürse istek atılMAZ, önbellekten gelir.
+    queryFn: () => apiGet<IsEmriListesi>('/api/v1/work-orders', filtre),
+    //         ↑ Ekran doğrudan fetch ÇAĞIRMAZ. Ortak katmandan geçer (adım 5).
+    staleTime: 30_000,
+    // ↑ 30 saniye boyunca veri "taze" sayılır; kullanıcı sekmeler arasında
+    //   gidip gelirse boşuna istek atılmaz.
+  });
+
+  if (isPending) return <TabloIskeleti />;        // ⭐ ÜÇ DURUM da ele alınıyor:
+  if (isError)   return <HataKutusu hata={error} />;  //   yükleniyor / hata / boş
+  if (data.items.length === 0) return <BosDurum />;   //   (kit kuralı — C.19)
+
+  return <Tablo satirlar={data.items} />;
+}
+```
+
+⚠️ **Üç durumun üçü de zorunlu.** Yalnızca mutlu yol yazılırsa kullanıcı hata
+anında **boş beyaz ekran** görür ve neyin yanlış gittiğini anlamaz.
+
+### 5 — Ortak API katmanı: hiçbir ekran doğrudan istek atmaz
+
+```ts
+// apps/web/lib/api.ts — TEK giriş noktası
+export async function apiGet<T>(yol: string, sorgu?: Record<string, unknown>) {
+  const cevap = await fetch(url(yol, sorgu), {
+    credentials: 'include',
+    // ↑ ⛔ Oturum çerezini gönderir. httpOnly olduğu için JS onu OKUYAMAZ —
+    //   XSS saldırısında jeton çalınamaz (C.15).
+  });
+
+  if (cevap.status === 401) return oturumuYenileVeTekrarDene(yol, sorgu);
+  // ↑ ⭐ Jeton süresi dolduğunda kullanıcı bunu HİÇ görmez: sessizce yenilenir.
+  //   Bu mantık tek yerde durduğu için 12 ekranın hiçbiri bunu bilmek zorunda değil.
+
+  if (!cevap.ok) throw new ApiHatasi(await cevap.json());
+  // ↑ Backend'in RFC 9457 Problem Details cevabını (E.7) nesneye çevirir.
+  return cevap.json() as Promise<T>;
+}
+```
+
+⭐ **E.3 (DRY)'ın arayüz tarafındaki karşılığı.** Jeton yenileme, hata biçimi ve
+temel adres tek dosyada. Değişirse tek yerde değişir.
+
+### 6 — Görünüm: Tailwind + shadcn/ui
+
+```tsx
+<Table>                                    {/* shadcn/ui — hazır tablo bileşeni */}
+  <TableRow className="hover:bg-muted/50"> {/* Tailwind — üstüne gelince arka plan */}
+    <TableCell className="font-medium">{satir.baslik}</TableCell>
+    <TableCell>
+      <DurumRozeti durum={satir.durum} />  {/* Kendi bileşenimiz — tek yerde tanımlı */}
+    </TableCell>
+  </TableRow>
+</Table>
+```
+
+| Araç | Ne veriyor | Neden bu |
+|---|---|---|
+| **Tailwind** | Hazır görünüm sınıfları (`font-medium`, `hover:bg-*`) | Ayrı CSS dosyası ve isim uydurma derdi yok; kullanılmayan stil derlemede atılır |
+| **shadcn/ui** | Tablo/modal/menü gibi parçaların **kodu senin depona kopyalanır** | ⭐ Bağımlılık değil, **senin kodun**. Tasarım değişince kütüphanenin izin vermesini beklemezsin |
+
+### 7 — Kullanıcı filtreyi değiştiriyor
+
+```tsx
+function durumDegisti(yeniDurum: string) {
+  const p = new URLSearchParams(searchParams);
+  p.set('durum', yeniDurum);
+  p.set('sayfa', '1');       // ⚠️ Filtre değişince sayfa 1'e döner.
+  //                            Yoksa kullanıcı "sonuç yok" sanır — aslında 7. sayfadadır.
+  router.push(`/is-emirleri?${p}`);
+  // ↑ Adres değişti → adım 3'ten itibaren akış YENİDEN işler.
+  //   TanStack Query'nin queryKey'i de değişti → yeni istek atıldı.
+}
+```
+
+⛔ **Filtreleme sunucuda yapılıyor** — 500 bin kaydı tarayıcıya indirip orada
+süzmek değil. `?durum=ACIK&sayfa=2` API'ye gider, veritabanı yalnızca 20 satır
+döner (ödev §17 · E.10).
+
+### 8 — Kullanıcı durum değiştiriyor: form + doğrulama
+
+```tsx
+const form = useForm({
+  resolver: zodResolver(durumDegistirSemasi),
+  // ↑ ⭐ packages/contracts'tan gelen AYNI şema. Backend de bunu kullanıyor
+  //   (BÖLÜM F, 1. adımın açılımı). Kural tek yerde.
+});
+
+const mutation = useMutation({
+  mutationFn: (girdi) => apiPatch(`/api/v1/work-orders/${id}/status`, {
+    ...girdi,
+    version: isEmri.version,   // ⭐ Okuduğumuz sürüm geri gönderiliyor.
+    //                            Çakışma kontrolü bununla yapılıyor (BÖLÜM F, 8. adım).
+  }),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['is-emirleri'] });
+    // ↑ ⭐ "Bu önbellek artık geçersiz" der. TanStack Query listeyi kendiliğinden
+    //   tazeler — sayfa yenilenmeden liste güncel hâle gelir.
+  },
+});
+```
+
+### 9 — Hata ekrana nasıl geliyor
+
+Backend geçersiz bir geçişte **409** ve RFC 9457 gövdesi döner (E.7). Ekran o
+gövdeyi doğrudan gösterir:
+
+```tsx
+{mutation.isError && (
+  <Uyari tur="hata">
+    {mutation.error.detail}
+    {/* ↑ Backend'in yazdığı açıklama: "Kapalı iş emri tekrar açılamaz."
+        ⭐ Mesaj arayüzde UYDURULMUYOR — kuralın sahibi backend, metni de o veriyor.
+        Yoksa kural değiştiğinde iki yerde güncelleme gerekirdi (E.3). */}
+  </Uyari>
+)}
+```
+
+| Durum kodu | Kullanıcı ne görür |
+|---|---|
+| **400** | Alanın altında hata metni (form doğrulaması) |
+| **401** | Hiçbir şey — jeton sessizce yenilenir (adım 5) |
+| **403** | *"Bu işlem için yetkiniz yok"* |
+| **409** | *"Bu kayıt siz bakarken değiştirildi. Yenileyip tekrar deneyin."* |
+| **500** | Genel hata kutusu + izleme kimliği (correlation ID) |
+
+⭐ **İzleme kimliği neden gösteriliyor:** Kullanıcı destek hattını aradığında o
+kodu söyler; DevOps ekibi log'larda **tam o isteği** bulur. Bu bağ olmadan
+*"dün bir hata aldım"* şikâyeti aranabilir değildir (C.16 · C.22).
+
+### 10 — Tarayıcıda fiilen doğrulanıyor
+
+Ekran "çalışıyor" diye kabul edilmez, **ölçülür**: `chrome-devtools-mcp` ile
+sayfa gerçekten açılır, tıklanır ve şunlar kontrol edilir — konsolda hata yok,
+başarısız ağ isteği yok, yükleniyor/hata/boş durumlarının üçü de görülüyor.
+
+---
+
+## G.3 Bu akışta hangi karar nerede görünüyor
+
+| Adım | İlgili bölüm |
+|---|---|
+| Klasör yapısının adres olması | **C.2** — Next.js App Router |
+| Arayüzdeki oturum kontrolünün güvenlik olmaması | **C.15** · BÖLÜM F → Adım 4 |
+| Filtrelerin adres çubuğunda tutulması | **E.10** — listeleme ve sayfalama |
+| Aynı Zod şemasının iki tarafta çalışması | **E.3** — DRY · BÖLÜM F → 1. adımın açılımı |
+| Önbellek ve tazeleme | **C.19** — TanStack Query |
+| Ortak API katmanı, sessiz jeton yenileme | **C.15** — kimlik doğrulama |
+| `version` alanının geri gönderilmesi | **E.8** · BÖLÜM F → 8. adımın açılımı |
+| Hata metninin backend'den gelmesi | **E.7** — merkezî hata yönetimi |
+| Sunucuda filtreleme | **§17** · **E.10** |
+| shadcn kodunun depoya kopyalanması | **C.20** |
+
+⭐ **Sunumda kullanımı:** *"Frontend'i anlat"* dendiğinde teknoloji listesi
+saymak yerine bu on adımı anlatmak, BÖLÜM F'nin arka uç için yaptığı işi arayüz
+için yapar — **anlatmadan gösterir.**
+
+---
+
+# BÖLÜM H — Yapım planı: adım adım ne, neyle, nereye
 
 Önceki bölümler **neyi neden** seçtiğimizi anlattı. Bu bölüm **hangi sırayla
 yapılacağını** gösteriyor: her adımda ne üretiliyor, hangi teknolojiyle, hangi
@@ -4593,7 +5310,7 @@ Ortam kurulumu
                                                   ├─► SLA hesabı
                                                   │        └─► Arka plan işleri
                                                   │                 └─► Bildirimler
-                                                  └─► Arayüz ekranları
+                                                  └─► Arayüz (UI) ekranları
                                                            └─► Testler
                                                                 └─► Doküman + teslim
 ```
@@ -4943,7 +5660,7 @@ beklerken veri eskiyebilir.
 
 ---
 
-## ⬜ Adım 10 — Arayüz temeli
+## ⬜ Adım 10 — Arayüz (UI) temeli
 
 **Amaç:** Giriş ekranı, oturum yönetimi, korumalı sayfalar, ortak API katmanı.
 
@@ -4953,7 +5670,12 @@ beklerken veri eskiyebilir.
 | **Nereye** | `apps/web/app/(auth)/`, `apps/web/app/(protected)/`, `apps/web/hooks/` |
 | **Neye bağlanıyor** | Ekran → `hooks/` içindeki ortak katman → API. Hiçbir ekran doğrudan istek atmıyor |
 | **Bitti sayılır** | Girişsiz kullanıcı korumalı sayfaya giremiyor · jeton süresi dolunca sessizce yenileniyor · rol bazlı butonlar gizleniyor |
-| **Rehberde** | C.2 Next.js · **C.19 TanStack Query** · C.20 Tailwind/shadcn |
+| **Rehberde** | ⭐ **BÖLÜM G — bir ekranın hayatı** (arayüz tarafının tamamı) · C.2 Next.js · **C.19 TanStack Query** · C.20 Tailwind/shadcn |
+
+⭐ **Bu adımdan itibaren arayüz (UI) tarafındasın.** Adım 1–9 arka uçtu; bundan
+sonraki üç adımın teknolojileri, katman sırası ve uçtan uca akışı **BÖLÜM G**'de
+ayrı ayrı anlatılıyor — hangi araç hangi soruyu cevaplıyor (G.1), bir ekranın
+on adımlık yolculuğu (G.2), hangi kararın nerede göründüğü (G.3).
 
 ⚠️ **Ekranda buton gizlemek güvenlik değildir** — asıl kontrol sunucuda (Adım 4).
 Butonu gizlemek kullanıcıya kolaylıktır; yetkisi olmayan biri isteği elle de
@@ -4967,6 +5689,10 @@ gönderebilir ve sunucu onu reddetmek zorundadır.
 >
 > Ekranlar önce yazılsaydı, henüz var olmayan bir veri şekline göre tasarlanır
 > ve arka uç yazılınca baştan elden geçirilirdi.
+>
+> ⚠️ **Bu sıra evrensel değil.** Arka uç zaten yazılmışsa (kurumda sık olan
+> durum) doğru sıra tersine döner ve doğrudan bu adımdan başlanır. Üç istisna
+> ve kuralın gerçek hâli **G.0**'da.
 
 ---
 

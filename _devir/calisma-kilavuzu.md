@@ -179,9 +179,10 @@ Kurulumda şunlar sorulacak. Şimdiden düşünmek görüşmeyi hızlandırır:
 |---|---|
 | Bu proje kimin için? | İşyeri projesi mi, kendi projen mi |
 | Proje tipi? | Web · mobil · ikisi |
-| API'yi senin yazmadığın biri tüketecek mi? | Başka kurum, yüklenici, merkezî sistem |
+| Yazdığın API'yi, **projenin dışındaki** bir sistem tüketecek mi? | Başka kurum, yüklenici, merkezî sistem. ⛔ Kendi web arayüzün ve kendi mobil uygulaman bu soruya **"hayır"**dır — ikisini de sen yazıyorsun, ne isteyeceklerini biliyorsun |
 | Kendiliğinden çalışması gereken iş var mı? | Zamanlanmış görev, gece raporu |
 | Kod nerede duracak, deploy'u kim yapacak? | GitHub/GitLab · sen/DevOps |
+| **Canlıya nasıl çıkacak?** | Üç yol var — BÖLÜM 5B'de açıldı. İşyeri projesinde bu soru **sana sorulmaz**, kurumun DevOps ekibi karar verir |
 
 ---
 
@@ -280,12 +281,214 @@ JWT_SECRET=a8f3c91e7b2d4056
 WEB_PORT=3100
 ```
 
-⭐ **Faydası:** Projeyi devralan biri `.env.example`'a bakıp *"demek ki üç ayar
-gerekiyormuş"* der ve kendi değerlerini yazar. Tahmin etmesi gerekmez.
-
 ⛔ `.env` neden commit edilmez: içinde şifre var ve **git geçmişi silinmez.**
 Bir kez commit edildiyse sonradan dosyayı silsen bile geçmişte durur; o depoya
 erişen herkes o şifreyi görebilir. Tek çözüm şifreyi değiştirmektir.
+
+---
+
+## ⭐ "Kendi değerlerini yazar" ne demek — aynı ayarın ÜÇ farklı değeri olur
+
+Projeyi devralan biri `.env.example`'a bakıp *"demek ki şu ayarlar
+gerekiyormuş"* der ve **kendi kurulumuna ait** değerleri yazar. Tahmin etmesi
+gerekmez.
+
+Buradaki kilit nokta şu: **hiçbir ayarın "tek doğru değeri" yoktur.** Aynı
+değişken, çalıştığı yere göre farklı değer alır:
+
+| Değişken | Senin bilgisayarında | Deneme ortamında | Canlıda (belediyenin sunucusu) |
+|---|---|---|---|
+| `DATABASE_URL` | `postgresql://…@localhost:55432/bakim` — Docker'daki kap | Neon'daki `preview` dalı | Belediyenin kendi PostgreSQL sunucusu |
+| `WEB_PORT` | `3100` (3000 doluydu) | okunmaz | `3000` — orada çakışma yok |
+| `JWT_SECRET` | rastgele bir yerel değer | **başka** bir rastgele değer | **tamamen başka** bir rastgele değer |
+| `NEXT_PUBLIC_APP_URL` | `http://localhost:3100` | `https://bakim-preview.vercel.app` | `https://bakim.izmir.bel.tr` |
+
+⛔ **`JWT_SECRET` satırı özellikle önemli — üç ortamda üç FARKLI değer olmak
+zorunda.** Aynı olursa şu olur: senin bilgisayarındaki değer bir şekilde
+sızarsa (ekran paylaşımı, yanlış commit, çalınan laptop) **canlı sisteme de
+giriş yapılabilir**, çünkü canlı da aynı sırla imzalanmış jetonları kabul eder.
+
+⚠️ **Bu yüzden `.env.example` içine gerçek değer yazılmaz** — yazsan bile o
+değer kimsenin işine yaramaz, sadece riski taşımış olursun.
+
+**İstisna:** Yalnızca local'de kullanılan ve **gerçekten gizli olmayan**
+değerler örnek dosyaya yazılabilir — Docker'daki test veritabanının
+`kullanici:kullanici` şifresi gibi. O şifre senin bilgisayarındaki bir kaba
+aittir, canlıyla hiçbir ilgisi yoktur. Yazarken yanına *"yalnızca local"* notu
+düşülür.
+
+---
+
+## Bir projede hangi ayarlar çıkar — gerçek liste
+
+> ⚠️ **Bu listenin tamamı her projede olmaz.** Sol sütundaki *"Ne zaman
+> gerekir"* kolonu, o satırın hangi durumda ortaya çıktığını söylüyor.
+> **"Her projede"** yazanlar çekirdek; diğerleri modül eklendikçe gelir.
+>
+> Ajan `.env.example`'ı kendisi üretir ve her satırın başına yorum yazar. Bu
+> tablo **senin ne göreceğini önceden bilmen** için.
+
+### Değer nereden gelir — dört kaynak
+
+Aşağıdaki tablolarda geçen "Kaynak" kolonunun dört değeri var:
+
+| Kaynak | Ne demek | Nasıl elde edilir |
+|---|---|---|
+| 🎲 **Üretilir** | Rastgele bir sır. Kimse vermiyor, sen yaratıyorsun | Terminalde `openssl rand -base64 32` yazarsın, çıkan metni yapıştırırsın |
+| ✍️ **Sen seçersin** | Bir değer belirliyorsun; ne yazdığın senin kararın | Örn. veritabanı adını `bakim` koyarsın. Yalnızca tutarlı olması yeter |
+| 📋 **Panelden kopyalanır** | Bir servise üye olursun, panelinde yazar | Neon'a girersin → *Connection string* → kopyala → yapıştır |
+| 🔗 **Türetilir** | Başka değerlerden birleşir; elle yazılmaz | `DATABASE_URL`, kullanıcı adı + şifre + adres + veritabanı adından oluşur |
+
+⭐ **Şunu unutma:** 🎲 ve ✍️ olanlar için **hiçbir yere üye olman gerekmez** —
+kendi bilgisayarında üretirsin. Yalnızca 📋 olanlar hesap açmayı gerektirir, ve
+onlar da ancak ilgili özelliği eklerken gerekir.
+
+### Çekirdek — her projede
+
+| Değişken | Ne işe yarar | Kaynak | Nasıl |
+|---|---|---|---|
+| `NODE_ENV` | Uygulamanın hangi modda çalıştığı | ✍️ | `development` / `production`. Genelde araçlar kendisi ayarlar |
+| `NEXT_PUBLIC_APP_URL` | Uygulamanın kendi adresi — e-posta linkleri, yönlendirmeler bunu kullanır | ✍️ | Local'de `http://localhost:3000` |
+| `NEXT_PUBLIC_ENV_LABEL` | Ekranın üstünde *"DENEME ORTAMI"* şeridi göstermek için | ✍️ | `local` / `preview` / `production` |
+
+> **ℹ️ `NEXT_PUBLIC_` ön eki — ⛔ en kritik kural**
+>
+> Next.js'te bir değişkenin adı `NEXT_PUBLIC_` ile başlıyorsa, o değer
+> **derleme sırasında tarayıcıya gönderilen JavaScript dosyasının içine
+> gömülür.** Yani kullanıcı `F12` → *Sources* ile onu **okuyabilir**.
+>
+> | Ön ek | Nerede okunabilir | Ne konur |
+> |---|---|---|
+> | `NEXT_PUBLIC_…` | Tarayıcıda **herkes** görür | Adres, harita anahtarı (kısıtlı), ortam etiketi |
+> | *(ön eksiz)* | Yalnızca **sunucuda** | Veritabanı şifresi, JWT sırrı, API anahtarı |
+>
+> ⛔ **`NEXT_PUBLIC_DATABASE_URL` yazmak, veritabanı şifreni siteye basmaktır.**
+> Bu, gerçekten yapılan ve gerçekten sistem düşüren bir hatadır. Kitin
+> `env.ts` doğrulaması bu adı yakalayıp **uygulamayı açılışta durdurur.**
+
+### Veritabanı — veri saklayan her projede
+
+| Değişken | Ne işe yarar | Kaynak | Nasıl |
+|---|---|---|---|
+| `POSTGRES_USER` | Veritabanı kullanıcı adı | ✍️ | Docker'daki kap bunu okur. Local'de `bakim` yeter |
+| `POSTGRES_PASSWORD` | Veritabanı şifresi | ✍️ local · 🎲 canlı | Local'de basit olabilir; canlıda üretilir |
+| `POSTGRES_DB` | Veritabanının adı | ✍️ | `bakim` |
+| `POSTGRES_PORT` | Host makinedeki port | ✍️ | Çakışma varsa `55432` gibi |
+| `DATABASE_URL` | Uygulamanın veritabanına bağlanma adresi | 🔗 local · 📋 canlı | Local'de yukarıdaki dörtten birleşir; canlıda Neon panelinden kopyalanır |
+| `DIRECT_URL` | Migration için havuzsuz bağlantı | 📋 | Neon kullanılıyorsa panelde ayrı adres verir. Docker'da `DATABASE_URL` ile aynıdır |
+
+```
+# DATABASE_URL nasıl "türetiliyor" — parçalarına ayrılmış hâli:
+postgresql://bakim:sifre123@localhost:55432/bakim
+             │     │        │         │     └─ POSTGRES_DB
+             │     │        │         └─────── POSTGRES_PORT
+             │     │        └───────────────── sunucu adresi (local'de kendi bilgisayarın)
+             │     └────────────────────────── POSTGRES_PASSWORD
+             └──────────────────────────────── POSTGRES_USER
+```
+
+⭐ **Neon veya benzeri yönetilen bir veritabanı kullanıyorsan** bu satırı elle
+kurmazsın: panelde *Connection string* diye hazır verilir, kopyalayıp
+yapıştırırsın.
+
+### Portlar — aynı makinede ikinci bir proje varsa
+
+| Değişken | Ne işe yarar | Kaynak |
+|---|---|---|
+| `WEB_PORT` | Arayüzün host portu | ✍️ Boş bir port seçersin (`3100`) |
+| `API_PORT` | Ayrı backend varsa API'nin portu | ✍️ `4100` |
+| `REDIS_PORT` | Kuyruk kullanılıyorsa | ✍️ `6479` |
+
+⚠️ Bunlar yalnızca **senin bilgisayarındaki** kapıyı belirler. Kabın içindeki
+port her zaman standarttır (3000 / 4000 / 6379) ve hiç değişmez.
+
+### Kimlik doğrulama — kullanıcı girişi olan her projede
+
+| Değişken | Ne işe yarar | Kaynak | Nasıl |
+|---|---|---|---|
+| `AUTH_SECRET` / `JWT_SECRET` | Oturum jetonlarını imzalayan sır | 🎲 | `openssl rand -base64 32` · ⛔ her ortamda **farklı** |
+| `AUTH_URL` | Girişten sonra dönülecek adres | ✍️ | Uygulamanın adresi |
+| `ACCESS_TOKEN_TTL` | Giriş jetonunun ömrü | ✍️ | `15m` gibi |
+| `REFRESH_TOKEN_TTL` | Yenileme jetonunun ömrü | ✍️ | `7d` gibi |
+| `GOOGLE_CLIENT_ID` · `GOOGLE_CLIENT_SECRET` | "Google ile giriş" varsa | 📋 | Google Cloud Console → *Credentials* → *OAuth client ID* oluşturursun, iki değeri kopyalarsın |
+
+### Kişisel veri şifreleme — KVKK kapsamında veri tutuyorsan
+
+| Değişken | Ne işe yarar | Kaynak |
+|---|---|---|
+| `ENCRYPTION_KEY` | TC kimlik no gibi alanları veritabanında **şifreli** tutmak için | 🎲 `openssl rand -base64 32` |
+| `HASH_SALT` | Şifreli alanda arama yapabilmek için sabit özet tuzu | 🎲 |
+
+⛔ **Bu iki değer kaybolursa şifreli veriler bir daha AÇILAMAZ.** Yedeği
+`.env`'den ayrı, güvenli bir yerde durmalı (parola yöneticisi).
+
+### Arka plan işleri — zamanlanmış görev veya kuyruk varsa
+
+| Değişken | Ne işe yarar | Kaynak | Nasıl |
+|---|---|---|---|
+| `REDIS_URL` | Kuyruğun (BullMQ) bağlanacağı adres | 🔗 local · 📋 canlı | Local'de `redis://localhost:6479`; canlıda Upstash panelinden |
+| `CRON_SECRET` | Zamanlanmış görev ucunu korur — dışarıdan tetiklenemesin | 🎲 | Eşleşmezse istek 401 döner |
+
+### E-posta ve bildirim
+
+| Değişken | Ne işe yarar | Kaynak | Nasıl |
+|---|---|---|---|
+| `EMAIL_API_KEY` | E-posta gönderim servisinin anahtarı | 📋 | Resend'e üye olursun → *API Keys* → *Create* → kopyalarsın |
+| `EMAIL_FROM` | Gönderen adresi | ✍️ | `bildirim@alanadin.com` — ⚠️ alan adının doğrulanması gerekir |
+
+### Dosya yükleme — görsel/belge yüklenen her projede
+
+| Değişken | Ne işe yarar | Kaynak |
+|---|---|---|
+| `BLOB_READ_WRITE_TOKEN` veya `S3_*` | Yüklenen dosyaların saklandığı yer | 📋 Vercel Blob / Cloudflare R2 / AWS S3 panelinden |
+
+⛔ **Yüklenen dosyalar depoya konmaz.** Git ikili dosya için tasarlanmadı;
+depo şişer ve geri döndürülemez.
+
+### Hata takibi — canlıya çıkan her projede
+
+| Değişken | Ne işe yarar | Kaynak |
+|---|---|---|
+| `NEXT_PUBLIC_SENTRY_DSN` | Hataların gönderileceği adres | 📋 Sentry panelinden. ⚠️ Gizli değil — tarayıcıya gitmek zorunda |
+| `SENTRY_AUTH_TOKEN` | Derlemede kaynak haritası yüklemek için | 📋 · ⛔ Bu **gizli** |
+
+### Yasal — halka açık, kişisel veri işleyen projelerde
+
+| Değişken | Ne işe yarar | Kaynak |
+|---|---|---|
+| `LEGAL_CONTROLLER_NAME` | KVKK aydınlatma metninde görünen **veri sorumlusu** | ✍️ Gerçek kişi/kurum adı |
+| `LEGAL_CONTACT_EMAIL` | KVKK başvurularının geleceği adres | ✍️ |
+
+⛔ Depo açıksa bu ikisi **commit edilmez** — kişisel iletişim bilgisidir.
+
+### Dış servisler — projeye göre
+
+| Örnek | Ne işe yarar | Kaynak |
+|---|---|---|
+| `NEXT_PUBLIC_MAPBOX_TOKEN` | Harita gösterimi | 📋 Mapbox paneli. ⚠️ Tarayıcıya iner → panelden **alan adı kısıtı** koy |
+| `STRIPE_SECRET_KEY` / `IYZICO_*` | Ödeme alma | 📋 Ödeme sağlayıcısının paneli |
+| `SMS_API_KEY` | SMS gönderimi | 📋 SMS sağlayıcısı |
+
+---
+
+## ⭐ Bir değişken eklendiğinde ne olması gerekiyor — dört yer
+
+Yeni bir ayar ortaya çıktığında **dört yere birden** dokunulur. Ajan bunu
+kendisi yapar; sen kontrol edersin:
+
+| # | Nereye | Ne yazılır |
+|---|---|---|
+| 1 | `.env.example` | Değişkenin **adı**, boş değeri ve **yorum satırında ne olduğu** |
+| 2 | `.env` | Senin makinendeki **gerçek değeri** |
+| 3 | `src/config/env.ts` | **Zod doğrulaması** — zorunlu mu, biçimi ne |
+| 4 | `docs/project/altyapi-durumu.md` | Panelden alındıysa: *hangi hesapta, hangi ekrandan* alındığı |
+
+⭐ **3. adım neden kritik:** Doğrulama olmadan eksik bir değişken uygulamayı
+**çalışma anında**, kullanıcı bir işlem yaparken, anlamsız bir hatayla düşürür.
+Doğrulama varsa uygulama **açılışta** durur ve net söyler:
+*"DATABASE_URL eksik."* Hatanın maliyeti saatlerden saniyelere iner.
+
+---
 
 ## `docs/standards/` — her projede aynı
 
@@ -364,12 +567,25 @@ projeden projeye değişir.
 hesap açılır, panelden ayar yapılır, alan adı satın alınır, veritabanı
 oluşturulur. Bunlar kodda görünmez ve **kimse hatırlamaz.**
 
+⭐ **Her satır üç şeyi birden yazar: NE yapıldı, NEREDE yapıldı, NEDEN
+yapıldı.** "Neden" olmadan satır bir kayıt olur ama karar olmaz — altı ay sonra
+o ayarı değiştirmek isteyen biri neyi bozacağını bilemez.
+
 Örnek satırlar:
 
 ```
 2026-08-24 · Neon'da "bakim-prod" veritabanı açıldı, bölge: Frankfurt
+             Neden: KVKK — kişisel veri AB/Türkiye içinde kalsın diye ABD
+             bölgesi seçilmedi. ⛔ Bölge sonradan DEĞİŞTİRİLEMEZ.
+
 2026-08-24 · Vercel projesine DATABASE_URL değişkeni eklendi (Production)
+             Neden: Uygulama canlıda veritabanını bulabilsin. Değer .env'de
+             değil panelde durur — .env dosyası sunucuya hiç gitmiyor.
+
 2026-08-25 · Cloudflare'de bakim.izmir.bel.tr kaydı sunucu IP'sine yönlendirildi
+             Neden: Kullanıcı bu adresi yazınca isteğin gideceği makine belli
+             olsun. SSL sertifikası da Cloudflare tarafından bu kayıt
+             üzerinden veriliyor.
 ```
 
 ⛔ **Anahtar ve şifre DEĞERLERİ buraya yazılmaz** — yalnızca *"şu değişken şu
@@ -377,6 +593,136 @@ ortama eklendi"* bilgisi yazılır. Değerler `.env` dosyasında durur.
 
 ⚠️ Bu dosya olmadan altı ay sonra *"bu ayarı nereden yapmıştım"* sorusunun
 cevabı kaybolur. Panelde yapılan bir işlemin git geçmişi yoktur.
+
+### ⭐ Bu dosya iki proje tipinde FARKLI dolar
+
+| | **Kendi projen** | **İşyeri projesi** |
+|---|---|---|
+| Kim panel açıyor | **Sen** — hesabı sen açıyorsun, ödemeyi sen yapıyorsun | **Kurumun DevOps ekibi** |
+| Ne yazılır | Hangi servise üye olundu, hangi bölge seçildi, hangi değişken nereye girildi | **Neyin gerekli olduğu** — "canlıda şu 6 değişken tanımlı olmalı" |
+| Kim okur | Gelecekteki sen | Kuruma teslim ederken DevOps ekibi |
+| Örnek satır | *"Neon'da bakim-prod açıldı, Frankfurt"* | *"Uygulama şu 6 değişkeni bekliyor; DIRECT_URL migration içindir, havuzsuz olmalı"* |
+
+⭐ **İşyeri projesinde bu dosya bir "yapıldı" defteri değil, bir
+"gereksinim" listesidir.** Sen paneli açmıyorsun; açacak kişiye **neyin neden
+gerektiğini** anlatıyorsun. Teslim paketinin en çok işe yarayan parçalarından
+biri budur — DevOps ekibi bu dosyayı okuyup sana soru sormadan kurulumu yapar.
+
+---
+
+# BÖLÜM 5B — Canlıya çıkış: üç yol ve neyle yapıldıkları
+
+> **Bu bölüm neden var:** Kurulumda *"canlıya nasıl çıkacak"* sorusu geliyor.
+> Cevap vermeden önce seçeneklerin ne olduğunu bilmen gerekiyor. Ayrıca
+> işyeri projesinde bu iş **sana ait olmasa bile**, DevOps ekibiyle aynı dili
+> konuşabilmek için süreci görmen gerekiyor.
+
+## Yol A — Yönetilen servisler (kendi projelerinde varsayılan)
+
+Her katmanı ayrı bir şirket işletiyor; sen yalnızca hesap açıp bağlıyorsun.
+Sunucuya SSH ile girmiyorsun, işletim sistemi güncellemiyorsun.
+
+| Katman | Örnek teknoloji | Ne iş yapıyor | Neden bu katman var |
+|---|---|---|---|
+| **Uygulama barındırma** | **Vercel** | Next.js'i çalıştırır; her `git push`'ta kendiliğinden yeni sürümü yayına alır | Kodun çalışacağı bir makine lazım |
+| **Veritabanı** | **Neon** (yönetilen PostgreSQL) | Veriyi saklar, yedekler, ölçekler | Uygulama kapansa da veri kalmalı |
+| **Alan adı + DNS + SSL** | **Cloudflare** | `bakim.izmir.bel.tr` yazınca isteğin doğru makineye gitmesi; `https://` kilidi | İnsanlar IP adresi ezberlemez |
+| **Dosya depolama** | **Vercel Blob** / Cloudflare R2 | Yüklenen görsel ve belgeler | Dosyalar veritabanında ve depoda tutulmaz |
+| **E-posta** | **Resend** | Doğrulama ve bildirim e-postaları | Kendi sunucundan atılan mail spam'e düşer |
+| **Hata takibi** | **Sentry** | Canlıda oluşan hataları yakalar, yığın izini gösterir | Kullanıcı hatayı bildirmez, sadece siteyi terk eder |
+| **Kuyruk** *(gerekiyorsa)* | **Upstash Redis** | Arka plan işleri | Sunucusuz ortamda sürekli çalışan süreç yok |
+
+**Akış:**
+
+```
+git push  →  Vercel derler ve yayına alır  →  Cloudflare adresi oraya yönlendirir
+                     │
+                     ├─► Neon (veritabanı)
+                     ├─► Resend (e-posta)
+                     └─► Sentry (hata)
+```
+
+| Artısı | Eksisi |
+|---|---|
+| Sunucu bakımı yok — güncelleme, yama, disk hepsi onların işi | Aylık ücret her katmanda ayrı |
+| Dakikalar içinde canlıya çıkarsın | Veri, o şirketin altyapısında durur (KVKK'da bölge seçimi kritik) |
+| Ölçekleme kendiliğinden | Sürekli çalışan süreç barındıramazsın |
+
+## Yol B — Kendi sunucun (alan adı + AWS/Hetzner + Docker Engine)
+
+Bir bilgisayar kiralarsın, üstüne her şeyi sen kurarsın.
+
+| Katman | Teknoloji | Ne iş yapıyor |
+|---|---|---|
+| **Sunucu** | AWS EC2 · Hetzner · DigitalOcean | Kiralık, çıplak bir Linux makinesi |
+| **Çalıştırma** | **Docker Engine** + Docker Compose | Kapları o makinede ayağa kaldırır |
+| **Veritabanı** | Aynı sunucuda Postgres kabı *veya* yönetilen | Veriyi saklar |
+| **Ters vekil + SSL** | **Caddy** veya nginx + Let's Encrypt | Gelen isteği doğru kaba yönlendirir, `https` sertifikasını alır |
+| **Alan adı** | Herhangi bir kayıt firması + DNS | Adres → sunucu IP'si |
+| **Yedekleme** | ⛔ **Senin işin** — `pg_dump` + zamanlanmış görev | Yoksa disk bozulduğunda veri gider |
+| **İzleme** | Uptime Kuma / Grafana | Sistem ayakta mı, ne kadar yük var |
+
+> **ℹ️ "Docker'ı oraya mı kuruyoruz" — evet, tam olarak öyle**
+>
+> Kendi bilgisayarında **Docker Desktop** var: içinde Docker Engine + bir
+> arayüz + sanal makine. Sunucuda arayüze gerek yok, yalnızca **Docker Engine**
+> kurulur (`apt install docker.io`).
+>
+> Sonrası birebir aynı: `docker compose up -d` yazarsın, aynı
+> `docker-compose.yml` orada da çalışır. ⭐ **Docker'ın asıl vaadi budur** —
+> "benim makinemde çalışıyordu" sorununu ortadan kaldırır.
+>
+> **Tek fark `.env`:** Portlar `3000`/`5432` olur (orada çakışma yok), şifreler
+> gerçek olur, `NEXT_PUBLIC_APP_URL` alan adın olur.
+
+| Artısı | Eksisi |
+|---|---|
+| Veri fiziksel olarak nerede, sen biliyorsun (KVKK'da net) | ⛔ Güvenlik yaması, disk, yedek, izleme **senin sorumluluğun** |
+| Tek fatura, yüksek yükte daha ucuz | Bir gece sunucu düşerse kaldıracak kişi sensin |
+| Sürekli çalışan worker sorunsuz barınır | Kurulum yönetilen servislere göre kat kat uzun |
+
+⚠️ **Bu yol "daha profesyonel" değildir — daha çok sorumluluktur.** Tek kişilik
+bir projede yönetilen servisler genelde doğru karardır. Kurumsal ortamda ise
+zorunlu olabilir, çünkü verinin kurum dışına çıkması yasaktır.
+
+## Yol C — Kurumun kendi sunucusu (işyeri projelerinde en olası)
+
+**Bu yolda sen deploy yapmazsın.** Görevin sınırı nettir:
+
+```
+Sen:      kod yazarsın  →  git'e gönderirsin  →  teslim paketini hazırlarsın
+                                                          │
+DevOps:   ─────────────────────────────────────────────────┴──►  canlıya alır
+```
+
+| Senden beklenen | Senden BEKLENMEYEN |
+|---|---|
+| Tek komutla ayağa kalkan `docker compose` | Alan adı satın almak |
+| `.env.example` — hangi değişken neden gerekli | Sunucu kiralamak |
+| `altyapi-durumu.md` — canlıda ne tanımlı olmalı | DNS ve SSL ayarı |
+| Sağlık kontrolü ucu (`/health/ready`) | Yedekleme kurmak |
+| Migration'ın nasıl çalıştırılacağı | Sunucuya SSH ile bağlanmak |
+
+⛔ **Bu yüzden `/yeni-proje`, işyeri projesi seçildiğinde alan adı, sunucu
+kiralama, DNS ve SSL adımlarını hiç açmaz.** Senin ürününün son hâli "canlı bir
+site" değil, **kurulabilir bir paket**tir.
+
+⭐ **Yine de bu bölümü okumanın sebebi:** DevOps ekibi sana *"ters vekilde
+websocket açık mı"*, *"migration'ı biz mi koşturalım"*, *"hangi portu
+dinliyor"* diye soracak. Süreci bilmezsen bu sorular havada kalır.
+
+## Hangisini ne zaman
+
+| Durum | Yol |
+|---|---|
+| Kendi projen, hızlı canlıya çıkmak istiyorsun | **A** — yönetilen |
+| Kendi projen ama sürekli çalışan worker'ın var | **A** + Upstash, veya **B** |
+| Veri kurum dışına çıkamaz | **B** veya **C** |
+| İşyeri projesi, kurumun DevOps ekibi var | **C** — sen git'e gönderirsin |
+| Öğrenmek istiyorsun, süreci görmek istiyorsun | **B** — en çok şey öğretir |
+
+⭐ **Karar `docs/project/teknoloji-ve-plan.md` dosyasına gerekçesiyle yazılır**,
+`altyapi-durumu.md` de o karara göre dolar.
 
 ---
 
@@ -422,6 +768,57 @@ ise şunları sırayla yapar:
 
 ⭐ Farkı şu: elle yazınca yalnızca bir dosya değişir. `/kit-senkron` ile kural
 **bir sonraki projede zaten orada olur.**
+
+### Kural kite yazıldı — GitHub'a kim gönderiyor
+
+**Ajan gönderiyor, sen bir şey yapmıyorsun.** 4. adımdaki *"yayınlar"* kelimesi
+şu üç işi kapsıyor:
+
+| # | Ne oluyor | Kim yapıyor |
+|---|---|---|
+| 1 | Kural, kit deposundaki ilgili `docs/standards/*.md` dosyasına yazılır | Ajan |
+| 2 | `plugin.json` içindeki sürüm numarası yükseltilir (`1.35.1` → `1.36.0`) | Ajan |
+| 3 | Değişiklik commit edilip **GitHub'a gönderilir** | Ajan — ⚠️ **push öncesi sana sorar** |
+
+⚠️ **Push tek onay istediğin adımdır.** Kit deposu herkese açık olduğu için
+gönderilmeden önce ne gittiğini görmen gerekiyor. Ajan değişikliği özetler, sen
+*"gönder"* dersin.
+
+### Yarın başka bilgisayarda kiti nasıl güncellerim
+
+Kit GitHub'da durduğu için **hangi makinede olduğun fark etmiyor.** Yeni
+makinede iki komut:
+
+```bash
+# 1) Kitin son sürümünü indir
+claude plugin update proje-kiti@bariskose-skills
+
+# 2) Kurulu değilse önce ekle (ilk kurulumda bir kez)
+claude plugin install proje-kiti@bariskose-skills
+```
+
+Sonra **pencereyi yenile** (yukarıdaki *"Pencere yenileme"* başlığı) — yoksa
+çalışan sürüm hâlâ eskisidir.
+
+⭐ **Kit herkese açık olduğu için giriş yapman gerekmez.** Kurumsal bir
+bilgisayarda kişisel GitHub hesabı bağlamak zorunda kalmazsın — bu, deponun
+açık tutulmasının asıl sebebi.
+
+⛔ **Bu yüzden kite gizli hiçbir şey yazılmaz.** Ayırt edici test şu:
+*"Bu satırı hiç tanımadığım biri okusa, kurumum veya sistemim hakkında bir şey
+öğrenir mi?"* Cevap "evet" ise o bilgi kural değil **veri**dir; projeye,
+`.env`'e veya `altyapi-durumu.md`'ye gider.
+
+### Üç yerdeki sürüm karışmasın
+
+| Nerede | Ne | Nasıl bakılır |
+|---|---|---|
+| **GitHub** | Kaynağın kendisi | Depodaki `plugin.json` |
+| **İndirilen kopya** | Makinendeki önbellek | `claude plugin update` bunu tazeler |
+| **Çalışan sürüm** | Açık pencerenin belleğindeki | ⚠️ **Reload Window** yapılmadan değişmez |
+
+⚠️ En sık yaşanan kafa karışıklığı budur: güncelleme yapılır ama pencere
+yenilenmez, ajan eski kuralla çalışmaya devam eder.
 
 ---
 
@@ -475,6 +872,34 @@ tekrarlanırsa kurala dönüşür ve kite taşınır.
    sayısını sormayı unutmuşum"* notu, bu sefer sorulmasını sağlar
 2. **İlerlemenin ölçüsü.** *"Zor gelen kararlar"* listesi zamanla kısalır.
    Kısalması öğrendiğinin kanıtıdır
+
+## ⭐ Ajan seviyeni takip eder — "artık biliyorsun" dediği yer
+
+Defterin en üstünde **"Artık biliyorum"** başlıklı bir liste var. Ajan bu
+listeyi okuyup **anlatım düzeyini ona göre ayarlıyor.**
+
+| Liste ne diyor | Ajan ne yapıyor |
+|---|---|
+| Terim listede **yok** | Üç adımda açar: gerçek hayat örneği → yazılımdaki tanımı → bu projede nerede |
+| Terim listede **var** | Doğrudan kullanır, tekrar açıklamaz |
+
+**Listeye nasıl giriyor:** Bir konu **üçüncü kez** karşına çıktığında ve sen
+soru sormadan geçtiğinde ajan sorar:
+
+> *"`transaction` kavramını üç adımdır soru sormadan kullanıyorsun. 'Artık
+> biliyorum' listesine ekleyip bundan sonra kısa geçeyim mi?"*
+
+**Listeden nasıl çıkıyor:** Sen *"bunu tekrar açıkla"* dersen ajan satırı geri
+alır. ⛔ Listeye girmiş olmak kalıcı değildir; unutmak normaldir.
+
+⭐ **Neden gerekli:** Bu kılavuzun ve rehberlerin her terimi açması, başlarken
+doğru — ama altıncı projede her `transaction` kelimesinde kurabiye kalıbı
+benzetmesi okumak zaman kaybı olur. Liste, anlatımın **seninle birlikte
+büyümesini** sağlıyor.
+
+⚠️ **Bu liste kite gitmez, projede kalır** — ama `/yeni-proje` yeni projeye
+başlarken bir öncekinden **kopyalar.** Böylece seviyen projeler arasında
+taşınır, her seferinde sıfırdan başlamaz.
 
 ---
 

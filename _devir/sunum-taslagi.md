@@ -19,7 +19,8 @@ Yaklaşık 25–30 dakikalık bir anlatım için sıra:
 | 2 | Stack çevirisi (.NET → JS) | 4 dk | En çok soru gelecek yer, baştan açıklığa kavuşsun |
 | 3 | Mimari ve katmanlar | 4 dk | Bağımlılık yönü ve nasıl **zorlandığı** |
 | 4 | Veri modeli | 3 dk | Tablolar, ilişkiler, index kararları |
-| 5 | **Bir iş emrinin hayatı** | 6 dk | ⭐ Sunumun kalbi — sistemi baştan sona canlı gösterir |
+| 5 | **Bir iş emrinin hayatı** (sunucu) | 5 dk | ⭐ Sunumun kalbi — sistemi baştan sona canlı gösterir |
+| 5b | **Bir ekranın hayatı** (arayüz/UI) | 3 dk | Aynı işi frontend için yapar — BÖLÜM G |
 | 6 | Zor maddeler | 6 dk | Factory, durum makinesi, transaction, arka plan işleri, DI |
 | 7 | Test ve teslim | 3 dk | Kalite kapıları ve Docker |
 | 8 | Teknik borçlar | 2 dk | Dürüstlük — sorulmadan söylenir |
@@ -44,7 +45,8 @@ sona anlatırsan, mimariyi *anlatmadan göstermiş* olursun.
 | Test ve teslim | **C.7** Testcontainers · **C.11** Vitest · **C.8** mimari testi · **C.10** Docker |
 | Dokümantasyon | **E.12** ADR ve AI_USAGE |
 | Reddedilen alternatifler | **E.13** — Fastify, GraphQL, Repository, pg-boss |
-| Yapım sırası ve durum | **BÖLÜM G** — 17 adım, kutucuklarla ilerleme |
+| Arayüz (UI) tarafının tamamı | **BÖLÜM G** — bir ekranın hayatı: sıra kararı (G.0), teknoloji katmanları (G.1), on adımlık akış (G.2) |
+| Yapım sırası ve durum | **BÖLÜM H** — 17 adım, kutucuklarla ilerleme |
 
 ### Kod örneklerini sunumda kullanmak
 
@@ -71,7 +73,10 @@ bir anlatı. Sıra yukarıdaki akış tablosunda.
 
 ## 3. ⭐ Bir iş emrinin hayatı
 
-Sunumun kalbi. Anlatım rehberde: **BÖLÜM F — Bir iş emrinin hayatı.**
+Sunumun kalbi. Anlatım rehberde: **BÖLÜM F — Bir iş emrinin hayatı (sunucu tarafı).**
+
+⭐ **Arayüz (UI) tarafı için ikizi var: BÖLÜM G — Bir ekranın hayatı.** *"Frontend'i
+anlat"* sorusuna teknoloji listesi saymak yerine oradaki on adım anlatılır.
 
 On adımlık yolculuk, her adımın hangi karara dayandığı tablosuyla birlikte
 orada. Bu bölümü anlatmak, mimariyi anlatmadan göstermek demektir — bu yüzden
@@ -104,7 +109,12 @@ Numaralar **rehberdeki** bölümleri gösteriyor.
 | "Fastify daha hızlı değil mi?" | **E.13** — süre dağılımı tablosuyla |
 | "Bu kadar test şart mı?" | Ödev §23 zorunlu tutuyor · **C.7** sahte veritabanı neden yasak |
 | "Servis yaşam döngülerini anlat" | **C.1 §4** — Transient/Scoped/Singleton tablosu |
-| "Eş zamanlı güncellemeyi nasıl çözdün?" | **E.8** — `version` kolonu ve üretilen SQL |
+| "Eş zamanlı güncellemeyi nasıl çözdün?" | **E.8** — `version` kolonu ve üretilen SQL · **BÖLÜM F → 8. adımın açılımı** — kolonun ne olduğu, iki kullanıcı tablosu |
+| "Frontend'i anlat" | **BÖLÜM G** — on adımlık ekran akışı |
+| "Önce backend mi yazdın, neden?" | **G.0** — kural aslında "önce veri şekli kesinleşsin" + üç istisna |
+| "Doğrulamayı neden iki kez yapıyorsun?" | **BÖLÜM F → 1. adımın açılımı** — `curl` örneğiyle |
+| "N+1 problemi nedir, sende var mı?" | **E.13** → REST/GraphQL — 51 sorgu vs 2 sorgu örneği |
+| "Neden Fastify değil?" | **E.13** — süre dağılımı + *"emeği index'lere harcadım"* açılımı |
 
 ---
 
