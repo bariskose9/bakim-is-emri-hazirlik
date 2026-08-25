@@ -6,12 +6,20 @@ silinecek** geçici klasörlerdir.
 
 ## 1. Bu klasördeki dosyalar
 
-| Dosya | Ne işe yarar |
-|---|---|
-| `odev.docx` | Kurumun verdiği teknik değerlendirme çalışması |
-| `kurulum-plani.md` | Stack çevirisi, mimari kararlar, session planı, port planı |
-| `proje-teknoloji-rehberi.md` | Her teknolojinin ne olduğu ve neden seçildiği (sunumun kaynağı) |
-| `sunum-taslagi.md` | Teknik inceleme sunumunun iskeleti |
+| Dosya | Ne işe yarar | Kim okur |
+|---|---|---|
+| ⭐ **`YENI-OTURUM.md`** | **Devir notu** — yeni Claude oturumuna verilecek. Neyin kararlaştırıldığı, hangi dosyanın hangi sırayla okunacağı, neyin sorulup neyin sorulmayacağı | **Yeni Claude** |
+| `odev.docx` | Kurumun verdiği teknik değerlendirme çalışması | İkisi |
+| `proje-teknoloji-ve-plan.md` | Tüm teknoloji kararları, kavramlar ve 17 adımlık yapım planı | İkisi |
+| `sunum-taslagi.md` | Teknik inceleme sunumunun iskeleti | Sen |
+| `calisma-kilavuzu.md` | Kitle nasıl çalışılır (her projede aynı) | Sen |
+| `kurulum-plani.md` | ⛔ **ESKİ TASLAK — bayat.** İçeriği rehbere taşındı. Çelişki olursa **rehber kazanır.** Yalnızca arşiv | — |
+
+⭐ **Yeni oturumu açtığında yapıştıracağın metin:**
+
+```
+_devir/YENI-OTURUM.md dosyasını oku ve içindeki talimatları uygula.
+```
 
 ⚠️ **Bu dosyalar claude.ai üzerindeki linklerden AÇILAMAZ** — o linkler kişisel
 hesaba özeldir, kurumun verdiği hesapla görünmez. Dosyaları bu klasörle
@@ -63,7 +71,7 @@ konteyner içi portlar zaten hep standarttır, değişen yalnızca host eşlemes
 ```
 _devir klasöründeki dosyaları oku, kaldığımız yerden devam ediyoruz:
 _devir/kurulum-plani.md
-_devir/proje-teknoloji-rehberi.md
+_devir/proje-teknoloji-ve-plan.md
 _devir/sunum-taslagi.md
 
 İzmir Büyükşehir'in teknik değerlendirme ödevi (_devir/odev.docx) için
@@ -89,11 +97,11 @@ _devir klasöründen ŞUNLARI SİL (işlevi bitti):
   NE-YAPACAGIM.md, WINDOWS-ADIMLARI.md, OKU-ONCE.md, WHATSAPP-NOTU.txt
 
 _devir klasöründen ŞUNLARI KORU, geçici bir yere taşı:
-  odev.docx, kurulum-plani.md, proje-teknoloji-rehberi.md, sunum-taslagi.md
+  odev.docx, kurulum-plani.md, proje-teknoloji-ve-plan.md, sunum-taslagi.md
 
 Sonra /yeni-proje çalıştır. Kurulum bitince korunanları yerleştir:
   odev.docx ve kurulum-plani.md   → docs/project/
-  proje-teknoloji-rehberi.md      → docs/sunum/
+  proje-teknoloji-ve-plan.md      → docs/sunum/
   sunum-taslagi.md                → docs/sunum/
 ```
 

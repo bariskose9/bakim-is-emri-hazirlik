@@ -1469,6 +1469,59 @@ docker compose up --build
 Ödev §24 tam olarak bunu şart koşuyor: değerlendirmeyi yapan kişi projeyi
 indirip tek komutla çalıştırabilmeli.
 
+### ⭐ Port ve konteyner planı — çakışma nasıl önleniyor
+
+**Problem:** Aynı bilgisayarda ikinci bir proje varsa ikisi de 3000 ve 5432'yi
+ister. İkincisi ya açılmaz ya da sessizce başka bir porta oturur ve hangi
+projeye baktığın anlaşılmaz.
+
+**Çözüm iki parçalı:**
+
+| | Konteyner **içi** port | **Host** portu (senin makinendeki kapı) |
+|---|---|---|
+| Değer | 3000 · 4000 · 5432 · 6379 — **standart** | Makineye göre değişir |
+| Değişir mi | ⛔ **Asla** — her konteynerin kendi ağı var, orada çakışma imkânsız | ✅ Çakışma varsa değiştirilir |
+| Nereden gelir | `docker-compose.yml` içinde sabit | **`.env`** dosyasından |
+
+```yaml
+# docker-compose.yml
+name: bakim                      # ⭐ Ağ ve volume adları "bakim-" ön ekli olur;
+                                 #   başka projenin "default" ağıyla karışmaz.
+services:
+  web:
+    container_name: bakim-web
+    ports: ["${WEB_PORT:-3000}:3000"]
+    #        └─ host: .env'den    └─ konteyner içi: HEP 3000
+```
+
+| Servis | Konteyner adı | Konteyner içi | Host portu değişkeni |
+|---|---|---|---|
+| Next.js arayüz | `bakim-web` | 3000 | `WEB_PORT` |
+| NestJS API | `bakim-api` | 4000 | `API_PORT` |
+| Worker | `bakim-worker` | — (port açmaz) | — |
+| PostgreSQL | `bakim-postgres` | 5432 | `DB_PORT` |
+| Redis | `bakim-redis` | 6379 | `REDIS_PORT` |
+
+Volume: `bakim-pgdata`.
+
+⭐ **Host portlarının değeri makineye özeldir, koda yazılmaz.** Boş bir
+bilgisayarda `.env` içine hiçbir şey yazmasan varsayılanlar (3000/4000/5432/6379)
+geçerli olur. Başka bir proje o portları tutuyorsa `.env` içinde
+`WEB_PORT=3100` yazarsın — **başka hiçbir dosyaya dokunmadan.**
+
+⚠️ `apps/web/package.json` içindeki `dev` betiği de aynı değişkeni okur
+(`next dev -p ${WEB_PORT:-3000}`). **Varsayılana güvenilmez:** Next, 3000 doluysa
+uyarı verip sessizce 3001'e oturur ve iki sekmeden hangisinin bu proje olduğunu
+anlayamazsın.
+
+⛔ **Docker Desktop ekranından port değiştirmek kalıcı değildir.** O ekran
+eşlemeyi *gösterir*; `docker compose up` yeniden çalıştığında compose dosyası ne
+diyorsa o geçerli olur. Tek doğru kaynak `.env` + `docker-compose.yml`
+(12-factor: *config ortamdan gelir*).
+
+⭐ **Testcontainers etkilenmez** (C.7): entegrasyon testleri **rastgele** port
+kullanır, çalışan hiçbir veritabanına dokunmaz.
+
 ### Çok aşamalı (multi-stage) yapı
 
 Ödev bunu özellikle istiyor. Sebebi şu: uygulamayı **derlemek** için gereken

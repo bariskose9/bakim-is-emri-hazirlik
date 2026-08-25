@@ -156,7 +156,7 @@ Claude Code'a şunu yapıştır:
 ```
 _devir klasöründeki dosyaları oku, kaldığımız yerden devam ediyoruz:
 _devir/kurulum-plani.md
-_devir/proje-teknoloji-rehberi.md
+_devir/proje-teknoloji-ve-plan.md
 _devir/sunum-taslagi.md
 
 İzmir Büyükşehir'in teknik değerlendirme ödevi (_devir/odev.docx) için
@@ -182,18 +182,20 @@ Rehber incelemesi bittiğinde, kuruluma başlamadan önce:
 _kit-inceleme klasörünü sil.
 
 _devir klasöründen ŞUNLARI SİL (işlevi bitti):
-  NE-YAPACAGIM.md, WINDOWS-ADIMLARI.md, OKU-ONCE.md, WHATSAPP-NOTU.txt
+  NE-YAPACAGIM.md, WINDOWS-ADIMLARI.md, OKU-ONCE.md, WHATSAPP-NOTU.txt,
+  kurulum-plani.md  (eski taslak — içeriği rehbere taşındı)
 
 _devir klasöründen ŞUNLARI KORU, geçici bir yere taşı:
-  odev.docx, kurulum-plani.md, proje-teknoloji-rehberi.md, sunum-taslagi.md
+  YENI-OTURUM.md, odev.docx, proje-teknoloji-ve-plan.md, sunum-taslagi.md
 
 Sonra /yeni-proje çalıştır. Kurulum bitince korunanları yerleştir:
-  odev.docx ve kurulum-plani.md   → docs/project/
-  proje-teknoloji-rehberi.md      → docs/sunum/
-  sunum-taslagi.md                → docs/sunum/
+  odev.docx                  → docs/project/
+  proje-teknoloji-ve-plan.md → docs/sunum/
+  sunum-taslagi.md           → docs/sunum/
+  YENI-OTURUM.md             → kurulum bitince silinir (işlevi biter)
 ```
 
-⛔ **"_devir klasörünü sil" deme.** İçinde 40 sayfalık teknoloji rehberi ve
+⛔ **"_devir klasörünü sil" deme.** İçinde ~190 sayfalık teknoloji rehberi ve
 sunum taslağı var; ikisi de projenin kalıcı dokümanları. Yalnızca kurulum
 yönergesi dosyaları silinir.
 

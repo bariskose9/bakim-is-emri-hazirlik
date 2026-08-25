@@ -83,7 +83,7 @@ claude plugin list
 
 _devir klasorundeki dosyalari oku, kaldigimiz yerden devam ediyoruz:
 _devir/kurulum-plani.md
-_devir/proje-teknoloji-rehberi.md
+_devir/proje-teknoloji-ve-plan.md
 _devir/sunum-taslagi.md
 
 Izmir Buyuksehir'in teknik degerlendirme odevi (_devir/odev.docx) icin
@@ -108,7 +108,7 @@ _kit-inceleme klasorunu sil.
 _devir'den sunlari sil: NE-YAPACAGIM.md, WINDOWS-ADIMLARI.md,
 OKU-ONCE.md, WHATSAPP-NOTU.txt
 _devir'den sunlari KORU: odev.docx, kurulum-plani.md,
-proje-teknoloji-rehberi.md, sunum-taslagi.md
+proje-teknoloji-ve-plan.md, sunum-taslagi.md
 Sonra /yeni-proje calistir, korunanlari docs/ altina yerlestir.
 
 > "_devir klasorunu sil" DEME. Icinde 40 sayfalik rehber ve sunum var.
@@ -136,6 +136,6 @@ _devir/NE-YAPACAGIM.md ......... adim adim (ILK BUNU AC)
 _devir/WINDOWS-ADIMLARI.md ..... ayrintili hali + sorun cozme
 _devir/odev.docx ............... kurumun verdigi odev
 _devir/kurulum-plani.md ........ stack, mimari, port plani
-_devir/proje-teknoloji-rehberi.md  40 sayfa teknoloji rehberi
+_devir/proje-teknoloji-ve-plan.md  ~190 sayfa teknoloji ve plan rehberi
 _devir/sunum-taslagi.md ........ sunum iskeleti
 _kit-inceleme/ ................. kitin standart dosyalari
