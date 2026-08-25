@@ -1,7 +1,7 @@
 # Teknik Sunum — Anlatım Planı
 
 > **Bu dosya içerik değil, plan.** Anlatılacak her şeyin kaynağı
-> `proje-teknoloji-ve-plan.md` dosyasıdır (~58 sayfa). Burada yalnızca *hangi
+> `proje-teknoloji-ve-plan.md` dosyasıdır (~190 sayfa). Burada yalnızca *hangi
 > sırayla, ne kadar sürede ve nasıl* anlatılacağı duruyor.
 >
 > Aynı bilgi iki dosyada tutulmuyor: bir konunun gerekçesi değiştiğinde tek yer
@@ -78,9 +78,9 @@ Sunumun kalbi. Anlatım rehberde: **BÖLÜM F — Bir iş emrinin hayatı (sunuc
 ⭐ **Arayüz (UI) tarafı için ikizi var: BÖLÜM G — Bir ekranın hayatı.** *"Frontend'i
 anlat"* sorusuna teknoloji listesi saymak yerine oradaki on adım anlatılır.
 
-On adımlık yolculuk, her adımın hangi karara dayandığı tablosuyla birlikte
-orada. Bu bölümü anlatmak, mimariyi anlatmadan göstermek demektir — bu yüzden
-akışta 6 dakika ayrıldı.
+Her ikisi de **on adımlık** bir yolculuk ve her adımın hangi karara dayandığı
+tablosuyla birlikte orada. Bu iki bölümü anlatmak, mimariyi anlatmadan
+göstermek demektir — bu yüzden akışta toplam **8 dakika** ayrıldı (5 + 3).
 
 ---
 
@@ -115,6 +115,8 @@ Numaralar **rehberdeki** bölümleri gösteriyor.
 | "Doğrulamayı neden iki kez yapıyorsun?" | **BÖLÜM F → 1. adımın açılımı** — `curl` örneğiyle |
 | "N+1 problemi nedir, sende var mı?" | **E.13** → REST/GraphQL — 51 sorgu vs 2 sorgu örneği |
 | "Neden Fastify değil?" | **E.13** — süre dağılımı + *"emeği index'lere harcadım"* açılımı |
+| "Neden konteyner portları standart ama host portları farklı?" | **C.10** → port ve konteyner planı — 12-factor, `.env`'den gelen host portu |
+| "Aynı makinede iki proje çakışmaz mı?" | **C.10** — konteyner içi sabit, host değişken; Testcontainers rastgele port |
 
 ---
 
@@ -132,8 +134,8 @@ desteklenir — *"bence daha iyi"* denmez.
 | *"Next tek başına yetmez miydi?"* | **E.1** — dört koşul |
 | *"Neden .NET değil?"* | **Giriş** — üç ölçüt + yetenek tablosu |
 
-**Bölüm 3'ü atlama.** Akıştaki en uzun süre (6 dk) ona ayrıldı; sebebi rehberin
-**BÖLÜM F** girişinde yazılı.
+**Bölüm 3'ü atlama.** Akışta bu ikiliye toplam 8 dakika ayrıldı — tek başına en
+büyük pay; sebebi rehberin **BÖLÜM F** girişinde yazılı.
 
 **Bilmediğin bir şey sorulursa:** *"Emin değilim, rehberde şu bölümde ayrıntısı
 var, bakıp döneyim."* Uydurmaktan çok daha iyi karşılanır — rehber zaten
