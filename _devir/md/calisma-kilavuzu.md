@@ -230,15 +230,36 @@ geçerlidir. İlerleme **roadmap adımlarıyla** olur.
 3. Onayla            → gerekiyorsa düzelt
 4. Kod + test        → ajan yazar, testler yeşil olur
 5. Gözle doğrula     → ekran varsa tarayıcıda görülür
-6. Commit + öneri    → değişiklik önerisi açılır
-7. Kutucuk ✅        → roadmap'te o adım işaretlenir
-8. Kararları yaz     → teknoloji-ve-plan.md güncellenir
-9. Devir notu        → sırada ne var yazılır
-10. /clear           → yeni oturuma temiz başla
+6. Ajan denetimi     → ⭐ ajan kendi yazdığını inceler, bulguları düzeltir
+7. Commit + öneri    → değişiklik önerisi açılır
+8. Kutucuk ✅        → roadmap'te o adım işaretlenir
+9. Kararları yaz     → teknoloji-ve-plan.md güncellenir
+10. Devir notu       → sırada ne var yazılır
+11. /clear           → yeni oturuma temiz başla
 ```
 
-⛔ **7 ve 8 atlanmaz.** Kutucuk *nerede kalındığını*, teknoloji belgesi *neden
+⛔ **8 ve 9 atlanmaz.** Kutucuk *nerede kalındığını*, teknoloji belgesi *neden
 öyle yapıldığını* söyler. İkisi de sonradan hatırlanmaz.
+
+### ⭐ 6. adım — "testler yeşil" neden yetmiyor
+
+Otomatik testler makinenin **ölçebildiğini** ölçer. Ölçemedikleri var ve gerçek
+hatalar çoğu zaman oralarda:
+
+| Test yakalar | ⛔ Test yakalayamaz |
+|---|---|
+| Test kırmızı mı | **Test yanlış şeyi doğruluyor mu** |
+| Tip hatası | Tip doğru ama **iş kuralı yanlış** |
+| Katman ihlali | Katman temiz ama **sorumluluk yanlış yerde** |
+| — | Yorumlar eksik veya **yanlış** |
+| — | Yeni bir güvenlik açığı |
+
+Bu yüzden ajan, değişiklik önerisi açmadan **önce kendi yazdığını denetler**:
+kod incelemesi · güvenlik denetimi · test kalitesi · yorumların yeterliliği.
+Bulgu çıkarsa **düzeltilir**, sonra sana sunulur.
+
+⛔ **Sen bir şey yapmıyorsun** — bu ajanın kendi kapısı. Ama bilmen gerekiyor:
+*"testler geçti"* dediğinde iş bitmiş değildir, **bir kapı daha var.**
 
 ## Neden her adımda `/clear`
 
@@ -732,9 +753,15 @@ dinliyor"* diye soracak. Süreci bilmezsen bu sorular havada kalır.
 |---|---|---|
 | `/yeni-proje` | Yalnızca **boş klasörde**, projeye ilk başlarken | Kurulumu baştan sona yürütür |
 | `/kit-senkron` | Bir kuralı kalıcı hâle getirirken | Aşağıda açıldı |
+| `/video-analiz <url>` | Bir YouTube videosunda işe yarar bir şey gördüğünde | Videoyu transkriptinden inceler, **kitte eksik olanı** bulur ve sana onaylatır |
+| `/pdf-uret <dosya.md>` | Bir belgeyi telefonda okumak istediğinde | Karanlık temalı PDF üretir (`--acik` ile yazdırma sürümü) |
 | `/clear` | Her roadmap adımı bitince | Sohbet geçmişini temizler, bağlam sıfırlanır |
 | `claude plugin update proje-kiti@bariskose-skills` | Her yeni projeden önce | Kitin son sürümünü indirir |
 | **Pencere yenileme** | Eklenti güncellendikten sonra | Aşağıda açıldı |
+
+⭐ **Dört komut da eklentiyi kurar kurmaz çalışır** — `/yeni-proje` demiş olman
+gerekmiyor. Kurulan proje dosyaları yalnızca `/yeni-proje` ile gelir, ama
+komutlar en baştan hazırdır.
 
 ### Pencere yenileme — nereye tıklanır
 
