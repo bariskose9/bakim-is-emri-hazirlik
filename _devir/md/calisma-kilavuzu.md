@@ -261,6 +261,84 @@ Bulgu çıkarsa **düzeltilir**, sonra sana sunulur.
 ⛔ **Sen bir şey yapmıyorsun** — bu ajanın kendi kapısı. Ama bilmen gerekiyor:
 *"testler geçti"* dediğinde iş bitmiş değildir, **bir kapı daha var.**
 
+## ⭐ Yorumlar neden bu kadar ayrıntılı — ikinci bir sebebi var
+
+Yorumların ilk sebebi belli: **sen, denetçi ve devralan geliştirici** kodu
+okumadan anlayabilsin.
+
+Ama ikinci bir sebebi daha var ve o **doğrudan senin cebine dokunuyor.**
+
+### Sorun: yorumlu dosya 4 kat büyük
+
+Ölçüldü: aynı kod, yorumlu hâlde **4.1 kat** daha uzun. Ajan onu okurken
+4 kat fazla **jeton (token)** harcar. Bir oturumda on dosya okunuyorsa bu
+gerçek bir maliyet.
+
+⚠️ *(Kullanıcının indirdiği dosyaya etkisi **sıfır** — derleyici yorumları
+siler. Maliyet yalnızca ajanın okumasında.)*
+
+### Çözüm: yorumlar bir HARİTA oluşturuyor
+
+Her dosyanın başındaki blok sabit biçimde yazılıyor:
+
+```
+/**
+ * İŞ EMRİ OLUŞTURMA
+ *
+ * NEREDEN : apps/web/.../talep-formu.tsx → kullanıcının doldurduğu form
+ * NE      : üç kural sırayla uygulanıyor
+ * NEREYE  : prisma → PostgreSQL "WorkOrder" tablosu · BullMQ kuyruğu
+ * SONUÇ   : IE-2026-000148 numaralı kayıt oluşur, ekranda listede belirir
+ */
+```
+
+⭐ **`NEREDEN` ve `NEREYE` satırlarında gerçek dosya adı geçiyor.** Bu, tüm
+yorumları **aranabilir bir bağımlılık haritasına** çeviriyor.
+
+> **Gerçek hayat benzetmesi:** Depodaki her kolinin üstünde *"A deposundan
+> geldi → B mağazasına gidecek"* etiketi var. Kolileri **açmadan**, yalnızca
+> etiketleri okuyarak tüm dağıtım ağını çıkarabilirsin.
+
+| Aramada bulunan | Anlamı |
+|---|---|
+| `NEREYE ... <dosya>` | O dosya **buraya gönderiyor** |
+| `NEREDEN ... <dosya>` | O dosya **buradan alıyor** |
+
+⭐ İki yönlü grafik — hiçbir dosyanın **gövdesini açmadan**.
+
+### Üç adımlı tarama — ajan böyle çalışıyor
+
+| # | Soru | Nasıl |
+|---|---|---|
+| 1 | Bu dosya neyi etkiliyor | Kendi başlık bloğundaki `NEREYE` satırı |
+| 2 | Buna kim bağımlı | Tüm depoda `NEREDEN`/`NEREYE` araması |
+| 3 | Bulunanlar ne yapıyor | ⛔ Sadece **başlık bloklarını** oku, gövdeyi değil |
+
+⭐ **Kazanç:** 200 satırlık bir dosyanın başlık bloğu ~15 satır. On dosyanın
+etkisini görmek için **2.000 satır yerine ~150 satır** okunuyor.
+
+⚠️ **Gövde ne zaman okunuyor:** başlık bloğu cevap vermiyorsa, ya da
+**değiştirilecek** dosyaysa. Tahminle kod yazılmıyor.
+
+⛔ **Bu yöntem yorumların GÜNCEL olmasına bağlı.** Bayat bir `NEREYE` satırı
+ajanı yanlış dosyaya götürür — bu yüzden bir işin *"bitti"* sayılma şartına
+**"ilgili yorumlar güncellendi"** dahil.
+
+### Aynı mantık belgelerde de geçerli
+
+200 sayfalık teknoloji rehberi de baştan sona okunmuyor. Önce **başlık
+haritası** çıkarılıyor, sonra yalnızca gereken bölüm okunuyor.
+
+**Gerçek ölçüm — rehberin E.10 bölümünü okumak:**
+
+| Yöntem | Okunan |
+|---|---|
+| Tamamını oku | **6.407 satır** |
+| Önce harita, sonra bölüm | 300 (başlıklar) + 204 (E.10) = **504 satır** |
+
+⭐ **%92 tasarruf**, aynı bilgi. Bu yüzden ajana *"şu belgeyi oku"* dediğinde
+tamamını yutmuyor — haritaya bakıp gereken yere gidiyor.
+
 ## Neden her adımda `/clear`
 
 Konuşma uzadıkça ajanın bağlamı dolar ve ayrıntı kaybolur. Her adım kendi
