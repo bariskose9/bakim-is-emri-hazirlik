@@ -315,7 +315,36 @@ kurallarına bağlı. Önce PRD, sonra bu.
 ilgisiz mevcut bir projeyi uyarlamak yerine, verilen iş ihtiyacına göre veri
 modeli oluşturmanız beklenmektedir."* Model ödevin iş kurallarından türetilir.
 
-### İş 2 — Kuruma sorulacaklar ⏳
+### İş 2 — PRD taslağı ⏳
+
+**Ne isteniyor:** `docs/project/PRD.md`'nin taslağı — sistem **ne yapacak**.
+
+**Neden burada yapılıyor:** `/yeni-proje` Adım 3'te PRD **görüşerek** çıkarılır
+ve **en uzun adımdır.** Ödev rolleri, durumları, CRUD işlemlerini ve kısıtları
+**zaten sayıyor**; SLA kararı verildi, kapsam dışı listesi belli. ⭐ Taslağı
+şimdi çıkarmak, kurulum oturumunda yarım günü kurtarır.
+
+**Kaynaklar:**
+
+| Bölüm | Nereden |
+|---|---|
+| Roller ve yetkiler | `odev.md` §4 — dört rol, ne yapabildikleri |
+| İş kuralları | `odev.md` §5.2 · §5.3 · §5.4 · §6 (durum makinesi) |
+| SLA kuralları | ⭐ `proje-teknoloji-ve-plan.md` → **E.4** (karara bağlandı) |
+| Kapsam dışı | `KURUMDAN-OGRENECEKLERIM` → BÖLÜM 3 |
+| Ekranlar | `odev.md` §22 |
+
+**Şablon:** Kit kurulunca `docs/standards/sablonlar/PRD.md` gelecek. Şimdilik
+taslak `_devir/md/PRD-taslak.md` olarak yazılır; kurulumda `docs/project/`
+altına taşınır.
+
+⚠️ **Cevabı kurumdan beklenen sorular varsayımla doldurulur** ve PRD →
+**"2b. Varsayımlar"** bölümüne yazılır. Cevap gelince düzeltilir.
+
+⛔ **PRD'de mühendislik kararı yazılmaz** — o rehberde. PRD yalnızca *"sistem
+ne yapacak"* sorusuna bakar.
+
+### İş 3 — Kuruma sorulacaklar ⏳
 
 `KURUMDAN-OGRENECEKLERIM.md` hazır. Kullanıcı bunları kuruma soracak; sen
 cevapları `PRD.md` ve `altyapi-durumu.md`'ye işleyeceksin.
@@ -409,8 +438,11 @@ farklı bir cevap verirse **planla çelişen** bir kurulum çıkar.
 | 2 | Rehberin **E.9** (veri modeli) ve **BÖLÜM H** kısımlarını oku | Ajan |
 | 3 | ⭐ **Sahte veri planını çıkar** — §5b → İş 1 | Ajan |
 | 4 | Kullanıcıya sun, onaylat, düzelt | İkisi |
-| 5 | Planı `proje-teknoloji-ve-plan.md` → E.9'a işle | Ajan |
-| 6 | ⛔ **DUR.** Kod yazma, kurulum başlatma | — |
+| 5 | Planı `proje-teknoloji-ve-plan.md` → **E.9'a yeni alt bölüm** olarak ekle | Ajan |
+| 6 | ⭐ **PRD taslağını çıkar** — §5b → İş 2 | Ajan |
+| 7 | Sun, onaylat, `_devir/md/PRD-taslak.md`'ye yaz | İkisi |
+| 8 | PDF'leri yenile, commit + push | Ajan |
+| 9 | ⛔ **DUR.** Kod yazma, `/yeni-proje` çalıştırma | — |
 
 **B) KURULUM OTURUMU** *(kullanıcı "kuruluma geçelim" dediğinde)*
 
