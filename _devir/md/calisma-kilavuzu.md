@@ -306,6 +306,61 @@ yorumları **aranabilir bir bağımlılık haritasına** çeviriyor.
 
 ⭐ İki yönlü grafik — hiçbir dosyanın **gövdesini açmadan**.
 
+### ⭐ SEN DE ARAYABİLİRSİN — VS Code'da nasıl
+
+Bu harita ajana özel değil. **Sen de tek kısayolla aynı sonucu alırsın** —
+"şu dosyayı değiştirsem ne bozulur" sorusunu bana sormadan cevaplayabilirsin.
+
+| Kısayol | Ne yapar |
+|---|---|
+| `Cmd+F` (Mac) · `Ctrl+F` (Win) | ⛔ Yalnızca **açık dosyada** arar — yetmez |
+| ⭐ `Cmd+Shift+F` · `Ctrl+Shift+F` | **Tüm projede** arar — aradığın bu |
+
+**Fareyle:** Sol kenar çubuğunda **büyüteç** ikonu (Search).
+
+#### Adım adım — örnek
+
+Diyelim `work-orders.service.ts` dosyasını değiştireceksin ve *"bu neyi
+bozar"* diye merak ediyorsun.
+
+**1) Kim buna veri gönderiyor / bundan veri alıyor:**
+
+`Cmd+Shift+F` → arama kutusuna yaz:
+
+```
+work-orders.service
+```
+
+Çıkan sonuçlarda `NEREDEN` veya `NEREYE` satırlarına bak:
+
+| Sonuçta gördüğün | Anlamı |
+|---|---|
+| `NEREYE : …work-orders.service…` | O dosya **buraya gönderiyor** |
+| `NEREDEN : …work-orders.service…` | O dosya **buradan alıyor** |
+
+**2) Bulduğun dosyaların yalnızca başlık bloğunu oku** — dosyayı aç, en
+üstteki `/** … */` bloğunu oku, gerisini geç. Genelde `SONUÇ` satırı sorunu
+cevaplar: *"bu bozulursa ekranda ne olmaz."*
+
+⭐ **Aramayı daraltmak istersen** kutuya şunu yaz — yalnızca yorum satırları
+gelir:
+
+```
+NEREYE.*work-orders.service
+```
+
+⚠️ Bunun çalışması için arama kutusundaki **`.*` düğmesi** (Use Regular
+Expression) açık olmalı — kutunun sağındaki üçüncü küçük ikon.
+
+#### Ne zaman işine yarar
+
+| Durum | Ne aratırsın |
+|---|---|
+| *"Bu dosyayı silsem ne olur"* | Dosya adı — kimse `NEREDEN`/`NEREYE` demiyorsa kimse bağımlı değildir |
+| *"Bu tabloya kim yazıyor"* | Tablo adı, örn. `WorkOrderHistory` |
+| *"Bu ekran verisini nereden alıyor"* | Ekranın dosya adı → başlık bloğundaki `NEREDEN` |
+| *"Şu kural nerede uygulanıyor"* | Kuralın Türkçe adı, örn. `pasif lokasyon` |
+
 ### Üç adımlı tarama — ajan böyle çalışıyor
 
 | # | Soru | Nasıl |
