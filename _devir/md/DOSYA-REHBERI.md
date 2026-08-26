@@ -226,29 +226,23 @@ buradan düzeltmek işe yaramaz.
 
 ## `/yeni-proje` çalışınca projeye YERLEŞECEK dosyalar
 
-Bunların hepsi kitin `skills/yeni-proje/dosyalar/` klasöründen kopyalanır:
+⭐ **Bunların tam listesi ve ne işe yaradıkları `calisma-kilavuzu` →
+BÖLÜM 5'te.** Burada tekrarlanmıyor — kural gereği aynı bilgi iki yerde
+yazılmaz, biri diğerine işaret eder.
 
-| Dosya | Ne işe yarıyor | Elle düzenlenir mi |
-|---|---|:---:|
-| `CLAUDE.md` | **Ajanın** çalışma protokolü ve rolü. Her projede aynı | ✘ |
-| `CALISMA-KILAVUZU.md` | Kit kullanım kılavuzu — **senin** için | ✘ |
-| `REPO-YAPISI.md` | Kod klasörlerinin haritası — **bu dosyanın kod tarafındaki devamı** | ✔ |
-| `docs/standards/00–17` | **18 kural dosyası**: stack, mimari, kod standartları, API, veritabanı, güvenlik, test, git, CI, DoD, ajan düzeni, işletim, ortamlar, KVKK, oturum devri, kurulum, mobil | ⛔ **Asla** — `/kit-senkron` ile |
-| `docs/standards/sablonlar/` | **12 şablon** — `docs/project/` altına açılacak boş belgeler | ✔ (açıldıktan sonra) |
-| `.vscode/extensions.json` | Eklenti önerileri — VS Code *"Install All"* diyecek | ✔ |
-| `.claude/settings.json` | ⭐ Ajanın **izin listesi**: `npm run test`, `lint`, `typecheck` gibi zararsız komutları her seferinde sormadan çalıştırır | ✔ |
+Kısaca ne geliyor:
 
-## Bu projeye özel doldurulacaklar
+| Grup | Ne | Ayrıntısı |
+|---|---|---|
+| **Ajanın kuralları** | `CLAUDE.md` + `docs/standards/` (18 dosya) | Kılavuz BÖLÜM 5 |
+| **Senin belgen** | `CALISMA-KILAVUZU.md`, `REPO-YAPISI.md`, `README.md` | Kılavuz BÖLÜM 5 |
+| **Projeye özel** | `docs/project/` altında 8 belge (PRD, roadmap, ADR…) | Kılavuz BÖLÜM 5 |
+| **Ayarlar** | `.env.example`, `.env`, `.vscode/extensions.json` | Kılavuz BÖLÜM 5 |
+| **İzinler** | `.claude/settings.json` — ⭐ kılavuzda yok, aşağıda | — |
 
-| Dosya | Ne işe yarıyor |
-|---|---|
-| `docs/project/PRD.md` | ⭐ Sistem **ne yapacak** — roller, iş kuralları, kapsam dışı, varsayımlar |
-| `docs/project/roadmap.md` | **Hangi sırayla** yapılacak — kutucuklu, nerede kalındığı görünür |
-| `docs/project/data-model.md` | Veri modeli kararları |
-| `docs/project/altyapi-durumu.md` | ⭐ **Kod dışında** ne yapıldı: hangi hesap, hangi panel, **neden** |
-| `docs/project/decisions/ADR-*.md` | Önemli kararların gerekçesi |
-| `docs/project/ogrendiklerim.md` | **Senin defterin** — *"Artık biliyorum"* listesi buradan okunuyor |
-| `docs/project/sonraki-adim-prompt.md` | Sıradaki oturuma devir notu |
+⭐ **`.claude/settings.json` ne yapıyor:** Ajanın **izin listesi**.
+`npm run test`, `lint`, `typecheck` gibi zararsız komutları her seferinde
+sana sormadan çalıştırmasını sağlıyor. Olmasaydı her testte onay isterdi.
 
 ## Kodun kendisi
 
