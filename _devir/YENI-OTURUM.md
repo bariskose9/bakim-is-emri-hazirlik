@@ -136,10 +136,20 @@ gereksiz doldurur.
 
 | # | Dosya | Ne verir | Nasıl oku |
 |---|---|---|---|
-| 1 | **`odev.docx`** | Gerçeğin kaynağı: 32 bölüm, iş kuralları, teslim listesi | **Tamamını.** ~26 KB, kısa |
-| 2 | **bu dosya** | Devir notu | Zaten okuyorsun |
+| 1 | **`odev.md`** | ⭐ Gerçeğin kaynağı: 32 bölüm, iş kuralları, teslim listesi | **Tamamını.** ~30 KB |
+| 2 | **bu dosya** | Devir notu — rolün, kararlar, yapılacaklar | Zaten okuyorsun |
 | 3 | **`proje-teknoloji-ve-plan.md`** | Tüm teknoloji kararları + kavramlar + yapım planı | ⚠️ **Aşağıdaki gibi parça parça** |
-| 4 | `sunum-taslagi.md` | Sunumun iskeleti — her adımda büyütülecek | Bir kez göz at |
+| 4 | **`KURUMDAN-OGRENECEKLERIM.md`** | Kullanıcının kuruma soracakları + cevap gelmezse ne yapılacağı | Tamamını — kısa |
+| 5 | `sunum-taslagi.md` | Sunumun iskeleti — her adımda büyütülecek | Bir kez göz at |
+
+> **ℹ️ `odev.docx` ile `odev.md` aynı şeydir**
+>
+> `.docx` bir **ikili dosya**; ne VS Code'da ne de senin tarafından doğrudan
+> okunabilir. `odev.md` onun metne çevrilmiş hâli — içerik birebir aynı
+> (%99.8 karakter eşleşmesi doğrulandı).
+>
+> ⛔ **Gerçeğin kaynağı yine `odev.docx`'tir.** Bir çelişki görürsen Word
+> dosyası kazanır; `.md` yalnızca okuma kolaylığı için var.
 
 ### 3. dosya nasıl okunur
 
@@ -266,9 +276,61 @@ Yeni bir sapma yapacaksan **ADR yaz** — açıklamasız sapma yasak.
 
 ---
 
+## 5b. ⭐ DEVRALDIĞIN AÇIK İŞLER
+
+Hazırlık aşaması bitti ama **iki iş bilerek yarım bırakıldı** — ikisi de senin
+ilk oturumunda yapılacak.
+
+### İş 1 — Sahte veri planı ⏳
+
+**Ne isteniyor:** Bu proje **sahte veriyle** çalışacak (ödev §5.1 gerçek kişisel
+veriyi yasaklıyor). Tohumlama (seed) için gereken tablolar ve alanlar
+tasarlanacak.
+
+**Neden yarım bırakıldı:** Veri modeli, PRD görüşmesinde netleşecek iş
+kurallarına bağlı. Önce PRD, sonra bu.
+
+**Nereye bakacaksın:**
+
+| Kaynak | Ne verir |
+|---|---|
+| `odev.md` → **§5.2** Lokasyon | Lokasyonda hangi işlemler, pasif lokasyon kuralı |
+| `odev.md` → **§5.3** Varlık | Varlığın zorunlu alanları: lokasyon · tür · tanımlayıcı bilgi · **kritiklik seviyesi** · operasyonel durum · bakım bilgileri |
+| `odev.md` → **§5.4** Talep/İş emri | 13 zorunlu alan tek tek sayılı |
+| `odev.md` → **§4** Roller | Yönetici · Operasyon Sorumlusu · Teknik Personel · Talep Sahibi |
+| `odev.md` → **§6** Durumlar | Durum makinesi geçişleri |
+| `odev.md` → **§11** Veri tabanı | ⛔ Tasarım kararlarının **tamamı bize bırakılmış** |
+| `proje-teknoloji-ve-plan.md` → **E.4** | ⭐ SLA politikası — varlık kritikliği çarpanı buradan geliyor |
+| `proje-teknoloji-ve-plan.md` → **E.9** | Veri modeli bölümü |
+
+**Kullanıcının söyledikleri — tasarıma girecek:**
+
+- **Personel tablosu**: ad, soyad, telefon, adres, birim… *(kullanıcı "ne varsa
+  düşün" dedi — sen öner, onaylat)*
+- **Yorum** ödevde **zorunlu** (§39, §91, §414, §541). İki taraf yorum yazacak:
+  talebi açan personel ve iş emrini yöneten personel
+- **Fotoğraf/dosya eki** ödevde **YOK**. ⛔ Kapsam dışı — ama **veri modelinde
+  yeri hazır bırakılacak** ki istenirse tek adımda eklensin
+
+⛔ **Kopyalama yasak.** Ödev §11: *"Hazır bir şemayı veya bu çalışmayla
+ilgisiz mevcut bir projeyi uyarlamak yerine, verilen iş ihtiyacına göre veri
+modeli oluşturmanız beklenmektedir."* Model ödevin iş kurallarından türetilir.
+
+### İş 2 — Kuruma sorulacaklar ⏳
+
+`KURUMDAN-OGRENECEKLERIM.md` hazır. Kullanıcı bunları kuruma soracak; sen
+cevapları `PRD.md` ve `altyapi-durumu.md`'ye işleyeceksin.
+
+⭐ **En kritiği 1.1:** Ödev §11 *"kurum tarafından **iletilen** veri tabanı
+geliştirme ve isimlendirme kurallarına uygun olmalıdır"* diyor ama **böyle bir
+doküman ödevin ekinde yok.** Cevap geç gelirse tüm migration'lar yeniden
+yazılır — ilk gün sorulmalı.
+
+---
+
 ## 6. İlk oturumda ne yapılacak
 
-1. Bu dosyayı ve `odev.docx`'i oku
+1. Bu dosyayı ve **`odev.md`**'yi oku (Word hâli `odev.docx`, ikili dosya)
 2. Rehberin **Giriş + BÖLÜM 0 + A + H** kısımlarını oku
 3. Eklentileri kur, pencereyi yenile
 4. §4-A'daki dört soruyu sor

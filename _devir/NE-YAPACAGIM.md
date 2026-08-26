@@ -153,7 +153,8 @@ _devir klasöründen ŞUNLARI SİL (işlevi bitti):
   NE-YAPACAGIM.md, WINDOWS-ADIMLARI.md, OKU-ONCE.md, WHATSAPP-NOTU.txt,
 
 _devir klasöründen ŞUNLARI KORU, geçici bir yere taşı:
-  YENI-OTURUM.md, odev.docx, proje-teknoloji-ve-plan.md, sunum-taslagi.md
+  YENI-OTURUM.md, odev.md, odev.docx, KURUMDAN-OGRENECEKLERIM.md,
+  proje-teknoloji-ve-plan.md, sunum-taslagi.md
 
 Sonra /yeni-proje çalıştır. Kurulum bitince korunanları yerleştir:
   odev.docx                  → docs/project/

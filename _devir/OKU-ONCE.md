@@ -8,7 +8,9 @@ silinecek** geçici klasörlerdir.
 | Dosya | Ne işe yarar | Kim okur |
 |---|---|---|
 | ⭐ **`YENI-OTURUM.md`** | **Devir notu** — yeni Claude oturumuna verilecek. Neyin kararlaştırıldığı, hangi dosyanın hangi sırayla okunacağı, neyin sorulup neyin sorulmayacağı | **Yeni Claude** |
-| `odev.docx` | Kurumun verdiği teknik değerlendirme çalışması | İkisi |
+| **`odev.md`** | ⭐ Ödevin **okunabilir** hâli — VS Code'da açılır | İkisi |
+| `odev.docx` | Kurumun verdiği Word dosyası. ⚠️ VS Code gösteremez (ikili dosya) — `odev.md`'yi kullan | Arşiv |
+| **`KURUMDAN-OGRENECEKLERIM.md`** | Kuruma soracakların + cevap gelmezse ne yapılacağı | **Sen** |
 | `proje-teknoloji-ve-plan.md` | Tüm teknoloji kararları, kavramlar ve 17 adımlık yapım planı | İkisi |
 | `sunum-taslagi.md` | Teknik inceleme sunumunun iskeleti | Sen |
 | `calisma-kilavuzu.md` | Kitle nasıl çalışılır (her projede aynı) | Sen |
