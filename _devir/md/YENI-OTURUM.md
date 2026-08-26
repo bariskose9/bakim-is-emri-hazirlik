@@ -329,13 +329,47 @@ yazılır — ilk gün sorulmalı.
 
 ## 6. İlk oturumda ne yapılacak
 
-1. Bu dosyayı ve **`odev.md`**'yi oku (Word hâli `odev.docx`, ikili dosya)
-2. Rehberin **Giriş + BÖLÜM 0 + A + H** kısımlarını oku
-3. Eklentileri kur, pencereyi yenile
-4. §4-A'daki dört soruyu sor
-5. `/yeni-proje` çalıştır — Adım 1 cevapları §3'teki tablodan, **doğrulat ve geç**
-6. Adım 3 (PRD) → §4-B'deki açık konular
-7. `/clear`, sonraki oturuma `docs/project/sonraki-adim-prompt.md` ile devret
+### ⛔ SIRA ÖNEMLİ: ÖNCE BU DOSYA, SONRA `/yeni-proje`
+
+**`/yeni-proje` ilk komut DEĞİLDİR.** Önce bu devir notu okunur.
+
+**Sebebi:** `/yeni-proje` Adım 1'de sekiz soru sorar (kim için · proje tipi ·
+backend kurgusu 4 soru · API biçimi · proje adı). ⭐ **O soruların cevapları
+§3'teki tabloda zaten hazır.** Bu dosya okunmadan başlanırsa ajan hepsini
+sıfırdan sorar; kullanıcı aynı kararları yeniden anlatmak zorunda kalır ve
+farklı bir cevap verirse **planla çelişen** bir kurulum çıkar.
+
+```
+1. Kullanıcı Claude Code'u açar ve TEK SATIR yapıştırır:
+   "_devir/md/YENI-OTURUM.md dosyasını oku ve içindeki talimatları uygula."
+                          ↓
+2. Ajan bu dosyayı okur — rolünü, kararları, açık işleri öğrenir
+                          ↓
+3. Ajan odev.md'yi ve rehberin dört bölümünü okur
+                          ↓
+4. Ajan §4-A'daki dört soruyu sorar
+                          ↓
+5. ⭐ ANCAK ŞİMDİ  /yeni-proje  çalıştırılır
+```
+
+### Adım adım
+
+| # | Ne | Kim yapar |
+|---|---|---|
+| 1 | Bu dosyayı ve **`odev.md`**'yi oku | Ajan |
+| 2 | Rehberin **Giriş + BÖLÜM 0 + A + H** kısımlarını oku *(tamamını değil)* | Ajan |
+| 3 | §4-A'daki dört soruyu sor | Ajan |
+| 4 | ⭐ `/yeni-proje` çalıştır — **Adım 1 cevapları §3'teki tablodan.** Sorma, *"şöyle alıyorum, yanlışsa söyle"* deyip geç | Ajan |
+| 5 | Adım 3 (PRD) → §4-B'deki açık konular | İkisi |
+| 6 | `/clear`, sonraki oturuma `docs/project/sonraki-adim-prompt.md` ile devret | Ajan |
+
+⚠️ **Eklentiler bu adımlardan ÖNCE kurulu olmalı** — kurulum `KURULUM.md`
+BÖLÜM A'da. Kurulu değilse `/yeni-proje` komutu zaten görünmez.
+
+⛔ **Bu dosya okunmadan `/yeni-proje` yazılmışsa:** durum kurtarılabilir —
+ajan bu dosyayı o anda okur, verilmiş cevapları §3'teki tabloyla karşılaştırır
+ve farklıysa kullanıcıya söyler. Ama en baştan doğru sırayla başlamak daha
+temizdir.
 
 ⭐ **Oturum ritmi:** her roadmap adımı = bir oturum. Plan → onay → kod → test →
 commit → PR/MR → `/clear`. Tahmin: **16–18 oturum**, toplam ~45–65 saat.
