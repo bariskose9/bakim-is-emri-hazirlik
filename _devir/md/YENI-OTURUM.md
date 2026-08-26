@@ -170,11 +170,24 @@ ekranın arayüz/UI tarafındaki hayatı).
 ⭐ BÖLÜM H'deki her adımın sonunda **"Rehberde"** satırı var — o adımda hangi
 bölümü okuyacağını söylüyor. Takip et.
 
-### Okumana gerek OLMAYANLAR
+### ⛔ OKUMANA GEREK OLMAYANLAR — bağlamını boşa harcama
 
-`calisma-kilavuzu.md` — kullanıcının kılavuzu, kit zaten her projeye kopyalıyor ·
-`*.pdf` — kullanıcının telefonda okuması için · `KURULUM.md` — kullanıcının
-Windows kurulum talimatları.
+⚠️ `_devir/md/` içindeki her dosya sana ait değil. Bir kısmı **kullanıcının
+kendi çalışma ve öğrenme belgeleri.**
+
+| Dosya | Kimin | Neden sana gerekmiyor |
+|---|---|---|
+| `calisma-kilavuzu.md` | **Kullanıcı** | Kitle nasıl çalışılacağını anlatıyor; sen kuralları `docs/standards/`'tan alıyorsun |
+| `KURULUM.md` | **Kullanıcı** | Windows'ta program kurma talimatları |
+| `sunum-anlatim-plani.md` | **Kullanıcı** | Sunumu **o** yapacak; içinde bilgi yok, hepsi rehbere işaret |
+| `DOSYA-REHBERI.md` | **Kullanıcı** | *"Bu dosya ne"* sorusunun cevabı — sen zaten bu notu okuyorsun |
+| `pdf/*.pdf` | **Kullanıcı** | Telefonda okumak için; `md/` karşılıkları zaten var |
+
+⛔ **Bunları kullanıcı açıkça istemedikçe okuma.** Toplam ~90 KB; okumak
+bağlamını boşa doldurur ve sana **hiçbir karar** kazandırmaz.
+
+⭐ **İstisna:** Kullanıcı *"şu belgede şunu düzelt"* derse tabii ki okursun.
+Kural, kendiliğinden okumaya karşı.
 
 ---
 
