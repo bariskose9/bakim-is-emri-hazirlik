@@ -1118,24 +1118,73 @@ tekrarlanırsa kurala dönüşür ve kite taşınır.
 2. **İlerlemenin ölçüsü.** *"Zor gelen kararlar"* listesi zamanla kısalır.
    Kısalması öğrendiğinin kanıtıdır
 
-## ⭐ Ajan seviyeni takip eder — "artık biliyorsun" dediği yer
+## ⭐ Ajan seviyeni takip eder — dört seviyeli defter
 
-Defterin en üstünde **"Artık biliyorum"** başlıklı bir liste var. Ajan bu
-listeyi okuyup **anlatım düzeyini ona göre ayarlıyor.**
+`docs/project/ogrendiklerim.md` içinde bir **seviye defteri** var. On konu
+alanı (mimari · backend · frontend · veritabanı · test · DevOps · güvenlik ·
+mobil · AI ile çalışma), her biri 0–3 arası ölçülüyor.
 
-| Liste ne diyor | Ajan ne yapıyor |
+| Sv | Ne demek | Ajan ne yapıyor |
+|---|---|---|
+| **0** | İlk kez geçiyor | Üç adımda **tam** açar |
+| **1** | Gördün, soru sordun | Kısa hatırlatma |
+| **2** | Soru sormadan izledin | Terimi kullanır, **tek cümle** hatırlatır |
+| **3** | ⭐ Sahipleniyorsun | Doğrudan kullanır, açıklamaz |
+
+### ⛔ "Tamam" demek seviye yükseltmez
+
+En önemli kural bu. Seviye yalnızca **senin ürettiğin** bir şeyle yükselir:
+
+| Sen ne yaptın | Sayılır mı |
 |---|---|
-| Terim listede **yok** | Üç adımda açar: gerçek hayat örneği → yazılımdaki tanımı → bu projede nerede |
-| Terim listede **var** | Doğrudan kullanır, tekrar açıklamaz |
+| ⭐ Ajanı o konuda **düzelttin** | **En güçlü kanıt** — anlamadan düzeltemezsin |
+| ⭐ Terimi **kendi cümlende** kullandın | Güçlü |
+| Sonucunu sordun (*"o zaman şu olmaz mı?"*) | Güçlü |
+| Okudun, soru sormadın | ⚠️ Zayıf — tek başına yetmez |
+| *"Tamam"* dedin | ⛔ **Sayılmaz** |
 
-**Listeye nasıl giriyor:** Bir konu **üçüncü kez** karşına çıktığında ve sen
-soru sormadan geçtiğinde ajan sorar:
+⛔ **Tek gözlemle de yükselmez** — en az **iki ayrı oturumda** kanıt gerekir.
+Sonra ajan sana **sorar**, kendiliğinden yazmaz.
 
-> *"`transaction` kavramını üç adımdır soru sormadan kullanıyorsun. 'Artık
-> biliyorum' listesine ekleyip bundan sonra kısa geçeyim mi?"*
+### ⚠️ Seviye düşer de — bu normal
 
-**Listeden nasıl çıkıyor:** Sen *"bunu tekrar açıkla"* dersen ajan satırı geri
-alır. ⛔ Listeye girmiş olmak kalıcı değildir; unutmak normaldir.
+| Durum | Etki |
+|---|---|
+| Konu **8 haftadır** geçmedi | Bir seviye düşer |
+| *"Bunu tekrar açıkla"* dersen | ⭐ Doğrudan **0** |
+| O konuda yanlış bir şey söylersen | Bir seviye düşer |
+
+⛔ Düşme başarısızlık değil. Full-stack + mobil + DevOps + test + veritabanı
+hepsinin oturması **3–6 ay** sürer; bu sürede unutmak kaçınılmazdır.
+
+### ⭐ Kavram ile kelime ayrı ölçülür
+
+Bir kavramı anlamış olabilirsin ama anlatımda geçen bir kelimeyi
+bilmiyorsundur. Bu **ayrı bir eksik** — kavramın seviyesini düşürmez.
+Kelimeyi sorduğunda ajan onu **Kelime defteri**'ne yazar, seviyene dokunmaz.
+
+### Bir yanlışın olursa nasıl düzeltilir
+
+Ajan **kişiselleştirmez** ama ⭐ **hatanın yerini mutlaka gösterir** — yoksa
+aynı yanlışı tekrar yaparsın:
+
+| # | Ne söyler |
+|---|---|
+| 1 | Ne söyledin — alıntılar |
+| 2 | Doğrusu ne |
+| 3 | ⭐ **Ayrım tam olarak nerede** |
+| 4 | Varsa neden karıştırıldığı |
+
+⭐ Üçüncüsü en önemlisi: tekrarı önleyen şey doğru cevap değil, **ayrım
+noktası.**
+
+### Öğretmeyi ne zaman bırakıyor
+
+| Durum | Ajan |
+|---|---|
+| Konu seviye 3, 8 haftadır düşmedi | O konuda **anlatım durur** |
+| Bir alanın tamamı seviye 3 | Yalnızca **yeni** şeyler anlatılır |
+| Tüm alanlar seviye 3 | ⭐ Yalnızca **karar ve gerekçe** sunulur |
 
 ⭐ **Neden gerekli:** Bu kılavuzun ve rehberlerin her terimi açması, başlarken
 doğru — ama altıncı projede her `transaction` kelimesinde kurabiye kalıbı
