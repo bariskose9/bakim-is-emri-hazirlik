@@ -23,3 +23,9 @@ Thumbs.db
 *.log
 npm-debug.log*
 .gstack/
+
+# Kurumun verdiği ödev metni — depo public, kurumun değerlendirme
+# çalışması yayımlanmaz. Yerelde durur, elle taşınır.
+_devir/odev.docx
+_devir/md/odev.md
+_devir/pdf/odev.pdf

@@ -133,7 +133,7 @@ claude plugin list
 Kurulum bitti. Claude Code'a şunu yapıştır:
 
 ```
-_devir/YENI-OTURUM.md dosyasını oku ve içindeki talimatları uygula.
+_devir/md/YENI-OTURUM.md dosyasını oku ve içindeki talimatları uygula.
 ```
 
 ⭐ **Bu tek satır yeterli.** `YENI-OTURUM.md` içinde şunlar yazılı: ajanın rolü,
