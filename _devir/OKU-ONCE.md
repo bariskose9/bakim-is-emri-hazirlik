@@ -12,7 +12,7 @@ silinecek** geçici klasörlerdir.
 | `odev.docx` | Kurumun verdiği Word dosyası. ⚠️ VS Code gösteremez (ikili dosya) — `odev.md`'yi kullan | Arşiv |
 | **`KURUMDAN-OGRENECEKLERIM.md`** | Kuruma soracakların + cevap gelmezse ne yapılacağı | **Sen** |
 | `proje-teknoloji-ve-plan.md` | Tüm teknoloji kararları, kavramlar ve 17 adımlık yapım planı | İkisi |
-| `sunum-taslagi.md` | Teknik inceleme sunumunun iskeleti | Sen |
+| `sunum-anlatim-plani.md` | Teknik inceleme sunumunun iskeleti | Sen |
 | `calisma-kilavuzu.md` | Kitle nasıl çalışılır (her projede aynı) | Sen |
 
 ⭐ **Yeni oturumu açtığında yapıştıracağın metin:**
@@ -71,7 +71,7 @@ konteyner içi portlar zaten hep standarttır, değişen yalnızca host eşlemes
 ```
 _devir klasöründeki dosyaları oku, kaldığımız yerden devam ediyoruz:
 _devir/proje-teknoloji-ve-plan.md
-_devir/sunum-taslagi.md
+_devir/sunum-anlatim-plani.md
 
 İzmir Büyükşehir'in teknik değerlendirme ödevi (_devir/odev.docx) için
 hazırlanan rehberi bölüm bölüm inceleyip düzeltme göndereceğim.
@@ -98,7 +98,7 @@ _devir klasöründen ŞUNLARI KORU, geçici bir yere taşı:
 
 Sonra /yeni-proje çalıştır. Kurulum bitince korunanları yerleştir:
   proje-teknoloji-ve-plan.md      → docs/sunum/
-  sunum-taslagi.md                → docs/sunum/
+  sunum-anlatim-plani.md                → docs/sunum/
 ```
 
 ⛔ **"_devir klasörünü sil" deme.** İçinde 40 sayfalık teknoloji rehberi ve

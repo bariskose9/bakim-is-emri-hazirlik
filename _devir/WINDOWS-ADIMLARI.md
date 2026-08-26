@@ -155,7 +155,7 @@ Claude Code'a şunu yapıştır:
 ```
 _devir klasöründeki dosyaları oku, kaldığımız yerden devam ediyoruz:
 _devir/proje-teknoloji-ve-plan.md
-_devir/sunum-taslagi.md
+_devir/sunum-anlatim-plani.md
 
 İzmir Büyükşehir'in teknik değerlendirme ödevi (_devir/odev.docx) için
 hazırlanan rehberi bölüm bölüm inceleyip düzeltme göndereceğim.
@@ -183,12 +183,12 @@ _devir klasöründen ŞUNLARI SİL (işlevi bitti):
 
 _devir klasöründen ŞUNLARI KORU, geçici bir yere taşı:
   YENI-OTURUM.md, odev.md, odev.docx, KURUMDAN-OGRENECEKLERIM.md,
-  proje-teknoloji-ve-plan.md, sunum-taslagi.md
+  proje-teknoloji-ve-plan.md, sunum-anlatim-plani.md
 
 Sonra /yeni-proje çalıştır. Kurulum bitince korunanları yerleştir:
   odev.docx                  → docs/project/
   proje-teknoloji-ve-plan.md → docs/sunum/
-  sunum-taslagi.md           → docs/sunum/
+  sunum-anlatim-plani.md           → docs/sunum/
   YENI-OTURUM.md             → kurulum bitince silinir (işlevi biter)
 ```
 

@@ -249,7 +249,7 @@ cevaplayamayacağın mühendislik sorusu yöneltilmemeli.
 | 1 | `odev.docx` | **Tamamı** — 26 KB |
 | 2 | `YENI-OTURUM.md` | Devir notu |
 | 3 | `proje-teknoloji-ve-plan.md` | ⚠️ **Parça parça** |
-| 4 | `sunum-taslagi.md` | Göz atma |
+| 4 | `sunum-anlatim-plani.md` | Göz atma |
 
 ⭐ **3. dosya için özel talimat:** 190 sayfayı bir kerede okumasın. Önce
 Giriş + BÖLÜM 0 + A + H (yapım planı) — bağlamın ~%15'i. Kalanını adımı
@@ -270,7 +270,7 @@ geldiğinde okur; BÖLÜM H'nin her adımının sonunda *"Rehberde: …"* satır
 YENI-OTURUM.md
 odev.docx
 proje-teknoloji-ve-plan.md
-sunum-taslagi.md
+sunum-anlatim-plani.md
 ```
 
 USB, OneDrive veya kişisel GitHub ile clone — üçü de olur.

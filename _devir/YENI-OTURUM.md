@@ -140,7 +140,7 @@ gereksiz doldurur.
 | 2 | **bu dosya** | Devir notu — rolün, kararlar, yapılacaklar | Zaten okuyorsun |
 | 3 | **`proje-teknoloji-ve-plan.md`** | Tüm teknoloji kararları + kavramlar + yapım planı | ⚠️ **Aşağıdaki gibi parça parça** |
 | 4 | **`KURUMDAN-OGRENECEKLERIM.md`** | Kullanıcının kuruma soracakları + cevap gelmezse ne yapılacağı | Tamamını — kısa |
-| 5 | `sunum-taslagi.md` | Sunumun iskeleti — her adımda büyütülecek | Bir kez göz at |
+| 5 | `sunum-anlatim-plani.md` | Sunumun iskeleti — her adımda büyütülecek | Bir kez göz at |
 
 > **ℹ️ `odev.docx` ile `odev.md` aynı şeydir**
 >
@@ -342,7 +342,7 @@ yazılır — ilk gün sorulmalı.
 commit → PR/MR → `/clear`. Tahmin: **16–18 oturum**, toplam ~45–65 saat.
 ⛔ Tek oturumda bitirmeye çalışma — bağlam dolar, kalite düşer.
 
-⚠️ **Her oturum sonunda o oturumun kararları `sunum-taslagi.md` ve ilgili ADR'ye
+⚠️ **Her oturum sonunda o oturumun kararları `sunum-anlatim-plani.md` ve ilgili ADR'ye
 işlenir.** En sona bırakılmaz: gerekçe, kararı verirken en net hatırlanır.
 
 ---

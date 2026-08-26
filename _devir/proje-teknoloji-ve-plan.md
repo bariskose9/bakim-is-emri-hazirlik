@@ -1,8 +1,18 @@
-# Bakım ve İş Emri Yönetim Sistemi — Teknoloji ve Plan Rehberi
+# Bakım ve İş Emri Yönetim Sistemi — Teknoloji Kararları, Kavramlar ve Yapım Planı
 
-> Bu doküman şu soruyu baştan sona cevaplar: **"Kurumun istediği her maddeyi
-> hangi teknolojiyle karşılıyorum, o teknoloji nedir, ne işe yarar ve bu
-> projede tam olarak hangi sorunu çözüyor?"**
+> **Bu belge üç soruyu birden cevaplar:**
+>
+> | # | Soru | Nerede |
+> |---|---|---|
+> | 1 | Hangi teknoloji seçildi ve **neden**? | BÖLÜM **A** eşleme tablosu · BÖLÜM **C** 23 kart |
+> | 2 | O teknoloji **nedir**, ne işe yarar? | BÖLÜM **C** kartlar · BÖLÜM **E** kavramlar |
+> | 3 | Ne **sırayla** yapılacak? | BÖLÜM **H** — 17 adım |
+>
+> Ayrıca sistemin uçtan uca nasıl çalıştığı iki bölümde gösteriliyor:
+> **BÖLÜM F** (sunucu tarafı) ve **BÖLÜM G** (arayüz / UI tarafı).
+>
+> ⭐ **Amaç yalnızca belgelemek değil, anlatabilmek.** Teslim sonrası canlı
+> teknik inceleme var; buradaki her gerekçe orada savunulacak.
 >
 > Her bölüm **kendi içinde yeterlidir** — bir teknolojiyi okurken başa dönmeniz
 > gerekmez; o teknoloji orada yeniden ve tam olarak anlatılır. Kavramlar,
