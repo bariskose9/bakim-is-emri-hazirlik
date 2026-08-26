@@ -140,6 +140,32 @@ _devir/md/YENI-OTURUM.md dosyasını oku ve içindeki talimatları uygula.
 hangi dosyayı hangi sırayla okuyacağı, hangi kararların verilmiş olduğu, sana
 neyi sorup neyi sormayacağı, ve devralınan açık işler.
 
+## ⛔ İLK KOMUT `/yeni-proje` DEĞİL
+
+Bu en kritik nokta. Sıra şu:
+
+```
+1. Claude Code'u aç, YUKARIDAKİ TEK SATIRI yapıştır
+                    ↓
+2. Ajan devir notunu okur — rolünü ve verilmiş kararları öğrenir
+                    ↓
+3. Ajan sana dört soru sorar (klasör · Docker · GitLab · teslim tarihi)
+                    ↓
+4. ⭐ ANCAK ŞİMDİ  /yeni-proje  çalıştırılır — ajan kendisi yapar
+```
+
+**Neden bu sıra:** `/yeni-proje` başlarken **sekiz soru** sorar — kim için,
+proje tipi, backend kurgusu (4 soru), API biçimi, proje adı.
+
+⭐ **O soruların cevapları devir notunda zaten hazır.** Devir notu okunmadan
+başlanırsa ajan hepsini sıfırdan sorar; sen aynı kararları yeniden anlatmak
+zorunda kalırsın ve farklı bir cevap verirsen **planla çelişen** bir kurulum
+çıkar.
+
+⚠️ **Yanlışlıkla `/yeni-proje` yazdıysan panik yok:** ajana *"önce
+`_devir/md/YENI-OTURUM.md` oku"* de. Verilmiş cevapları plandaki kararlarla
+karşılaştırır, fark varsa sana söyler.
+
 ## `_devir` klasöründe ne var
 
 | Dosya | Kim okur |
