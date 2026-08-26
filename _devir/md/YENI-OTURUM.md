@@ -280,7 +280,11 @@ Yeni bir sapma yapacaksan **ADR yaz** — açıklamasız sapma yasak.
 Hazırlık aşaması bitti ama **iki iş bilerek yarım bırakıldı** — ikisi de senin
 ilk oturumunda yapılacak.
 
-### İş 1 — Sahte veri planı ⏳
+### İş 2 — Veri modeli ve sahte veri planı ⏳
+
+⛔ **PRD'den SONRA yapılır.** Veri modeli iş kurallarından türer; kurallar
+netleşmeden tablo tasarlamak tahmine dayanmak olur (kit `16` → *"bir şey,
+dayandığı şeyden sonra gelir"*).
 
 **Ne isteniyor:** Bu proje **sahte veriyle** çalışacak (ödev §5.1 gerçek kişisel
 veriyi yasaklıyor). Tohumlama (seed) için gereken tablolar ve alanlar
@@ -315,7 +319,7 @@ kurallarına bağlı. Önce PRD, sonra bu.
 ilgisiz mevcut bir projeyi uyarlamak yerine, verilen iş ihtiyacına göre veri
 modeli oluşturmanız beklenmektedir."* Model ödevin iş kurallarından türetilir.
 
-### İş 2 — PRD taslağı ⏳
+### İş 1 — PRD taslağı ⏳  ← ÖNCE BU
 
 **Ne isteniyor:** `docs/project/PRD.md`'nin taslağı — sistem **ne yapacak**.
 
@@ -436,11 +440,11 @@ farklı bir cevap verirse **planla çelişen** bir kurulum çıkar.
 |---|---|---|
 | 1 | Bu dosyayı ve **`odev.md`**'yi oku | Ajan |
 | 2 | Rehberin **E.9** (veri modeli) ve **BÖLÜM H** kısımlarını oku | Ajan |
-| 3 | ⭐ **Sahte veri planını çıkar** — §5b → İş 1 | Ajan |
-| 4 | Kullanıcıya sun, onaylat, düzelt | İkisi |
-| 5 | Planı `proje-teknoloji-ve-plan.md` → **E.9'a yeni alt bölüm** olarak ekle | Ajan |
-| 6 | ⭐ **PRD taslağını çıkar** — §5b → İş 2 | Ajan |
-| 7 | Sun, onaylat, `_devir/md/PRD-taslak.md`'ye yaz | İkisi |
+| 3 | ⭐ **PRD taslağını çıkar** — §5b → İş 1 | Ajan |
+| 4 | Sun, onaylat, `_devir/md/PRD-taslak.md`'ye yaz | İkisi |
+| 5 | ⭐ **Veri modeli + sahte veri planı** — §5b → İş 2 | Ajan |
+| 6 | Sun, onaylat, düzelt | İkisi |
+| 7 | `proje-teknoloji-ve-plan.md` → **E.9'a yeni alt bölüm** olarak ekle | Ajan |
 | 8 | PDF'leri yenile, commit + push | Ajan |
 | 9 | ⛔ **DUR.** Kod yazma, `/yeni-proje` çalıştırma | — |
 
