@@ -3864,6 +3864,19 @@ bulunmaz.
 
 ## E.6 Mapping kararı: neden bir mapping kütüphanesi yok (§13)
 
+> **⚠️ "Mapping" bu belgede İKİ AYRI ŞEYİ karşılıyor — karıştırma**
+>
+> | Hangi mapping | Ne yapar | Nerede |
+> |---|---|---|
+> | **Nesne dönüşümü** *(bu bölüm)* | Veritabanı kaydını **dışarı dönen cevaba** çevirir; hangi alan gider, hangisi gizlenir | **E.6** |
+> | **Ad eşlemesi** `@map` | Aynı alanın **kodda** ve **veritabanında** farklı adla durmasını sağlar (`dueAt` ↔ `due_at`) | **E.9** |
+>
+> ⛔ **Reddettiğimiz şey birincisi.** AutoMapper gibi bir **kütüphane**
+> kullanmıyoruz; dönüşümü Zod şeması + Prisma `select` yapıyor.
+>
+> ⭐ **`@map` reddedilen şey değil** — kütüphane değil, Prisma şemasında tek
+> kelimelik bir nitelik. Nesne dönüştürmez, yalnızca **ada bakar.**
+
 **Ne isteniyor:** Ödev AutoMapper veya Mapster kullanımını zorunlu tutuyor.
 Stack'i serbest bırakılan bu projede **karşılığı kullanılmayan tek maddedir**,
 bu yüzden ayrıca gerekçelendiriliyor.
@@ -4164,6 +4177,18 @@ yerlerde açılıyor:
 ## E.9 Veri modeli kararları (§11, §21)
 
 ### ⭐ İsimlendirme: iki dünya, iki standart, tek köprü
+
+> **⚠️ Bu, E.6'da reddettiğimiz "mapping" DEĞİLDİR**
+>
+> | | E.6 — nesne dönüşümü | Burası — ad eşlemesi |
+> |---|---|---|
+> | Ne çevirir | Kayıt → **cevap nesnesi** | Alan **adı** → kolon **adı** |
+> | Nasıl | Zod şeması + Prisma `select` | Prisma `@map` niteliği |
+> | Kütüphane mi | ⛔ Reddedildi (AutoMapper vb.) | ⭐ Kütüphane değil, şema niteliği |
+> | Çalışma anı | Her istekte çalışır | ⛔ Çalışmaz — **derleme/sorgu üretimi** anında |
+>
+> ⭐ İkisi aynı anda geçerli: `@map` kolonun adını çevirir, `select` + Zod
+> hangi alanların dışarı çıkacağını belirler. **Farklı işler, farklı katmanlar.**
 
 Ödev §11 diyor ki: *"veri tabanı tasarımı **kurum tarafından iletilen** veri
 tabanı geliştirme ve isimlendirme kurallarına uygun olmalıdır."* ⚠️ O doküman
