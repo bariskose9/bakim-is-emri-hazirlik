@@ -381,7 +381,7 @@ ajanı yanlış dosyaya götürür — bu yüzden bir işin *"bitti"* sayılma �
 
 ### Aynı mantık belgelerde de geçerli
 
-200 sayfalık teknoloji rehberi de baştan sona okunmuyor. Önce **başlık
+200 sayfalık teknoloji rehberi de baştan sona okunmuyor: önce **başlık
 haritası** çıkarılıyor, sonra yalnızca gereken bölüm okunuyor.
 
 **Gerçek ölçüm — rehberin E.10 bölümünü okumak:**
@@ -393,6 +393,29 @@ haritası** çıkarılıyor, sonra yalnızca gereken bölüm okunuyor.
 
 ⭐ **%92 tasarruf**, aynı bilgi. Bu yüzden ajana *"şu belgeyi oku"* dediğinde
 tamamını yutmuyor — haritaya bakıp gereken yere gidiyor.
+
+#### ⭐ SENİN KARŞILIĞIN — uzun belgede kaybolmamak
+
+Ajan bunu terminal komutlarıyla yapıyor; **senin öğrenmene gerek yok.** VS
+Code'da aynı işi yapan hazır bir panel var:
+
+| İstediğin | Ajan (terminal) | ⭐ **Sen (VS Code)** |
+|---|---|---|
+| Başlık haritası | `grep -n "^#"` | **Outline paneli** |
+| O bölüme git | `sed -n '4352,4556p'` | Panelde **başlığa tıkla** |
+
+**Outline paneli nasıl açılır:**
+
+| Yol | Nasıl |
+|---|---|
+| **Fareyle** | Sol kenar çubuğunda **Explorer** (dosya ikonu) → en altta **OUTLINE** yazan bölümü aç |
+| **Klavyeyle** | `Cmd+Shift+O` (Mac) · `Ctrl+Shift+O` (Win) → başlık listesi açılır, yazarak süz |
+
+⭐ 155 sayfalık rehberde *"SLA süreleri neydi"* diye ararken: `Cmd+Shift+O` →
+`E.4` yaz → Enter. Doğrudan oraya gider.
+
+**PDF'te okuyorsan:** PDF'lerin başında **içindekiler** var, başlıklar
+tıklanabilir. Telefonda da çalışır.
 
 ## Neden her adımda `/clear`
 
