@@ -341,8 +341,35 @@ kapatıp **sahte veri planını** çıkarmak ve yol haritasını netleştirmek.
 | Yol haritasının gözden geçirilmesi | Tek satır kod yazmak |
 | Kalan soruların netleşmesi | Migration üretmek |
 
-⭐ **Kullanıcı planı burada oluşturup onaylayacak.** Kurulum ve kod, ondan
-sonraki oturumda — muhtemelen **başka bir makinede.**
+⭐ **Plan bir makinede yapılır, kod başka makinede yazılır.** Bu bilerek
+böyle:
+
+| | **A) PLAN** | **B) KURULUM + KOD** |
+|---|---|---|
+| Nerede | Kullanıcının kendi Mac'i | ⭐ **İşyerindeki Windows** |
+| Hangi hesap | Kişisel Claude hesabı | ⭐ **Belediyenin Claude hesabı** |
+| Ne üretilir | Sahte veri planı, veri modeli taslağı | Çalışan sistem |
+| Nereye yazılır | `proje-teknoloji-ve-plan.md` → **E.9** | `apps/`, `packages/` |
+
+### ⭐ Plan iki makine arasında NASIL geçer
+
+⛔ Kalıcı hafıza ve sohbet geçmişi **taşınmaz** — makineye ve hesaba bağlıdır.
+Taşınan tek şey **dosyalardır**:
+
+```
+A) Mac'te plan oturumu
+      ↓  plan proje-teknoloji-ve-plan.md → E.9'a YAZILIR
+      ↓  commit + push
+   GitHub (public depo)
+      ↓  git clone  /  git pull
+B) Windows'ta kurulum oturumu — plan hazır bekliyor
+```
+
+⛔ **Bu yüzden plan oturumu bir dosyaya yazmadan bitmez.** Sohbette kalan
+hiçbir şey karşı tarafa geçmez.
+
+⚠️ **Ödev dosyaları depoda yok** — onlar ayrıca elle taşınır
+(`KURULUM.md` → A4).
 
 ⚠️ **Bu yüzden `/yeni-proje`'yi bu oturumda çalıştırma.** Kullanıcı açıkça
 *"şimdi kuruluma geçelim"* demedikçe yalnızca plan üretilir.
