@@ -180,18 +180,63 @@ eklemek yetmezdi — bir kez commit edilmiş bir dosya geçmişte durur ve
 
 ---
 
-# BÖLÜM 3 — `/yeni-proje` çalıştıktan sonra ne gelecek
+# BÖLÜM 3 — Kit nerede durur, projeye ne zaman gelir
 
-Kod yazılmaya başlandığında bu klasörler açılacak. Şimdiden bilmen için:
+## ⭐ İKİ AYRI ŞEY — en çok karışan yer
 
-## Kit'in getireceği dosyalar
+Kiti kurduğunda **iki şey** geliyor ama **aynı anda değil**:
+
+| | **Komutlar (skill'ler)** | **Dosyalar** |
+|---|---|---|
+| Ne zaman gelir | ⭐ **Kurulur kurulmaz** | ⛔ Yalnızca `/yeni-proje` çalışınca |
+| Nerede durur | `~/.claude/plugins/marketplaces/bariskose-skills/` | **Senin proje klasöründe** |
+| `/yeni-proje` gerekir mi | ⛔ **Hayır** | ✅ Evet |
+
+⭐ **Yani `/kit-senkron`, `/video-analiz`, `/pdf-uret` — üçü de kurulumdan
+hemen sonra çalışır.** Bir proje kurmuş olman gerekmiyor.
+
+## Kurulur kurulmaz kullanabildiğin komutlar
+
+| Komut | Ne yapar |
+|---|---|
+| `/yeni-proje` | Yeni projeyi baştan sona kurar — dosyaları **o zaman** yerleştirir |
+| `/kit-senkron` | Projede öğrenilen kuralı **kite geri yazar**, kitteki iyileştirmeleri projeye getirir |
+| `/video-analiz <url>` | YouTube videosunu inceleyip kitte eksik olanı bulur |
+| `/pdf-uret <dosya.md>` | Markdown'ı karanlık temalı PDF'e çevirir |
+
+## Kitin kendi belgeleri — projene KOPYALANMAZ
+
+Bunlar kitin kurulduğu klasörde durur, kitin **kendisini** anlatır:
+
+| Dosya | Ne anlatır |
+|---|---|
+| `README.md` | Kit ne yapar, hangi komutlar var, klasör yapısı |
+| `KURULUM.md` | Kit nasıl kurulur, hangi marketplace'ler eklenir |
+
+## ⭐ "Kit kullanım kılavuzu" nerede — zaten sende
+
+**`calisma-kilavuzu`** — bu klasörde duruyor ve **kitin kullanım kılavuzu odur.**
+İçinde: terimler · `/yeni-proje` adımları · ortam değişkenleri · canlıya çıkış
+yolları · komutların ne zaman kullanılacağı · takılınca ne yapılacağı.
+
+⚠️ **Kitten kopyalanır, her projede aynıdır.** Kit güncellenince yenisi gelir;
+buradan düzeltmek işe yaramaz.
+
+---
+
+## `/yeni-proje` çalışınca projeye YERLEŞECEK dosyalar
+
+Bunların hepsi kitin `skills/yeni-proje/dosyalar/` klasöründen kopyalanır:
 
 | Dosya | Ne işe yarıyor | Elle düzenlenir mi |
 |---|---|:---:|
 | `CLAUDE.md` | **Ajanın** çalışma protokolü ve rolü. Her projede aynı | ✘ |
+| `CALISMA-KILAVUZU.md` | Kit kullanım kılavuzu — **senin** için | ✘ |
 | `REPO-YAPISI.md` | Kod klasörlerinin haritası — **bu dosyanın kod tarafındaki devamı** | ✔ |
-| `docs/standards/00–17` | Mühendislik kuralları (stack, mimari, test, güvenlik, KVKK…) | ⛔ **Asla** — `/kit-senkron` ile |
-| `.vscode/extensions.json` | Eklenti önerileri | ✔ |
+| `docs/standards/00–17` | **18 kural dosyası**: stack, mimari, kod standartları, API, veritabanı, güvenlik, test, git, CI, DoD, ajan düzeni, işletim, ortamlar, KVKK, oturum devri, kurulum, mobil | ⛔ **Asla** — `/kit-senkron` ile |
+| `docs/standards/sablonlar/` | **12 şablon** — `docs/project/` altına açılacak boş belgeler | ✔ (açıldıktan sonra) |
+| `.vscode/extensions.json` | Eklenti önerileri — VS Code *"Install All"* diyecek | ✔ |
+| `.claude/settings.json` | ⭐ Ajanın **izin listesi**: `npm run test`, `lint`, `typecheck` gibi zararsız komutları her seferinde sormadan çalıştırır | ✔ |
 
 ## Bu projeye özel doldurulacaklar
 
