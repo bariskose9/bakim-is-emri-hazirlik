@@ -40,7 +40,22 @@ mutlaka netleşmeli.
 | **Neden soruyorum** | Ödev metni böyle bir dokümandan **bahsediyor ama eklememiş**. Varsa ve uymazsak, teslim doğrudan kural ihlali sayılır |
 | **Cevaba göre ne değişir** | Tablo adları (`work_order` mı `WorkOrder` mı), kolon adları, birincil anahtar biçimi, tarih alanı adları — **tüm veri modeli** |
 | **Cevap gelmezse** | PostgreSQL yaygın pratiği: `snake_case` tablo/kolon, çoğul tablo adı, `id` birincil anahtar, `created_at`/`updated_at`. PRD → Varsayımlar'a yazılır |
-| **Cevap** | *(doldurulacak)* |
+| **Cevap** | ⏳ Sorulacak — ⭐ **ama cevap ne olursa olsun mimari hazır** |
+
+### ⭐ Cevap gelmese de risk düşük — sebebi mimaride
+
+Prisma'nın `@map` köprüsü sayesinde iki katman **birbirinden bağımsız**
+isimlendiriliyor: kodda `dueAt`, veritabanında `due_at`.
+
+⛔ Kurum farklı bir kural verirse **yalnızca `@map` satırları** değişir;
+servis, controller ve ekran kodunun tek satırı bile dokunulmaz.
+
+⚠️ **Ama yine de ilk gün sorulmalı:** `@map` **ilk migration'dan önce**
+yazılmalı. Sonradan değişirse kolon yeniden adlandırma migration'ı gerekir ve
+canlıda veri taşıma riski doğar.
+
+📖 Ayrıntı: `proje-teknoloji-ve-plan` → **E.9** *"İsimlendirme: iki dünya,
+iki standart, tek köprü"*
 
 ⚠️ **Bu soruyu ilk gün sor.** Cevap sonradan gelirse tüm migration'lar yeniden
 yazılır.
@@ -54,8 +69,24 @@ yazılır.
 |---|---|
 | **Neden soruyorum** | Ödev §30 **Pull Request veya Merge Request** istiyor. PR/MR yalnızca bir barındırma servisinde olur; git tek başına üretemez |
 | **Cevaba göre ne değişir** | Hangi CI dosyası birincil olur (`.github/workflows/ci.yml` mi `.gitlab-ci.yml` mi) ve teslim linkini nereden vereceğin |
-| **Cevap gelmezse** | GitHub'da başlarım. ⭐ **İkisi de hazır olacak** — CI adımları `pnpm ci:verify` içinde, iki platform dosyası da onu çağırıyor. GitLab adresi sonra gelirse ikinci remote eklenir, ek iş çıkmaz |
-| **Cevap** | *(doldurulacak)* |
+| **Cevap gelmezse** | GitHub'da başlanır |
+| **Cevap** | ⏳ Sorulacak — ⭐ **ikisi de hazır olacak, karar teslimi geciktirmez** |
+
+### ⭐ İki platform da baştan kurulu
+
+| # | Ne yapılıyor | Neden |
+|---|---|---|
+| 1 | CI adımları `package.json` → **`pnpm ci:verify`** betiğinde | Kural değişince **tek yer** güncellenir |
+| 2 | `.github/workflows/ci.yml` **ve** `.gitlab-ci.yml` — ikisi de yazılır | Her ikisi de aynı betiği çağıran **tek satırlık** sarmalayıcı |
+| 3 | GitLab adresi sonra gelirse **ikinci remote** eklenir | Proje taşıma diye ayrı bir iş yok |
+
+⭐ **Üçüncü kazanç:** aynı kapıyı **kendi bilgisayarında** da `pnpm ci:verify`
+ile koşturursun — CI'ın sonucunu beklemezsin.
+
+⛔ Teslim linki kurumun **fiilen kullandığı** platformdan verilir; bu kurulum
+değişmez.
+
+📖 Ayrıntı: `calisma-kilavuzu` → CI bölümü · `proje-teknoloji-ve-plan` → **E.11**
 
 ## 1.3 Teslim tarihi
 
@@ -66,7 +97,34 @@ yazılır.
 | **Neden soruyorum** | Ödev metninde **hiçbir yerde tarih yok** (795 satır tarandı). Kapsam kararları buna göre verilir |
 | **Cevaba göre ne değişir** | Süre darsa: mobil, dosya yükleme gibi **ödevde istenmeyen** maddeler kapsam dışı kalır. Bolsa eklenebilir |
 | **Cevap gelmezse** | ~10 iş günü hedefiyle ilerlenir |
-| **Cevap** | *(doldurulacak)* |
+| **Cevap** | ⚠️ **5 gün** söylendi — tahminimin yarısı |
+
+### ⚠️ Süre çelişkisi ve nasıl yönetilecek
+
+| | |
+|---|---|
+| Kurumun verdiği | **5 gün** |
+| Tahminim | **10 iş günü** (40–50 saat) |
+
+⛔ **Aradaki fark kod üretim hızından gelmiyor.** Zamanı yiyen dört şey:
+PRD görüşmesi · **senin okuman ve anlaman** · gerçek entegrasyon hataları
+(Docker, migration, Testcontainers) · doğrulama kapılarının fiilen yeşile
+dönmesi.
+
+⚠️ **Süre kısaltmanın gerçek maliyeti manuel testtir** — kod hızlı üretilir
+ama *"tarayıcıda tıklayıp gördüm"* adımı sıkışır. Ödev §31 canlı inceleme
+öngörüyor; test edilmemiş bir ekranı savunmak zordur.
+
+**Kapsam kısarak kazanılabilecek yerler** (ödevde **istenmiyorlar**):
+
+| Çıkarılırsa | Kazanç |
+|---|---|
+| Mobil (Expo) | ~2 gün — zaten kapsam dışı |
+| Fotoğraf/dosya eki | ~1 gün — ödevde yok |
+| Gerçek e-posta/SMS | ~0.5 gün — sistem içi bildirim yeterli |
+
+⭐ **Önce kapsam kısılır, sonra hız artırılır.** Kapsamı sabit tutup hızı
+zorlamak, teslim edilen işin **denetlenmemiş** olması demektir.
 
 ---
 

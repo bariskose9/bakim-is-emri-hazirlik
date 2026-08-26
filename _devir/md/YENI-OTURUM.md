@@ -329,7 +329,27 @@ yazılır — ilk gün sorulmalı.
 
 ## 6. İlk oturumda ne yapılacak
 
-### ⛔ SIRA ÖNEMLİ: ÖNCE BU DOSYA, SONRA `/yeni-proje`
+### ⛔ BU OTURUMUN İŞİ: PLAN — KOD DEĞİL
+
+⛔ **Bu oturumda kod yazılmayacak.** Yapılacak tek şey: kalan açık işleri
+kapatıp **sahte veri planını** çıkarmak ve yol haritasını netleştirmek.
+
+| ✅ Bu oturumda | ⛔ Bu oturumda DEĞİL |
+|---|---|
+| Sahte veri planı (§5b → İş 1) | `/yeni-proje` çalıştırmak |
+| Veri modeli taslağı — tablolar, alanlar, ilişkiler | Klasör açmak, paket kurmak |
+| Yol haritasının gözden geçirilmesi | Tek satır kod yazmak |
+| Kalan soruların netleşmesi | Migration üretmek |
+
+⭐ **Kullanıcı planı burada oluşturup onaylayacak.** Kurulum ve kod, ondan
+sonraki oturumda — muhtemelen **başka bir makinede.**
+
+⚠️ **Bu yüzden `/yeni-proje`'yi bu oturumda çalıştırma.** Kullanıcı açıkça
+*"şimdi kuruluma geçelim"* demedikçe yalnızca plan üretilir.
+
+---
+
+### Kuruluma geçildiğinde — SIRA ÖNEMLİ: ÖNCE BU DOSYA, SONRA `/yeni-proje`
 
 **`/yeni-proje` ilk komut DEĞİLDİR.** Önce bu devir notu okunur.
 
@@ -354,14 +374,25 @@ farklı bir cevap verirse **planla çelişen** bir kurulum çıkar.
 
 ### Adım adım
 
+**A) PLAN OTURUMU** *(şu an burası)*
+
 | # | Ne | Kim yapar |
 |---|---|---|
 | 1 | Bu dosyayı ve **`odev.md`**'yi oku | Ajan |
-| 2 | Rehberin **Giriş + BÖLÜM 0 + A + H** kısımlarını oku *(tamamını değil)* | Ajan |
-| 3 | §4-A'daki dört soruyu sor | Ajan |
-| 4 | ⭐ `/yeni-proje` çalıştır — **Adım 1 cevapları §3'teki tablodan.** Sorma, *"şöyle alıyorum, yanlışsa söyle"* deyip geç | Ajan |
-| 5 | Adım 3 (PRD) → §4-B'deki açık konular | İkisi |
-| 6 | `/clear`, sonraki oturuma `docs/project/sonraki-adim-prompt.md` ile devret | Ajan |
+| 2 | Rehberin **E.9** (veri modeli) ve **BÖLÜM H** kısımlarını oku | Ajan |
+| 3 | ⭐ **Sahte veri planını çıkar** — §5b → İş 1 | Ajan |
+| 4 | Kullanıcıya sun, onaylat, düzelt | İkisi |
+| 5 | Planı `proje-teknoloji-ve-plan.md` → E.9'a işle | Ajan |
+| 6 | ⛔ **DUR.** Kod yazma, kurulum başlatma | — |
+
+**B) KURULUM OTURUMU** *(kullanıcı "kuruluma geçelim" dediğinde)*
+
+| # | Ne | Kim yapar |
+|---|---|---|
+| 1 | §4-A'daki dört soruyu sor | Ajan |
+| 2 | ⭐ `/yeni-proje` çalıştır — **Adım 1 cevapları §3'teki tablodan.** Sorma, *"şöyle alıyorum, yanlışsa söyle"* deyip geç | Ajan |
+| 3 | Adım 3 (PRD) → §4-B'deki açık konular | İkisi |
+| 4 | `/clear`, sonraki oturuma `docs/project/sonraki-adim-prompt.md` ile devret | Ajan |
 
 ⚠️ **Eklentiler bu adımlardan ÖNCE kurulu olmalı** — kurulum `KURULUM.md`
 BÖLÜM A'da. Kurulu değilse `/yeni-proje` komutu zaten görünmez.

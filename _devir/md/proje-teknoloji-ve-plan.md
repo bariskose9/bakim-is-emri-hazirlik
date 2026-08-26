@@ -4163,6 +4163,129 @@ yerlerde açılıyor:
 
 ## E.9 Veri modeli kararları (§11, §21)
 
+### ⭐ İsimlendirme: iki dünya, iki standart, tek köprü
+
+Ödev §11 diyor ki: *"veri tabanı tasarımı **kurum tarafından iletilen** veri
+tabanı geliştirme ve isimlendirme kurallarına uygun olmalıdır."* ⚠️ O doküman
+ödevin ekinde yok — sorulacak (`KURUMDAN-OGRENECEKLERIM` §1.1). Ama cevap ne
+olursa olsun **mimari hazır**, sebebi aşağıda.
+
+**Sorun:** İki katmanın yerleşik standardı **birbirine uymaz**.
+
+| Katman | Yerleşik pratik | Örnek |
+|---|---|---|
+| **TypeScript / NestJS** | `camelCase` alan · **tekil** tip | `dueAt`, `WorkOrder` |
+| **PostgreSQL** | `snake_case` kolon · **çoğul** tablo | `due_at`, `work_orders` |
+
+⛔ **Birini diğerine feda etmiyoruz.** Her katman kendi pratiğini koruyor;
+çeviriyi **Prisma** yapıyor.
+
+**Önce tek bir alanın üç ayrı yerdeki adı:**
+
+| Nerede | Adı | Kim görür |
+|---|---|---|
+| TypeScript kodunda | `dueAt` | Sen, kod yazarken |
+| **Prisma şemasında** | `dueAt @map("due_at")` | ⭐ **İkisini bağlayan satır** |
+| PostgreSQL tablosunda | `due_at` | Veritabanına bakan DevOps |
+
+Aynı veri, üç ayrı ad. Ortadaki satır **sözlük** görevi görüyor.
+
+```
+ SEN YAZARSIN          PRİSMA ÇEVİRİR              VERİTABANINDA OLUŞUR
+ ─────────────         ──────────────────          ────────────────────
+ wo.dueAt         ←→   dueAt @map("due_at")   ←→   kolon: due_at
+ prisma.workOrder ←→   model WorkOrder        ←→   tablo: work_orders
+                       @@map("work_orders")
+```
+
+**Şimdi şemanın kendisi:**
+
+```prisma
+// apps/api/prisma/schema.prisma
+// Bu dosya veri modelinin TEK doğru kaynağı. Buradan hem veritabanı tabloları
+// hem de TypeScript tipleri üretiliyor.
+
+model WorkOrder {
+  // ── Bu satırlarda @map YOK, çünkü ad zaten iki dünyada da aynı ──
+  id    String @id @default(uuid())   // "id" hem TS'te hem SQL'de "id"
+  code  String @unique                // "code" hem TS'te hem SQL'de "code"
+
+  // ── Bu satırlarda @map VAR, çünkü adlar ayrışıyor ──
+  //
+  //  dueAt   DateTime   @map("due_at")
+  //  ─────              ──────────────
+  //    ↑                      ↑
+  //    │                      └── PostgreSQL'de oluşacak KOLON adı (snake_case)
+  //    └───────────────────────── Kodda yazacağın ALAN adı (camelCase)
+  //
+  // Yani: sen "wo.dueAt" yazarsın, veritabanında "due_at" kolonu vardır.
+  dueAt     DateTime @map("due_at")
+
+  // Aynı mantık: kodda "createdAt", veritabanında "created_at"
+  // @default(now()) → kayıt eklenirken o anki zamanı otomatik yazar
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // ── @@map (İKİ tane @) alanı değil, TABLONUN KENDİSİNİ eşler ──
+  // Kodda      : prisma.workOrder   (model adından türer, tekil camelCase)
+  // Veritabanı : work_orders        (aşağıdaki satırın söylediği, çoğul)
+  @@map("work_orders")
+}
+```
+
+⭐ **Tek kural olarak özeti:** `@map` bir alanı, `@@map` bir tabloyu eşler.
+Sol taraf **senin yazdığın**, sağ taraf **veritabanında duran**.
+
+**Kod tarafında hiç alt çizgi görmezsin:**
+
+```ts
+// apps/api/src/work-orders/work-orders.service.ts
+//
+// NEREDEN : apps/web/.../talep-formu.tsx → form gövdesi, contracts şemasından geçmiş
+// NE      : SLA'dan hesaplanan bitiş zamanıyla birlikte kayıt açılıyor
+// NEREYE  : PostgreSQL "work_orders" tablosu
+// SONUÇ   : Veritabanında yeni bir satır; ekranda listenin başında görünür
+
+const created = await this.prisma.workOrder.create({
+  data: {
+    code,                       // ⭐ Temiz TypeScript adı — alt çizgi yok
+    dueAt: plan.dueAt,          //    Prisma bunu "due_at"e çevirecek
+  },
+});
+
+// ⭐ ARKA PLANDA PRISMA'NIN ÜRETTİĞİ SQL — PostgreSQL standardında:
+// INSERT INTO "work_orders" ("id", "code", "due_at", "created_at")
+// VALUES ('7b2d…', 'IE-2026-000148', '2026-08-26 20:00', '2026-08-26 16:00');
+```
+
+**Okurken de aynı çeviri ters yönde çalışır:**
+
+```ts
+const list = await this.prisma.workOrder.findMany();
+// Prisma "due_at" kolonunu okur, NestJS'e teslim etmeden önce "dueAt"e çevirir.
+// Next.js'e giden JSON tertemiz camelCase olur:
+// [{ "id": "7b2d…", "code": "IE-2026-000148", "dueAt": "2026-08-26T20:00:00.000Z" }]
+```
+
+⭐ **Bu, E.1'deki katman bağımsızlığının en somut karşılığı.** Veritabanı
+adlandırması değişirse **yalnızca `@map` satırları** değişir; servis, controller
+ve ekran kodunun **tek satırı** bile dokunulmaz.
+
+⚠️ **Kurumdan farklı bir kural gelirse** (örn. tablo adları tekil, ya da
+`WorkOrder` PascalCase) yalnızca `@map`/`@@map` tarafı ona uydurulur.
+TypeScript tarafı **değişmez** — köprünün varlık sebebi tam olarak budur.
+
+⛔ **`@map` sonradan eklenmez.** İlk migration'dan **önce** yazılır. Sonra
+eklenirse kolon yeniden adlandırma migration'ı gerekir ve canlıda veri taşıma
+riski doğar.
+
+> **ℹ️ Değerlendirmeci sorarsa**
+>
+> *"İki katmanın isimlendirme standardı farklı. Uygulama katmanında TypeScript
+> pratiğini, veri katmanında PostgreSQL pratiğini korudum; ikisi arasındaki
+> dönüşümü Prisma'nın `@map` niteliğiyle soyutladım. Kurum kendi kuralını
+> verirse yalnızca şema tarafı değişir, kod dokunulmaz."*
+
+
 Ödev, veri tabanı tasarımının tarafımızdan yapılmasını ve **kararların
 dokümante edilmesini** istiyor. Aşağıdakiler o kararlar ve gerekçeleri.
 
@@ -4937,10 +5060,10 @@ adını da göster."*
 
 ```ts
 // ⛔ N+1 — bu kod ÇALIŞIR ve test ortamında HIZLI görünür
-const isEmirleri = await prisma.workOrder.findMany();   // 1 sorgu: 50 iş emri geldi
-for (const emir of isEmirleri) {                        // sonra 50 kez döngü
-  emir.personel = await prisma.user.findUnique({        // ⛔ her tur AYRI sorgu → 50 sorgu
-    where: { id: emir.assignedToId },
+const workOrders = await prisma.workOrder.findMany();   // 1 sorgu: 50 iş emri geldi
+for (const wo of workOrders) {                          // sonra 50 kez döngü
+  wo.assignee = await prisma.user.findUnique({          // ⛔ her tur AYRI sorgu → 50 sorgu
+    where: { id: wo.assignedToId },
   });
 }
 // Toplam: 51 veritabanı gidiş-gelişi. 10 kayıtla fark edilmez, 500 kayıtla ekran donar.
@@ -4948,7 +5071,7 @@ for (const emir of isEmirleri) {                        // sonra 50 kez döngü
 
 ```ts
 // ✅ Tek sorgu — Prisma ilişkiyi aynı sorguda getiriyor
-const isEmirleri = await prisma.workOrder.findMany({
+const workOrders = await prisma.workOrder.findMany({
   include: { assignedTo: { select: { id: true, fullName: true } } },
   //         ↑ "personeli de getir"          ↑ sadece bu iki kolonu (E.6)
 });
