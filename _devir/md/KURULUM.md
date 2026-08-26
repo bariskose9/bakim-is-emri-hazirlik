@@ -66,14 +66,68 @@ Ekranda kod çıkar, tarayıcı açılır, kodu yapıştırırsın.
 ⚠️ Burada **kişisel GitHub hesabın** kullanılıyor (`bariskose9`). Belediyenin
 hesabı değil — ayrımı A5'te.
 
-## A4. Projeyi indir
+## A4. Projeyi indir (klonla)
+
+⭐ **Depo herkese açık** — giriş yapman, hesap bağlaman **gerekmiyor.**
+
+### Yol 1 — PowerShell (önerilen, 4 satır)
 
 ```powershell
 cd C:\Users\<kullanıcı-adın>\Documents
-gh repo clone bariskose9/bakim-is-emri-hazirlik
+git clone https://github.com/bariskose9/bakim-is-emri-hazirlik.git
 cd bakim-is-emri-hazirlik
 code .
 ```
+
+| Satır | Ne yapıyor |
+|---|---|
+| `cd …\Documents` | Belgeler klasörüne gir — proje buraya inecek |
+| `git clone …` | ⭐ Depoyu indir. `bakim-is-emri-hazirlik` adında klasör oluşur |
+| `cd …` | O klasörün içine gir |
+| `code .` | ⭐ **VS Code'u bu klasörle aç** (nokta = "buradaki klasör") |
+
+### Yol 2 — VS Code arayüzünden (fare ile)
+
+```
+1. VS Code'u aç
+        ↓
+2. Ctrl+Shift+P  →  kutuya yaz:  Git: Clone  →  Enter
+        ↓
+3. Adresi yapıştır:
+   https://github.com/bariskose9/bakim-is-emri-hazirlik.git
+        ↓
+4. "Select Repository Location" → Documents klasörünü seç
+        ↓
+5. Sağ altta "Would you like to open the cloned repository?"
+   → Open  butonuna bas
+```
+
+⭐ İkisi de **aynı sonucu** verir. Terminal yazmak istemiyorsan Yol 2.
+
+### Kontrol — doğru indi mi
+
+VS Code açıldığında sol kenarda şunları görmelisin:
+
+```
+BAKIM-IS-EMRI-HAZIRLIK
+├── .vscode
+├── _devir
+│   ├── md          ← 6 markdown dosyası
+│   └── pdf         ← 6 PDF
+├── .gitattributes
+└── .gitignore
+```
+
+⚠️ **`_devir` içinde `odev` dosyaları YOK** — onlar depoda değil, elle
+taşıyacaksın (WhatsApp/USB ile gönderdiğin üç dosya):
+
+| Dosya | Nereye koyacaksın |
+|---|---|
+| `odev.docx` | `_devir/` |
+| `odev.md` | `_devir/md/` |
+| `odev.pdf` | `_devir/pdf/` |
+
+⛔ **`odev.md` olmadan yeni oturum ödevi okuyamaz** — bu adımı atlama.
 
 ## A5. Claude Code eklentisini kur
 
