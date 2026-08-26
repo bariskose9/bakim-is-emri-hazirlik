@@ -1,7 +1,6 @@
 # Windows makinesine geçiş — kontrol listesi
 
 Bu klasör, projeye Windows 11 makinesinde devam edebilmek için gereken her şeyi
-içerir. `_devir` ve `_kit-inceleme` klasörleri **kuruluma başlamadan önce
 silinecek** geçici klasörlerdir.
 
 ## 1. Bu klasördeki dosyalar
@@ -13,7 +12,6 @@ silinecek** geçici klasörlerdir.
 | `proje-teknoloji-ve-plan.md` | Tüm teknoloji kararları, kavramlar ve 17 adımlık yapım planı | İkisi |
 | `sunum-taslagi.md` | Teknik inceleme sunumunun iskeleti | Sen |
 | `calisma-kilavuzu.md` | Kitle nasıl çalışılır (her projede aynı) | Sen |
-| `kurulum-plani.md` | ⛔ **ESKİ TASLAK — bayat.** İçeriği rehbere taşındı. Çelişki olursa **rehber kazanır.** Yalnızca arşiv | — |
 
 ⭐ **Yeni oturumu açtığında yapıştıracağın metin:**
 
@@ -70,7 +68,6 @@ konteyner içi portlar zaten hep standarttır, değişen yalnızca host eşlemes
 
 ```
 _devir klasöründeki dosyaları oku, kaldığımız yerden devam ediyoruz:
-_devir/kurulum-plani.md
 _devir/proje-teknoloji-ve-plan.md
 _devir/sunum-taslagi.md
 
@@ -91,16 +88,13 @@ YAZIM KURALLARI:
 ## 5. Kuruluma başlamadan önce
 
 ```
-_kit-inceleme klasörünü sil.
 
 _devir klasöründen ŞUNLARI SİL (işlevi bitti):
   NE-YAPACAGIM.md, WINDOWS-ADIMLARI.md, OKU-ONCE.md, WHATSAPP-NOTU.txt
 
 _devir klasöründen ŞUNLARI KORU, geçici bir yere taşı:
-  odev.docx, kurulum-plani.md, proje-teknoloji-ve-plan.md, sunum-taslagi.md
 
 Sonra /yeni-proje çalıştır. Kurulum bitince korunanları yerleştir:
-  odev.docx ve kurulum-plani.md   → docs/project/
   proje-teknoloji-ve-plan.md      → docs/sunum/
   sunum-taslagi.md                → docs/sunum/
 ```

@@ -165,7 +165,6 @@ bölümü okuyacağını söylüyor. Takip et.
 `calisma-kilavuzu.md` (kullanıcının kılavuzu — kit zaten kopyalıyor) · `*.pdf`
 (kullanıcının telefonda okuması için) · `NE-YAPACAGIM.md`,
 `WINDOWS-ADIMLARI.md`, `OKU-ONCE.md`, `WHATSAPP-NOTU.txt` (kullanıcının kurulum
-talimatları) · `kurulum-plani.md` (⛔ **eski taslak, bayat** — içeriği rehbere
 taşındı, çelişki görürsen **rehber kazanır**).
 
 ---

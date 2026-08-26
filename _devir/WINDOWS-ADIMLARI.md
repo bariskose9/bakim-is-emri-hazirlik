@@ -92,7 +92,6 @@ gh repo clone bariskose9/bakim-is-emri-hazirlik
 cd bakim-is-emri-hazirlik
 ```
 
-Klasör indi. İçinde `_devir` ve `_kit-inceleme` klasörlerini göreceksin.
 
 ### 2.5 VS Code'da aç
 
@@ -155,7 +154,6 @@ Claude Code'a şunu yapıştır:
 
 ```
 _devir klasöründeki dosyaları oku, kaldığımız yerden devam ediyoruz:
-_devir/kurulum-plani.md
 _devir/proje-teknoloji-ve-plan.md
 _devir/sunum-taslagi.md
 
@@ -179,11 +177,9 @@ YAZIM KURALLARI:
 Rehber incelemesi bittiğinde, kuruluma başlamadan önce:
 
 ```
-_kit-inceleme klasörünü sil.
 
 _devir klasöründen ŞUNLARI SİL (işlevi bitti):
   NE-YAPACAGIM.md, WINDOWS-ADIMLARI.md, OKU-ONCE.md, WHATSAPP-NOTU.txt,
-  kurulum-plani.md  (eski taslak — içeriği rehbere taşındı)
 
 _devir klasöründen ŞUNLARI KORU, geçici bir yere taşı:
   YENI-OTURUM.md, odev.docx, proje-teknoloji-ve-plan.md, sunum-taslagi.md
@@ -199,7 +195,6 @@ Sonra /yeni-proje çalıştır. Kurulum bitince korunanları yerleştir:
 sunum taslağı var; ikisi de projenin kalıcı dokümanları. Yalnızca kurulum
 yönergesi dosyaları silinir.
 
-⚠️ `_kit-inceleme` neden siliniyor: `/yeni-proje` aynı dosyaları
 `docs/standards/` olarak zaten getirecek. İkisi bir arada durursa aynı bilgi
 iki yerde kalır, biri güncellenir diğeri eskir.
 

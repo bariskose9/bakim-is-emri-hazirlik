@@ -256,7 +256,6 @@ Giriş + BÖLÜM 0 + A + H (yapım planı) — bağlamın ~%15'i. Kalanını ad�
 geldiğinde okur; BÖLÜM H'nin her adımının sonunda *"Rehberde: …"* satırı var.
 
 **Okumayacakları:** kılavuz (senin) · PDF'ler (senin) · Windows kurulum
-dosyaları (senin) · `kurulum-plani.md` (⛔ **bayat**).
 
 ## 3.3 Taşıma — dikkat edilecek tek şey
 
@@ -291,7 +290,6 @@ Bunları sen istemedin, ben denk geldim:
 | Bulgu | Ne yapıldı |
 |---|---|
 | **Port ve konteyner planı rehberde yoktu** — yalnızca eski taslakta duruyordu. Teslim belgesinde olması gereken bir şey | **C.10'a taşındı**: konteyner içi port sabit, host portu `.env`'den, `bakim-` ön ekli adlar, Docker Desktop'tan port değiştirmenin neden kalıcı olmadığı |
-| `kurulum-plani.md` artık **bayat** — içeriği rehbere geçti | Silinmedi ama 4 yerde **BAYAT** işaretlendi. Kural: *çelişki olursa rehber kazanır.* Yeni oturum iki farklı doğru görmesin |
 | Eski dosya adı 4 yerde kalmış | `proje-teknoloji-rehberi.md` → `proje-teknoloji-ve-plan.md`. "40 sayfa" → "~190 sayfa" |
 | Sunumda *"~58 sayfa"* ve *"6 dk"* bayat kalmış | 190 sayfa · 5+3 = 8 dk olarak düzeltildi |
 | Sunumda port sorusu yoktu | İki soru eklendi, C.10'a işaretli |

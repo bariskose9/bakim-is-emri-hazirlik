@@ -78,7 +78,6 @@ cd bakim-is-emri-hazirlik
 code .
 ```
 
-VS Code açılır, `_devir` ve `_kit-inceleme` klasörlerini görürsün.
 
 ## A5. Claude Code eklentisini kur
 
@@ -126,7 +125,6 @@ claude plugin list
 
 ```
 _devir klasöründeki dosyaları oku, kaldığımız yerden devam ediyoruz:
-_devir/kurulum-plani.md
 _devir/proje-teknoloji-ve-plan.md
 _devir/sunum-taslagi.md
 
@@ -150,11 +148,9 @@ Artık kaldığın yerden devam ediyorsun.
 ## A9. Kod yazmaya geçerken (rehber incelemesi bitince)
 
 ```
-_kit-inceleme klasörünü sil.
 
 _devir klasöründen ŞUNLARI SİL (işlevi bitti):
   NE-YAPACAGIM.md, WINDOWS-ADIMLARI.md, OKU-ONCE.md, WHATSAPP-NOTU.txt,
-  kurulum-plani.md  (eski taslak — içeriği rehbere taşındı)
 
 _devir klasöründen ŞUNLARI KORU, geçici bir yere taşı:
   YENI-OTURUM.md, odev.docx, proje-teknoloji-ve-plan.md, sunum-taslagi.md
@@ -170,7 +166,6 @@ Sonra /yeni-proje çalıştır. Kurulum bitince korunanları yerleştir:
 sunum taslağı var; ikisi de projenin kalıcı dokümanları. Yalnızca kurulum
 yönergesi dosyaları silinir.
 
-⚠️ `_kit-inceleme` ve yönerge dosyaları temizlenmeden `/yeni-proje` çalıştırılmaz.
 
 ---
 

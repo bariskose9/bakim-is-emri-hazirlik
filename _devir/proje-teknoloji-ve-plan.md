@@ -212,7 +212,7 @@ ve migration yönetimini kendin kurarsın.
 | Bölüm | Ne isteniyor | Nasıl karşılanıyor |
 |---|---|---|
 | §4 Kullanıcı rolleri | Dört rol, yetkileri ayrılmış | NestJS **Guard**'ları; yetki kontrolü tek yerde |
-| §5.1 Kimlik doğrulama | JWT, yenileme jetonu, rol bazlı yetki, pasif kullanıcı engeli | `@nestjs/jwt` + **argon2** + jeton döndürme ve yeniden kullanım tespiti |
+| §5.1 Kimlik doğrulama | JWT, yenileme jetonu (token), rol bazlı yetki, pasif kullanıcı engeli | `@nestjs/jwt` + **argon2** + jeton (token) döndürme ve yeniden kullanım tespiti |
 | §5.2 Lokasyon yönetimi | Liste, detay, oluştur, güncelle, aktif/pasif | NestJS modülü + **Prisma** + **Zod** |
 | §5.3 Varlık yönetimi | Liste, filtre, detay, durum değiştirme | Aynı yapı; filtreleme veritabanı seviyesinde |
 | §5.4 Talep ve iş emri | Zorunlu alanlar, okunabilir iş emri numarası | Prisma şeması + veritabanı sırası (sequence) |
@@ -1081,6 +1081,29 @@ Bu işleri API içinde yaparsanız, o sırada gelen kullanıcı istekleri bekler
 - **Redis:** Diske değil doğrudan belleğe yazan çok hızlı veri deposu. Kuyruk
   burada durur.
 
+### Bu kartın iki eki: yönetim ekranı ve hız sınırı
+
+**Bull Board** — kuyruğun **yönetim ekranı**. Hangi işler bekliyor, hangisi
+başarısız oldu, kaç kez denendi; bir işi elle yeniden çalıştırma. ⭐ Ödevin
+istediği **Hangfire Dashboard'un birebir karşılığıdır**; sorulduğunda gösterilecek
+somut karşılık budur.
+
+⛔ **Korumasız açılmaz.** Bull Board bütün iş verisini gösterir ve işleri
+tetikleyebilir. Yalnızca **yönetici** rolüyle erişilir; canlıda kapatılabilir
+olması `.env` üzerinden ayarlanır.
+
+**`@nestjs/throttler`** — **hız sınırı** (rate limiting). Aynı adresten gelen
+istekleri sayar ve tavanı aşarsa **429 Too Many Requests** döner.
+
+| Nerede | Neden |
+|---|---|
+| Giriş ucu (`/auth/login`) | ⛔ **Brute-force koruması** — şifre deneyen botu durdurur |
+| Genel API | Tek istemcinin sistemi doldurmasını engeller |
+
+Sayaç **Redis'te** tutulur — çünkü birden fazla API kopyası çalıştığında
+(§12 ölçekleme) her kopyanın kendi sayacı olsaydı sınır kopya sayısı kadar
+katlanırdı. .NET karşılığı `AspNetCoreRateLimit`.
+
 ⚠️ Redis bu projede yalnızca kuyruk için değil, **hız sınırı sayacı** ve
 **dağıtık kilit** için de kullanılıyor — tek amaçlı bir bağımlılık değil.
 
@@ -1643,7 +1666,7 @@ yerde** çıkar. Playwright tam oraya bakar.
 - **argon2:** Şifreyi geri döndürülemez şekilde karıştıran algoritma.
 
 **Bu projede nerede:** Giriş, yetkilendirme, oturum yenileme.
-**Ödevdeki karşılığı:** §5.1 — JWT tabanlı kimlik doğrulama, yenileme jetonu,
+**Ödevdeki karşılığı:** §5.1 — JWT tabanlı kimlik doğrulama, yenileme jetonu (token),
 rol bazlı yetkilendirme, pasif kullanıcı engeli.
 
 ### JWT gerçekte hangi sorunu çözüyor
@@ -1672,22 +1695,22 @@ Jetonun içi şuna benzer:
 ```
 
 Üzerinde oynanamaz: biri `"role": "ADMIN"` yapmaya kalkarsa **imza tutmaz** ve
-sunucu jetonu reddeder.
+sunucu jetonu (token) reddeder.
 
 ⚠️ **Sık yapılan hata:** Jetonun içi **şifreli değildir**, yalnızca imzalıdır.
 Herkes içeriğini okuyabilir. Bu yüzden jetona TCKN, telefon, e-posta gibi
 kişisel veri **konmaz** — sadece kimlik numarası ve rol.
 
-### Neden iki ayrı jeton
+### Neden iki ayrı jeton (token)
 
-**Erişim jetonu (access token)** kısa ömürlüdür — dakikalar. Çalınırsa zararı
+**Erişim jetonu (token) (access token)** kısa ömürlüdür — dakikalar. Çalınırsa zararı
 sınırlı kalsın diye. Ama kullanıcıya her 15 dakikada bir giriş yaptırmak da
 olmaz.
 
-Bu yüzden ikinci bir **yenileme jetonu (refresh token)** verilir: süresi
-uzundur, tek işi yeni bir erişim jetonu almaktır.
+Bu yüzden ikinci bir **yenileme jetonu (token) (refresh token)** verilir: süresi
+uzundur, tek işi yeni bir erişim jetonu (token) almaktır.
 
-**Rotasyon (döndürme):** Yenileme jetonu her kullanıldığında **değişir**.
+**Rotasyon (döndürme):** Yenileme jetonu (token) her kullanıldığında **değişir**.
 Eskisi geçersiz olur.
 
 ```ts
@@ -1722,14 +1745,14 @@ await prisma.$transaction(async (tx) => {
 });
 ```
 
-⭐ **Yeniden kullanım tespiti** bu kodun kalbi: iptal edilmiş bir jeton tekrar
+⭐ **Yeniden kullanım tespiti** bu kodun kalbi: iptal edilmiş bir jeton (token) tekrar
 gelirse, jetonun kopyalandığı anlaşılır ve o kullanıcının **tüm oturumları**
 kapatılır. Ödev bunu doğrudan istemiyor ama gerçek sistemlerde standarttır.
 
 İşlemin tamamı **tek transaction** içinde — ödev §20 bunu ayrıca sayıyor:
 *"Refresh token yenileme ve eski token'ın geçersiz hâle getirilmesi."*
 
-### Jeton nerede saklanıyor
+### Jeton (token) nerede saklanıyor
 
 | İstemci | Nerede | Neden |
 |---|---|---|
@@ -1769,7 +1792,7 @@ yüzden şifre için **yanlıştır** — hızlı olmaları saldırganın işine
 
 | Şart | Karşılığı |
 |---|---|
-| Pasif kullanıcı giriş yapamamalı | Guard, jetonu doğruladıktan sonra kullanıcının `isActive` alanını kontrol eder |
+| Pasif kullanıcı giriş yapamamalı | Guard, jetonu (token) doğruladıktan sonra kullanıcının `isActive` alanını kontrol eder |
 | Token süreleri yapılandırmadan yönetilmeli | `.env` içinde; kodda sabit değer yok |
 | Yetkisiz ve yasaklı erişim doğru kod dönmeli | Kimliksiz **401**, yetkisiz **403** (E.7) |
 | Secret'lar source control'a girmemeli | `.env` commit edilmez, `.env.example` edilir |
@@ -2503,7 +2526,7 @@ alınırsa API'yi baştan yazmak gerekir:
 | Karar | Mobil olmasa | Mobil olacaksa |
 |---|---|---|
 | **Sürümleme** | Gerekmeyebilir — web güncellenince herkes yeni sürümü alır | **Zorunlu** — uygulama kullanıcının telefonunda eski sürümde kalır |
-| **Jeton taşıma** | Sadece çerez yeterdi | Çerez **ve** `Authorization` başlığı birlikte desteklenmeli |
+| **Jeton (token) taşıma** | Sadece çerez yeterdi | Çerez **ve** `Authorization` başlığı birlikte desteklenmeli |
 | **Sayfalama** | Gevşek olabilirdi | Zorunlu — mobilde 5000 kayıt uygulamayı dondurur |
 | **Cevap boyutu** | Önemsiz | Kritik — mobil veri kotası |
 
@@ -2524,7 +2547,7 @@ Kod yazma yeri değişmez — aynı editör, aynı dil. Fark yalnızca çalışa
 | Görme | Tarayıcı | Telefonda **Expo Go** uygulaması, QR kod okutularak |
 | Xcode / Android Studio | Gerekmez | Çoğu iş için gerekmez |
 
-Mobil eklendiğinde API tarafında yazılacak tek şey, jetonu başlıktan da kabul
+Mobil eklendiğinde API tarafında yazılacak tek şey, jetonu (token) başlıktan da kabul
 etmek — ve o zaten baştan yazılı:
 
 ```ts
@@ -2583,6 +2606,40 @@ bir kere burada veriyorum; metinde her seferinde tekrar etmiyorum.
 ("arayüz") İngilizcede iki farklı kavramı karşılıyor. Bu belgede ekran
 kastediliyorsa **arayüz (UI)** yazıyorum; kod sözleşmesi kastediliyorsa
 yalnızca *arayüz* yazıp bağlamı belirtiyorum.
+
+### ⭐ Kısaltmalar — hepsinin açılımı ve ne demek olduğu
+
+Metinde geçen her kısaltma burada bir kez açılıyor. Bir kısaltmayı ilk kez
+gördüğünde buraya bak.
+
+| Kısaltma | Açılımı | Ne demek |
+|---|---|---|
+| **API** | *Application Programming Interface* | Bir programın **başka programlara** açtığı kapı. İnsan arayüzü ekrandır; program arayüzü API'dir |
+| **REST** | *Representational State Transfer* | API yazmanın en yaygın **biçimi**: her kaynağın bir adresi var, işlemler HTTP fiilleriyle yapılır |
+| **HTTP** | *HyperText Transfer Protocol* | Tarayıcı ile sunucunun konuştuğu **dil/kural seti**. `GET`, `POST` gibi fiiller buradan gelir |
+| **SQL** | *Structured Query Language* | Veritabanına soru sorma dili: `SELECT * FROM work_order WHERE ...` |
+| **ORM** | *Object-Relational Mapping* | SQL yazmak yerine **nesnelerle** çalışmayı sağlayan katman. Bu projede **Prisma** |
+| **CRUD** | *Create, Read, Update, Delete* | Bir kayıt üzerindeki dört temel işlem: oluştur, oku, güncelle, sil |
+| **DTO** | *Data Transfer Object* | ⭐ **Dışarı gönderilen cevabın şekli.** Veritabanı kaydının **aynısı değildir** — şifre özeti gibi alanlar burada bulunmaz (E.6) |
+| **POJO** | *Plain Old Java Object* | "Süslemesiz düz nesne". Prisma'nın döndürdüğü şey budur: sadece veri, davranış yok |
+| **DI** | *Dependency Injection* | Bir sınıfın ihtiyacı olan şeyi kendisi yaratmaz, **dışarıdan verilir** (C.1) |
+| **JWT** | *JSON Web Token* | İçinde kullanıcı bilgisi taşıyan, imzalı ve süreli jeton (token) biçimi |
+| **XSS** | *Cross-Site Scripting* | Saldırganın sayfaya kendi JavaScript'ini çalıştırtması. `httpOnly` çerez buna karşı korur |
+| **IDOR** | *Insecure Direct Object Reference* | Adresteki numarayı değiştirip **başkasının kaydını** görmek. Her uçta sahiplik kontrolü şart |
+| **CORS** | *Cross-Origin Resource Sharing* | Tarayıcının "başka adresteki API'ye istek atılabilir mi" kuralı |
+| **CI / CD** | *Continuous Integration / Delivery* | Her gönderimde testleri otomatik koşturma / yayına alma |
+| **ADR** | *Architecture Decision Record* | "Şu kararı şu yüzden aldık" belgesi (E.12) |
+| **SLA** | *Service Level Agreement* | Hizmet süre taahhüdü: "kritik arıza şu kadar sürede çözülür" |
+| **DBML** | *Database Markup Language* | Veritabanı şemasını **okunabilir metin** olarak yazma biçimi (C.9) |
+| **GIN** | *Generalized Inverted Index* | PostgreSQL'de "içinde geçiyor mu" aramalarını hızlandıran index türü (C.5) |
+| **SSR** | *Server-Side Rendering* | Sayfanın HTML'inin **sunucuda** üretilmesi; ilk açılış hızlanır (C.2) |
+| **TTL** | *Time To Live* | Bir şeyin geçerlilik süresi: jetonun (token) ömrü, önbelleğin tazeliği |
+| **UI / UX** | *User Interface / User Experience* | Kullanıcı arayüzü / kullanıcı deneyimi |
+| **PR / MR** | *Pull Request / Merge Request* | Değişiklik önerisi. GitHub'da PR, GitLab'da MR denir — **aynı şey** |
+| **E2E** | *End-to-End* | Uçtan uca test: gerçek tarayıcıda gerçek tıklama (C.12) |
+| **LTS** | *Long Term Support* | Uzun süre desteklenecek sürüm. Node'da bu yüzden çift numaralı sürümler seçilir |
+| **KVKK** | *Kişisel Verilerin Korunması Kanunu* | Türkiye'nin kişisel veri mevzuatı (C.22) |
+| **MVCC** | *Multi-Version Concurrency Control* | PostgreSQL'in aynı satırı okuyan/yazanları birbirine kilitletmeden yönetme yöntemi |
 
 ---
 
@@ -3436,6 +3493,138 @@ politikasının belirlenmesinde kullanılmasını istiyor ve *"göstermelik bir 
 olmamalı"*, *"Service Locator olarak kullanılmamalı"*, *"Open/Closed ile uyumlu
 olmalı"* diye özellikle uyarıyor.
 
+### ⭐ KARARLAŞTIRILAN SLA POLİTİKASI (2026-08-26, onaylandı)
+
+Ödev §7: *"SLA sürelerini ve hesaplama kurallarını tarafınızdan belirlemeniz
+beklenmektedir. Belirlediğiniz kurallar dokümante edilmelidir."* Bu bölüm o
+dokümantasyondur.
+
+#### Önce tanım: SLA saati neyi ölçüyor
+
+⛔ **Geliştiricinin çalıştığı süre değil.** Biletin **açılışından sahibine iade
+edilişine** kadar geçen **toplam** süre:
+
+```
+Personel arıza bildirir        ← SLA saati BAŞLAR
+   └─► Destek sınıflandırır, geliştiriciye yönlendirir
+        └─► Geliştirici çözer
+             └─► Kontrol edilir
+                  └─► Bilet sahibine iade edilir   ← SLA saati DURUR
+```
+
+Yani sınıflandırma, bekleme ve kontrol de bu sürenin içindedir.
+
+#### 1) Öncelikten temel süre
+
+| Öncelik | Çözüm süresi | Ne demek |
+|---|---|---|
+| **Kritik** | **3 saat** | Hizmet tamamen durmuş, alternatifi yok |
+| **Yüksek** | **8 saat** | İş aksıyor ama geçici çözüm var |
+| **Normal** | **24 saat** | Rahatsız edici, engelleyici değil |
+| **Düşük** | **72 saat** | Planlanabilir, aciliyeti yok |
+
+Oran **1 : 2.7 : 8 : 24** — ITIL'deki yaygın P1–P4 merdiveniyle aynı biçimde
+artıyor.
+
+#### 2) Varlığın kritikliği çarpan uygular
+
+| Varlık kritikliği | Çarpan | Örnek |
+|---|---|---|
+| **Kritik** | **×0.5** | Su pompası, jeneratör, sunucu odası kliması |
+| **Yüksek** | ×0.75 | Hizmet binası asansörü |
+| **Normal** | ×1 | Ofis bilgisayarı |
+| **Düşük** | ×1.5 | Depodaki yedek ekipman |
+
+⭐ Böylece *"kritik öncelikli ama önemsiz varlık"* ile *"kritik öncelikli ve
+hayati varlık"* aynı süreyi almıyor. Ödev §7 varlığın kritiklik seviyesini
+hesaba katmayı **şart koşuyor**.
+
+#### 3) Hatırlatma ve escalation — sabit saat değil, YÜZDE
+
+| An | Ne zaman | Ne oluyor |
+|---|---|---|
+| **İlk hatırlatma** | Sürenin **%50**'si | Atanan teknik personele bildirim |
+| **Escalation** | Sürenin **%80**'i | Amirine + operasyon sorumlusuna bildirim |
+| **İhlal** | %100 | İş emri *"SLA aşıldı"* işaretlenir, yönetim panosuna düşer |
+
+**Hesaplanan değerler** (varlık çarpanı ×1 iken):
+
+| Öncelik | Çözüm | İlk hatırlatma | Escalation |
+|---|---|---|---|
+| Kritik | 3 sa | **1 sa 30 dk** | **2 sa 24 dk** |
+| Yüksek | 8 sa | 4 sa | 6 sa 24 dk |
+| Normal | 24 sa | 12 sa | 19 sa 12 dk |
+| Düşük | 72 sa | 36 sa | 57 sa 36 dk |
+
+⭐ **Yüzde kullanmanın sebebi mimari, estetik değil.** Yeni bir öncelik
+eklendiğinde yalnızca **süresi** yazılır; hatırlatma ve escalation kendiliğinden
+doğru hesaplanır. Ödev §7'nin *"yeni SLA politikası eklenince mevcut kod mümkün
+olduğunca az değişmeli"* şartı — yani **Open/Closed** — tam olarak budur.
+
+#### 4) ⭐ İş emri türü — Factory'nin GERÇEKTEN farklı sınıf üretmesi
+
+Buradaki tasarım kararı ödevin en çok denetlenecek yeri:
+
+> ⛔ **Planlı bakım ve periyodik kontrol için *"X saat içinde bitir"* mantığı
+> YANLIŞTIR.** Onların bir **planlanan tarihi** vardır; son tarih o tarihtir,
+> "şu andan itibaren 24 saat" değil.
+
+| Tür | SLA nasıl hesaplanıyor | Politika sınıfı |
+|---|---|---|
+| **Arıza** | `şimdi + (öncelik süresi × varlık çarpanı)` | `ArizaSlaPolitikasi` |
+| **Planlı bakım** | Planlanan tarih **son tarihtir**; hatırlatma 1 gün önce | `PlanliBakimSlaPolitikasi` |
+| **Periyodik kontrol** | Planlanan tarih ± tolerans penceresi (varsayılan 3 gün) | `PeriyodikKontrolSlaPolitikasi` |
+
+⭐ **Ödev §7 diyor ki:** *"Factory yalnızca göstermelik bir sınıf olmamalıdır."*
+Üç politika **gerçekten farklı hesap** yapıyor — biri süre ekliyor, biri sabit
+tarihe bakıyor, biri pencere kontrol ediyor. Sahte çeşitlilik değil.
+
+#### 5) ⛔ Takvim — KARMA model (onaylanan karar)
+
+**Problem:** Saat 17:00'de açılan **Yüksek** öncelikli (8 saat) bir bilet,
+7/24 sayımda gece 01:00'de ihlal olur — kimse çalışmıyorken. Her akşam açılan
+bilet otomatik ihlal ederdi; ölçüm anlamsızlaşır ve personele haksızlık olur.
+
+**Karar:** Takvim, önceliğin bir **özelliğidir** — genel bir ayar değil.
+
+| Öncelik | Takvim | Gerekçe |
+|---|---|---|
+| **Kritik** | **7/24 kesintisiz** | Nöbet vardır; su pompası gece de patlar |
+| Yüksek · Normal · Düşük | **Mesai saati** (hafta içi 08:00–17:00, resmî tatiller hariç) | Bu işler için gece müdahale yok |
+
+**Örnek — aynı bilet, iki öncelik:**
+
+```
+Bilet Cuma 16:00'da açıldı
+
+KRİTİK  (3 sa, 7/24)     → son tarih Cuma 19:00
+                            (hatırlatma 17:30 · escalation 18:24)
+
+YÜKSEK  (8 sa, mesai)    → Cuma'da 1 saat işledi, kalan 7 saat
+                            Pazartesi 08:00'den sayılır
+                          → son tarih Pazartesi 15:00
+```
+
+⭐ **Bu karar mimariyi güçlendiriyor:** takvim politikanın parçası olduğu için
+Factory gerçekten farklı davranan sınıflar üretiyor. Ödevin istediği şey bu.
+
+⚠️ **Bedeli dürüstçe:** Mesai takvimi hesaplayıcısı + resmî tatil listesi
+gerekiyor (~150 satır + testler). Tatil listesi yıllık güncellenir ve
+`docs/project/altyapi-durumu.md`'ye not düşülür.
+
+⛔ **Saat dilimi tek yerde:** Tüm hesaplar `Europe/Istanbul` üzerinden yapılır,
+veritabanında `timestamptz` olarak saklanır. Sistem saati doğrudan okunmaz —
+`Clock` servisi üzerinden alınır (ödev §8: *"sistem saati abstraction üzerinden
+kullanılmalıdır"*), böylece testte sahte saat verilebilir.
+
+#### Bu politikanın PRD'deki yeri
+
+Bu tablolar `docs/project/PRD.md` → *"SLA kuralları"* bölümüne kopyalanır ve
+`docs/sla-rules.md` olarak teslim paketine girer — ödev §7 dokümante edilmesini
+**zorunlu** tutuyor.
+
+---
+
 ### Problem
 
 SLA (Service Level Agreement), işin tamamlanması gereken süredir. Tek bir sayı
@@ -3832,7 +4021,7 @@ export class DomainExceptionFilter implements ExceptionFilter {
 | Durum | Kod | Anlamı |
 |---|---|---|
 | Doğrulama hatası | **400** | Gönderilen veri biçimsel olarak hatalı |
-| Kimlik doğrulanmadı | **401** | Giriş yapılmamış veya jeton geçersiz |
+| Kimlik doğrulanmadı | **401** | Giriş yapılmamış veya jeton (token) geçersiz |
 | Yetkisiz işlem | **403** | Giriş var ama bu işleme yetki yok |
 | Kayıt bulunamadı | **404** | — |
 | Çakışma | **409** | Geçersiz durum geçişi veya eş zamanlı değişiklik (E.8) |
@@ -4234,13 +4423,125 @@ arada bir kayıt eklenip toplam ile sayfa tutarsız olabilirdi.
 }
 ```
 
-### Offset yerine cursor ne zaman gerekir
+### ⭐ Offset yerine cursor ne zaman gerekir
 
-`skip`/`take` (offset) yaklaşımı, veritabanının atlanan satırları **saymasını**
-gerektirir; derin sayfalarda (örneğin 5000. sayfa) yavaşlar. Bu ekranda
-kullanıcı filtreleyerek daralttığı için derin sayfalama beklenmiyor, bu yüzden
-offset tercih edildi. Sürekli akan bir listede (bildirimler) cursor tabanlı
-sayfalama daha doğrudur ve gerekirse oraya uygulanır.
+İki sayfalama yöntemi var. Aralarındaki fark, **kullanıcı 5000. sayfaya
+gittiğinde** ve **liste sürekli akarken** ortaya çıkıyor.
+
+#### Yöntem 1 — Offset (bu projede kullanılan)
+
+*"İlk 100 kaydı **atla**, sonraki 20'yi ver."*
+
+```ts
+// Prisma karşılığı — 6. sayfa, sayfa boyutu 20
+await prisma.workOrder.findMany({
+  skip: 100,   // ← 5 sayfa × 20 kayıt = 100 kaydı ATLA  (offset)
+  take: 20,    // ← sonraki 20 kaydı al                   (limit)
+  orderBy: { createdAt: 'desc' },
+});
+```
+
+```sql
+-- Üretilen SQL
+SELECT * FROM "WorkOrder" ORDER BY "createdAt" DESC
+LIMIT 20 OFFSET 100;
+```
+
+**⛔ Gizli maliyeti:** `OFFSET 100` demek, veritabanının o 100 satırı
+**gerçekten okuyup atması** demektir. Atlanan satırlar bedava değildir.
+
+| Sayfa | Atlanan satır | Veritabanı ne yapıyor |
+|---|---|---|
+| 2 | 20 | 20 satır okuyup atıyor, 20 döndürüyor — **hızlı** |
+| 100 | 1.980 | 1.980 satır okuyup atıyor — fark edilir |
+| **5.000** | **99.980** | 99.980 satır okuyup atıyor, 20 döndürüyor — ⛔ **saniyeler** |
+
+> **ℹ️ Gerçek hayat benzetmesi**
+>
+> Bir kitabın 500. sayfasını bulmak için sayfaları **tek tek çevirerek**
+> saymak. 5. sayfa için 5 çevirirsin, 500. sayfa için 500. Kitap kalınlaştıkça
+> aynı iş katlanarak zorlaşır — oysa aradığın şey her seferinde tek bir sayfa.
+
+**⚠️ İkinci sorun — kayma (drift):** Sen 2. sayfaya bakarken listenin başına
+**yeni bir kayıt eklenirse** her şey bir sıra kayar. 1. sayfanın son kaydını
+2. sayfada **tekrar** görürsün; bir kayıt ise **hiç görünmez.**
+
+```
+10:00  Sayfa 1 → [K20, K19, K18 ... K1]        (en yeniden eskiye)
+10:01  Yeni kayıt K21 eklendi
+10:02  Sayfa 2 → [K1, ...]   ⛔ K1'i 1. sayfada da görmüştün
+                              ⛔ ve bir kayıt atlandı
+```
+
+#### Yöntem 2 — Cursor (imleç)
+
+*"**Şu kayıttan sonrakini** ver."* Atlama yok; veritabanı doğrudan o noktaya
+gidiyor.
+
+```ts
+// Kullanıcı en son K81'i gördü. Sonraki sayfa:
+await prisma.workOrder.findMany({
+  take: 20,
+  cursor: { id: 'K81' },   // ⭐ "Bu kayıttan başla" — atlama yok
+  skip: 1,                 // K81'in kendisini tekrar gönderme
+  orderBy: { createdAt: 'desc' },
+});
+```
+
+```sql
+-- Üretilen SQL'in özü: eşitlik değil, KARŞILAŞTIRMA
+SELECT * FROM "WorkOrder"
+WHERE ("createdAt", "id") < ('2026-08-24 10:00', 'K81')
+--     └─ index bu noktaya DOĞRUDAN atlıyor, önündekileri saymıyor
+ORDER BY "createdAt" DESC, "id" DESC
+LIMIT 20;
+```
+
+⭐ **Kazanç:** 1. sayfa ile 5.000. sayfa **aynı hızda** çalışır — çünkü ikisi de
+"şu noktadan sonraki 20 kayıt" sorusudur. Araya yeni kayıt girse de kayma
+olmaz; imleç bir kaydı işaret ediyor, bir sayı değil.
+
+⛔ **Bedeli:** *"7. sayfaya git"* diyemezsin. Cursor yalnızca **ileri/geri**
+gider, sayfa numarası kavramı yoktur. Toplam sayfa sayısı da gösteremezsin.
+
+#### Karar tablosu — hangisi ne zaman
+
+| Durum | Yöntem | Neden |
+|---|---|---|
+| Kullanıcı **sayfa numarasına tıklıyor** ("Sayfa 7") | **Offset** | Cursor sayfa numarası veremez |
+| **Toplam sayfa sayısı** gösteriliyor ("1/48") | **Offset** | Cursor toplamı bilmez |
+| Kullanıcı **filtreleyerek daraltıyor**, derine inmiyor | **Offset** | Derin sayfa hiç oluşmuyor; offset daha basit |
+| **Sonsuz kaydırma** (aşağı indikçe yükleniyor) | **Cursor** | Doğal olarak "sonrakini ver" akışı |
+| Liste **sürekli akıyor** (bildirim, olay günlüğü) | **Cursor** | ⛔ Offset'te kayma kaçınılmaz |
+| **Çok büyük tablo** + derin sayfalama gerçekten oluyor | **Cursor** | Offset saniyelere çıkar |
+| **Dışa aktarma** / toplu okuma (tüm kayıtları gez) | **Cursor** | Sabit hızda ilerler |
+
+#### ⭐ Bu projedeki karar ve gerekçesi
+
+**İş emri listesi → offset.** Üç sebep:
+
+1. Ekranda **sayfa numaraları** var ve *"48 kayıttan 1–20 arası"* yazıyor —
+   ikisi de cursor'ın veremediği şeyler
+2. Kullanıcı lokasyon, durum ve tarihe göre **filtreleyerek daraltıyor**;
+   5.000. sayfa pratikte oluşmuyor
+3. Filtreler adres çubuğunda tutuluyor (BÖLÜM G → 3. adım); `?sayfa=3`
+   paylaşılabilir bir adres, `?cursor=K81` değil
+
+**Bildirim listesi → cursor** (eklendiğinde). Sürekli akıyor ve sonsuz
+kaydırmayla gösterilecek; offset'te kullanıcı aynı bildirimi iki kez görürdü.
+
+⚠️ **Koruma — offset'in sınırı zorlanmasın:** azami sayfa boyutu **100** ile
+sınırlı ve `sayfa` parametresi doğrulanıyor. Biri adres çubuğuna
+`?sayfa=999999` yazarsa istek **reddediliyor**, veritabanı 20 milyon satır
+taramaya kalkmıyor.
+
+> **ℹ️ Değerlendirmeci bunu sorarsa**
+>
+> *"Offset seçtim çünkü bu ekran sayfa numarası ve toplam sayısı gösteriyor;
+> cursor ikisini de veremez. Derin sayfalama riskini biliyorum — azami sayfa
+> boyutu ve parametre doğrulamasıyla sınırladım. Bildirim listesi gibi sürekli
+> akan bir yerde cursor kullanırdım, çünkü orada kayma sorunu gerçekten
+> ortaya çıkar."*
 
 ## E.11 Git akışı ve CI (§26, §27)
 
@@ -4264,6 +4565,79 @@ belgeyi sakladığın, paylaştığın ve üzerine yorum aldığın yer.*
 main'den yeni dal aç → çalış, commit at → uzağa gönder
    → değişiklik önerisi aç → testler yeşil → main'e birleştir → dal silinir
 ```
+
+### ⭐ GitHub Flow — adım adım, İngilizce karşılıklarıyla
+
+Yukarıdaki akışın piyasadaki adı **GitHub Flow**'dur. Mülakatta ve ekip
+içinde İngilizce adlarıyla anılır; ikisini de bilmen gerekiyor.
+
+| # | Adım | İngilizcesi | Ne oluyor |
+|---|---|---|---|
+| 1 | `main`'den yeni dal aç | **Create branch** | `main`'in bir kopyası üzerinde çalışırsın; ana dal bozulmaz. Ad: `feature/is-emri-atama` |
+| 2 | Çalış, commit at | **Commit changes** | Her commit **tek bir işi** anlatır. Commit = o anki kodun fotoğrafı + neden değiştiği |
+| 3 | Uzağa gönder | **Push to remote** | Dalın GitHub/GitLab'a çıkar. Buraya kadar kimse görmüyordu |
+| 4 | Değişiklik önerisi aç | **Open Pull Request (PR)** | *"Şu dalı `main`'e almak istiyorum"* teklifi. ⭐ Geliştirici burada **PR açıklaması** yazar: ne değişti, neden, nasıl test edilir |
+| 5 | Kod gözden geçirme | **Code Review** | Ekipteki başka bir geliştirici (peer) veya kıdemli (senior) satır satır inceler, yorum bırakır, değişiklik ister |
+| 6 | Testler yeşil | **CI Pass** | Otomatik denetimler koşar; **biri bile kırmızıysa birleştirilemez** |
+| 7 | `main`'e birleştir | **Merge into main** | Değişiklik ana dala girer |
+| 8 | Canlıya çıkış | **Deploy to production** | `main` yayına alınır (bu projede: DevOps ekibi) |
+| 9 | Dal silinir | **Delete branch** | İşi biten dal temizlenir; geçmişi commit'lerde zaten duruyor |
+
+⭐ **4. adımdaki PR açıklaması neden önemli:** Kod *ne* yaptığını gösterir,
+PR açıklaması *neden* yaptığını. İnceleyen kişi bunu okumadan koda bakarsa
+her satırı sorgulamak zorunda kalır. Ödev §26'nın *"commit geçmişi geliştirme
+sürecini göstermeli"* şartı bununla da karşılanıyor.
+
+#### 6. adımda tam olarak ne koşuyor — bu projede
+
+*"Testler yeşil"* tek bir şey değil; **yedi ayrı kapı**:
+
+| # | Kapı | Araç | Neyi yakalar |
+|---|---|---|---|
+| 1 | Biçim ve kural | **ESLint + Prettier** | Kullanılmayan değişken, tehlikeli kalıp, biçim bozukluğu |
+| 2 | Tip denetimi | **TypeScript** (`tsc --noEmit`) | Olmayan alana erişim, yanlış tip |
+| 3 | Birim testler | **Vitest** | İş kuralları — SLA hesabı, durum makinesi |
+| 4 | Entegrasyon testleri | **Testcontainers + Vitest** | Gerçek PostgreSQL'e karşı: transaction, kısıtlar, eşzamanlılık |
+| 5 | **Mimari testi** | **dependency-cruiser** | Domain katmanına Prisma sızmış mı (C.8) |
+| 6 | Uçtan uca | **Playwright** | Gerçek tarayıcıda gerçek tıklama |
+| 7 | Derleme | `next build` · `nest build` · `docker build` | Derlenmiyorsa yayına çıkamaz |
+
+Bunların hepsi `pnpm ci:verify` içinde toplanır — ⭐ **aynı komutu kendi
+bilgisayarında da çalıştırabilirsin.** CI dosyası yalnızca bu komutu çağıran
+ince bir sarmalayıcıdır (E.11 → *"CI platforma bağımlı yazılmaz"*).
+
+#### "Başka test aracı var mı" — dürüst cevap
+
+| Araç | Kullanıyor muyuz | Neden |
+|---|---|---|
+| **GitHub Actions** | ✅ Evet | Yukarıdaki yedi kapıyı çalıştıran motor |
+| **GitLab CI** | ✅ Hazır | `.gitlab-ci.yml` aynı `pnpm ci:verify`'ı çağırıyor — kurum GitLab'a geçince ek iş yok |
+| **Renovate** | ✅ Evet | Bağımlılık güncellemelerini PR olarak açar (C.23) |
+| **SonarQube** | ⚠️ **Hayır** | Kod kalitesi ve teknik borç ölçen ayrı bir platform. Kurumsal ortamda yaygın; **ayrı sunucu ister** ve bizim yedi kapımızın çoğunu ESLint + TypeScript zaten yapıyor. ⭐ **Kurum kullanıyorsa CI'a bir adım olarak eklenir** — mimariyi değiştirmez |
+| **CodeQL** | ⚠️ Hayır | GitHub'ın güvenlik tarayıcısı. Ücretsiz ve tek satır — eklenmesi kolay, ama ödevde istenmedi. Teknik borç listesine yazıldı |
+| **Codecov** | ⚠️ Hayır | Test kapsamı raporlama servisi. Kapsamı Vitest zaten ölçüyor; dışarı veri göndermek KVKK açısından gereksiz risk |
+
+### GitHub ile GitLab farkı — akış aynı, isimler farklı
+
+⭐ **İş akışının kendisi birebir aynıdır.** Değişen tek şey isimler ve dosya
+adları:
+
+| Konu | **GitHub** | **GitLab** |
+|---|---|---|
+| Değişiklik önerisi | **Pull Request (PR)** | **Merge Request (MR)** |
+| CI tanım dosyası | `.github/workflows/ci.yml` | `.gitlab-ci.yml` |
+| CI'ı çalıştıran | GitHub Actions | GitLab CI/CD |
+| Komut satırı aracı | `gh` | `glab` |
+| Otomatik güncelleme botu | Dependabot **veya** Renovate | ⛔ Dependabot **yok** → Renovate |
+| Güvenlik taraması | CodeQL | Yerleşik **SAST** (Ultimate sürümde) |
+| Kurumun kendi sunucusuna kurulabilir mi | Enterprise Server (ücretli) | ✅ **Community Edition ücretsiz** |
+
+⭐ **Son satır belediyeler için belirleyicidir:** GitLab kurumun kendi
+sunucusuna ücretsiz kurulabildiği için **kod kurum dışına hiç çıkmaz.** Kamu
+tarafında yaygın olmasının sebebi teknik üstünlük değil, budur.
+
+⚠️ **Bu yüzden Renovate seçildi, Dependabot değil** (C.23): Dependabot yalnızca
+GitHub'da çalışır. Kurum GitLab'a geçtiğinde bot da taşınabilsin diye.
 
 - **`main` her zaman çalışır durumdadır** ve doğrudan commit edilmez
 - Her commit **tek bir işi** anlatır; ilgisiz değişiklikler aynı commit'te
@@ -4300,6 +4674,22 @@ GitLab CI aynı işi yapar ve platform değiştiğinde yeniden yazılmaz.
 
 **Nedir:** *Architecture Decision Record.* Önemli bir teknik kararın **neden**
 alındığını yazan kısa belge. Ödev en az üç tane istiyor.
+
+#### Bu projede yazılacak ADR'ler
+
+| No | Konu | Rehberde gerekçesi |
+|---|---|---|
+| **ADR-001** | Neden bu stack — .NET yerine JS ailesi | Giriş · BÖLÜM A |
+| **ADR-002** | Neden ayrı NestJS API (kitin varsayılanı Next tek başına) | E.1 |
+| **ADR-003** | Neden Zod, `class-validator` değil (Nest'in resmî yolu) | C.4 |
+| **ADR-004** | Mapping kütüphanesi kullanılmaması | E.6 |
+| **ADR-005** | Repository Pattern eklenmemesi | E.13 |
+| **ADR-006** | Redis'in eklenmesi (kuyruk + hız sınırı + kilit) | C.6 |
+| **ADR-007** | Next.js seçimi — Vite + React Router yerine | C.2 |
+| **ADR-008** | SLA politikası ve karma takvim kararı | E.4 |
+
+⚠️ **Liste kapalı değil.** Yapım sırasında ölçüyle verilen her sapma yeni bir
+ADR doğurur. ⛔ Gerekçesiz sapma yasak; gerekçeli sapma **ADR'ye yazılır**.
 
 **Gerçek hayat:** Bir binada kolonun ortada durduğunu görürsünüz ve "burası
 kapı olsaydı daha iyiydi" dersiniz. Projeyi çizen mühendis o kolonu oraya
@@ -4386,11 +4776,44 @@ ve yerine konan çözümün **daha sağlam** olduğunu.
 | `docs/database.dbml` | Veri modeli (C.21 — otomatik üretiliyor) |
 | `docs/database-decisions.md` | E.9'daki kararlar |
 | `docs/architecture.md` | Katmanlar, bağımlılık yönleri, istek yaşam döngüsü, transaction sınırları |
-| `docs/api.md` | Uç *(endpoint)* listesi ve sözleşmeler |
+| `docs/api.md` | Uç *(endpoint)* listesi ve **sözleşmeler** *(API Contract — aşağıda)* |
 | `docs/testing.md` | Test stratejisi ve nasıl koşulacağı |
 | `docs/lifecycle.md` | Servis yaşam döngüsü tablosu (C.1 §4) |
 | `docs/background-jobs.md` | Dört iş, zamanlamaları, idempotency yaklaşımı |
 | `docs/decisions/` | ADR'ler |
+
+> **ℹ️ "Sözleşme" ne demek — İngilizce karşılığı **API Contract**
+>
+> Bir API'nin, kendisini kullananlara verdiği **yazılı söz**: *"bana şu şekilde
+> istek gönderirsen, sana şu şekilde cevap dönerim."*
+>
+> **Gerçek hayat:** Kargo firmasının taahhüdü. *"Şu bilgileri şu formatta ver
+> (alıcı adı, adres, telefon); ben sana şu bilgileri döneyim (takip numarası,
+> tahmini teslim)."* İki taraf da bu söze göre kendi işini planlar.
+>
+> **Sözleşme neleri kapsar:**
+>
+> | Parça | İngilizcesi | Bu projede nerede |
+> |---|---|---|
+> | İsteğin şekli | **Request schema** | `packages/contracts` → Zod şeması |
+> | Cevabın şekli | **Response schema / DTO** | Aynı paket, `select` ile eşleşir (E.6) |
+> | Hata biçimi | **Error format** | RFC 9457 Problem Details (E.7) |
+> | Adres ve fiil | **Endpoint + method** | `POST /api/v1/work-orders` |
+> | Kurallar | **Constraints** | "başlık en az 5 karakter", "sayfa boyutu en çok 100" |
+>
+> **Yakın terimler — hangisi ne zaman kullanılır:**
+>
+> | Terim | Ne demek |
+> |---|---|
+> | **API Contract** | Sözün kendisi — iki tarafın uyacağı kural |
+> | **API Specification** | O sözün **belgelenmiş** hâli (bu projede OpenAPI/Swagger) |
+> | **Data Schema** | Tek bir veri yapısının tanımı — sözleşmenin bir parçası |
+>
+> ⛔ **Sözleşme neden önemli:** Değiştirdiğinde onu kullanan **herkesi**
+> bozarsın. Bu yüzden `/api/v1` sürümlemesi var (C.13): sözleşmeyi değiştirmek
+> gerekirse eskisi çalışmaya devam eder, yenisi `/api/v2` olur. Mobil
+> uygulamada bu **zorunludur** — kullanıcının telefonundaki sürümü sen
+> güncelleyemezsin.
 
 ⭐ **README'nin en çok atlanan iki maddesi:** *"bilinen eksikler"* ve
 *"varsayımlar"*. Ödev ikisini de açıkça istiyor. Bunları yazmak zayıflık değil,
@@ -4991,25 +5414,25 @@ teknoloji nerede devreye giriyor.
 
 ---
 
-## G.0 Önce sıra sorusu: arka uç mu önce, arayüz (UI) mü
+## G.0 Önce sıra sorusu: arka uç (backend) mu önce, arayüz (UI) mü
 
-### Bu projedeki cevap: önce arka uç, sonra arayüz (UI)
+### Bu projedeki cevap: önce arka uç (backend), sonra arayüz (UI)
 
 Yapım planında (BÖLÜM H) arayüz (UI) ekranları **Adım 10'da** başlıyor; ondan
-öncesindeki dokuz adım arka uç. Sebebi üç madde:
+öncesindeki dokuz adım arka uç (backend). Sebebi üç madde:
 
 | # | Sebep | Somut karşılığı |
 |---|---|---|
 | 1 | **Ekran, veri şeklini bilmeden çizilemez** | İş emri listesinde hangi kolonlar var? `sla_bitis` bir tarih mi, kalan dakika mı? Bu cevap veri modelinden (Adım 3) gelir |
 | 2 | **Ekran yeni yetenek eklemez, var olanı insana açar** | "İş emrini kapat" düğmesi, arkada `kapat()` kuralı yoksa hiçbir şey yapmaz |
-| 3 | **Arka uç bittiğinde ekran GERÇEK veriyle geliştirilebilir** | Uydurma (mock) veriyle geliştirilen ekran, gerçek veri gelince hep bir yerinden patlar: boş liste, çok uzun metin, `null` alan |
+| 3 | **Arka uç (backend) bittiğinde ekran GERÇEK veriyle geliştirilebilir** | Uydurma (mock) veriyle geliştirilen ekran, gerçek veri gelince hep bir yerinden patlar: boş liste, çok uzun metin, `null` alan |
 
 ### ⛔ Bu plan neyi kabul etmiyor
 
 > *"Önce ekranı yapalım, arkasını sonra bağlarız."*
 
 Yaygın ama pahalı. Ekran, **henüz var olmayan** bir veri şekline göre tasarlanır;
-arka uç yazılınca şekil değişir ve ekran baştan yazılır. İki kez iş yapılır.
+arka uç (backend) yazılınca şekil değişir ve ekran baştan yazılır. İki kez iş yapılır.
 
 ⚠️ Bunun sinsi tarafı şu: ilk hafta **çok verimli görünür.** Ortada tıklanabilir
 ekranlar vardır, herkes memnundur. Maliyet üçüncü haftada, gerçek veri
@@ -5019,15 +5442,15 @@ bağlanırken çıkar.
 
 Bu, "her projede önce backend" demek değildir. **Kuralın gerçek hâli şu:**
 
-> ⭐ Sıra "önce arka uç" değil — **"önce VERİ ŞEKLİ kesinleşsin".**
-> Arka uç yazmak, veri şeklini kesinleştirmenin bir yoludur. Zaten
+> ⭐ Sıra "önce arka uç (backend)" değil — **"önce VERİ ŞEKLİ kesinleşsin".**
+> Arka uç (backend) yazmak, veri şeklini kesinleştirmenin bir yoludur. Zaten
 > kesinleşmişse o iş bitmiştir, doğrudan arayüzden başlanır.
 
 | Durum | Doğru sıra | Neden |
 |---|---|---|
-| **Arka uç zaten var** — API'ler yazılmış, veritabanı ayakta, yalnızca yüz yenileniyor | **Önce arayüz (UI)** | Veri şekli sabit ve değişmeyecek. Bekleyecek bir şey yok |
+| **Arka uç (backend) zaten var** — API'ler yazılmış, veritabanı ayakta, yalnızca yüz yenileniyor | **Önce arayüz (UI)** | Veri şekli sabit ve değişmeyecek. Bekleyecek bir şey yok |
 | **Yalnızca arayüz değişiyor** — arka uca hiç dokunulmuyor (yeniden tasarım) | **Sadece arayüz (UI)** | Zaten tek taraflı iş |
-| **Ürün belirsiz** — ne isteneceği bilinmiyor, önce görülmesi gerekiyor | **Tıklanabilir taslak → arka uç → gerçek arayüz** | Taslak *atılmak üzere* yapılır; içine iş kuralı yazılmaz. Kararı hızlandırır, koda dönüşmez |
+| **Ürün belirsiz** — ne isteneceği bilinmiyor, önce görülmesi gerekiyor | **Tıklanabilir taslak → arka uç (backend) → gerçek arayüz** | Taslak *atılmak üzere* yapılır; içine iş kuralı yazılmaz. Kararı hızlandırır, koda dönüşmez |
 
 ⭐ **İzmir Büyükşehir'de karşılaşacağın en olası durum birincisidir:** kurumda
 API'ler ve veritabanı çoktan yazılmış olur, senden istenen yeni bir arayüz (UI)
@@ -5067,12 +5490,49 @@ Her biri **hangi soruyu** cevaplıyor:
 |---|---|---|
 | Bu değişkenin tipi ne, yanlış alan adı yazdım mı? | **TypeScript** | C.3 |
 | Veri değişti, ekranın hangi parçası yeniden çizilecek? | **React** | C.2 |
-| `/is-emirleri/42` adresi hangi dosyaya karşılık geliyor? | **Next.js** (App Router) | C.2 |
+| `/is-emirleri/42` adresi hangi **dosyaya** karşılık geliyor? *(aşağıda açıldı)* | **Next.js** (App Router) | C.2 |
 | Bu tablo nasıl görünecek — kenarlık, boşluk, renk? | **Tailwind CSS** | C.20 |
 | Açılır menüyü, modalı, tabloyu sıfırdan mı yazacağım? | **shadcn/ui** | C.20 |
 | Veriyi ne zaman çekeyim, önbellekte tutayım mı, ne zaman tazeleyeyim? | **TanStack Query** | C.19 |
-| Formdaki 12 alanın değerini ve hata mesajlarını kim tutuyor? | **React Hook Form** | C.20 |
+| Formdaki 12 alanın **değerini** ve hata mesajlarını kim tutuyor? *(aşağıda açıldı)* | **React Hook Form** | C.20 |
 | Bu form değeri geçerli mi? | **Zod** — `packages/contracts` | C.4 |
+
+> **ℹ️ Tablodaki iki kelime ne demek**
+>
+> **"Dosya"** — Next.js'te her ekran, diskte duran **bir `.tsx` dosyasıdır** ve
+> o dosyanın adı/konumu **adresin kendisidir**. Ayrı bir "rota tablosu"
+> yazmazsın; klasör yapısı rotadır.
+>
+> ```
+> apps/web/app/(protected)/is-emirleri/[id]/page.tsx
+>                          └── klasör adı    └── dosyanın adı SABİT: page.tsx
+>                              = adres parçası    ("bu klasörün ekranı budur")
+> ```
+>
+> Bu dosya `/is-emirleri/42` adresine karşılık gelir. `[id]` köşeli parantezli
+> olduğu için **değişken** parçadır: `42`, `43`, `1042` hepsi aynı dosyaya
+> düşer, numara dosyaya parametre olarak geçer.
+>
+> ⭐ Yani "hangi dosya" sorusu aslında *"kullanıcı bu adrese gidince hangi kod
+> parçası çalışacak"* demek.
+>
+> **"Değer"** — kullanıcının bir forma **yazdığı şeyin kendisi**. Başlık
+> kutusuna *"Pompa arızası"* yazdıysa, o alanın **değeri** `"Pompa arızası"`
+> dır.
+>
+> ```
+> Ekrandaki alan       Alanın DEĞERİ            Bunu kim tutuyor?
+> ─────────────────    ──────────────────────   ─────────────────
+> Başlık   [.......]   "Pompa arızası"          React Hook Form
+> Öncelik  [▼ Kritik]  "KRITIK"                 React Hook Form
+> Lokasyon [▼ ......]  ""  (henüz boş)          React Hook Form
+> ```
+>
+> ⚠️ **Neden "kim tutuyor" diye ayrı bir soru var:** Kullanıcı yazdıkça bu
+> değerler bir yerde **birikmek** zorunda — yoksa "Gönder"e bastığında ne
+> yollayacağını bilemezsin. 12 alanlı bir formda bunu elle yönetmek çok kod
+> demektir; React Hook Form o işi üstlenir. **Zod** ise ayrı bir soruya
+> bakar: *biriken bu değerler geçerli mi?*
 
 > **ℹ️ Neden bu kadar çok parça var — tek bir şey olamaz mıydı**
 >
@@ -5100,14 +5560,58 @@ export default async function IsEmirleriSayfasi() { … }
 
 ```tsx
 // apps/web/.../is-emri-filtresi.tsx
-'use client';   // ⭐ Bu satır sınırdır: buradan itibarısı TARAYICIDA çalışır.
+'use client';   // ⭐ Bu satır sınırdır: buradan itibaren TARAYICIDA çalışır.
 // Neden gerekli: kullanıcı etkileşimi (tıklama, yazma, durum tutma)
 // yalnızca tarayıcıda mümkün.
 ```
 
-⛔ **Kural:** `'use client'` mümkün olan **en aşağı** yazılır. Bir sayfanın en
-üstüne yazarsan altındaki her şey tarayıcıya iner ve sunucu bileşenlerinin tüm
-kazancı kaybolur.
+#### ⛔ Kural: `'use client'` mümkün olan EN AŞAĞI yazılır
+
+**Ne demek:** Bu satırı bir dosyanın başına koyduğunda, o dosya **ve içine
+koyduğu her şey** tarayıcıya iner. Yani etkisi tek dosyayla sınırlı değil,
+**aşağı doğru bulaşıcıdır.**
+
+**Gerçek hayat benzetmesi:** Bir binanın elektriğini şalttan kesiyorsun.
+Şalteri **en üst kata** koyarsan altındaki bütün katlar etkilenir. **İhtiyacı
+olan dairenin kapısına** koyarsan yalnızca o daire etkilenir.
+
+**Somut örnek — aynı sayfa, iki kurgu:**
+
+```
+⛔ YANLIŞ — 'use client' sayfanın en üstünde
+app/is-emirleri/page.tsx           'use client'  ← şalter en üstte
+├── <Baslik/>                      → tarayıcıya İNDİ  (oysa sabit metin, gerek yok)
+├── <IstatistikKartlari/>          → tarayıcıya İNDİ  (oysa sunucuda hesaplanabilirdi)
+├── <IsEmriTablosu/>               → tarayıcıya İNDİ  (oysa veriyi sunucu çekebilirdi)
+└── <FiltrePaneli/>                → tarayıcıya İNDİ  ✅ bunun inmesi GEREKİYORDU
+
+✅ DOĞRU — yalnızca ihtiyacı olan bileşende
+app/is-emirleri/page.tsx           (satır yok)   ← sunucu bileşeni
+├── <Baslik/>                      → sunucuda kaldı
+├── <IstatistikKartlari/>          → sunucuda kaldı
+├── <IsEmriTablosu/>               → sunucuda kaldı
+└── FiltrePaneli.tsx               'use client'  ← şalter yalnızca burada
+```
+
+**Kaybedilen ne — üç somut şey:**
+
+| Sunucuda kalırsa | Tarayıcıya inerse |
+|---|---|
+| O kodun JavaScript'i **hiç indirilmez** → sayfa daha hızlı açılır | Kullanıcı o kodu **indirmek zorunda** kalır |
+| Veritabanına **doğrudan** erişebilir, ekstra API isteği gerekmez | Veriyi API üzerinden istemek zorundadır → bir gidiş-geliş daha |
+| Kodun içi **görünmez** — iş mantığı kullanıcıya açılmaz | ⚠️ Kaynak kod tarayıcıda **okunabilir** hâle gelir |
+
+⚠️ **Bu yüzden "çalışıyor ama yavaş" durumu buradan doğar.** Sayfa iki kurguda
+da doğru çalışır; fark yalnızca **ölçtüğünde** görünür: indirilen JavaScript
+boyutu ve ilk açılış süresi.
+
+**Ne zaman gerçekten gerekir:** Bileşen kullanıcı etkileşimi içeriyorsa —
+tıklama, yazma, açılır menü, kendi içinde durum tutma (`useState`), tarayıcı
+API'si kullanma. Bunlar **yalnızca tarayıcıda** mümkündür.
+
+⭐ **Pratik yöntem:** Etkileşimli parçayı **kendi dosyasına ayır** ve `'use
+client'`ı oraya koy. Sayfa sunucu bileşeni olarak kalsın, o küçük parçayı içine
+alsın.
 
 ---
 
@@ -5217,7 +5721,7 @@ export async function apiGet<T>(yol: string, sorgu?: Record<string, unknown>) {
 }
 ```
 
-⭐ **E.3 (DRY)'ın arayüz tarafındaki karşılığı.** Jeton yenileme, hata biçimi ve
+⭐ **E.3 (DRY)'ın arayüz tarafındaki karşılığı.** Jeton (token) yenileme, hata biçimi ve
 temel adres tek dosyada. Değişirse tek yerde değişir.
 
 ### 6 — Görünüm: Tailwind + shadcn/ui
@@ -5298,7 +5802,7 @@ gövdeyi doğrudan gösterir:
 | Durum kodu | Kullanıcı ne görür |
 |---|---|
 | **400** | Alanın altında hata metni (form doğrulaması) |
-| **401** | Hiçbir şey — jeton sessizce yenilenir (adım 5) |
+| **401** | Hiçbir şey — jeton (token) sessizce yenilenir (adım 5) |
 | **403** | *"Bu işlem için yetkiniz yok"* |
 | **409** | *"Bu kayıt siz bakarken değiştirildi. Yenileyip tekrar deneyin."* |
 | **500** | Genel hata kutusu + izleme kimliği (correlation ID) |
@@ -5324,14 +5828,14 @@ başarısız ağ isteği yok, yükleniyor/hata/boş durumlarının üçü de gö
 | Filtrelerin adres çubuğunda tutulması | **E.10** — listeleme ve sayfalama |
 | Aynı Zod şemasının iki tarafta çalışması | **E.3** — DRY · BÖLÜM F → 1. adımın açılımı |
 | Önbellek ve tazeleme | **C.19** — TanStack Query |
-| Ortak API katmanı, sessiz jeton yenileme | **C.15** — kimlik doğrulama |
+| Ortak API katmanı, sessiz jeton (token) yenileme | **C.15** — kimlik doğrulama |
 | `version` alanının geri gönderilmesi | **E.8** · BÖLÜM F → 8. adımın açılımı |
 | Hata metninin backend'den gelmesi | **E.7** — merkezî hata yönetimi |
 | Sunucuda filtreleme | **§17** · **E.10** |
 | shadcn kodunun depoya kopyalanması | **C.20** |
 
 ⭐ **Sunumda kullanımı:** *"Frontend'i anlat"* dendiğinde teknoloji listesi
-saymak yerine bu on adımı anlatmak, BÖLÜM F'nin arka uç için yaptığı işi arayüz
+saymak yerine bu on adımı anlatmak, BÖLÜM F'nin arka uç (backend) için yaptığı işi arayüz
 için yapar — **anlatmadan gösterir.**
 
 ---
@@ -5470,7 +5974,7 @@ kanıtlanabiliyor. Ekran yalnızca **var olan** bir yeteneği insana açıyor.
 ### Bu plan neyi kabul etmiyor
 
 ⛔ **"Önce ekranı yapalım, arkasını sonra bağlarız."** Yaygın ama pahalı: ekran,
-henüz var olmayan bir veri şekline göre tasarlanır; arka uç yazılınca şekil
+henüz var olmayan bir veri şekline göre tasarlanır; arka uç (backend) yazılınca şekil
 değişir ve ekran baştan yazılır.
 
 ⛔ **"Testleri sona bırakalım."** Testler Adım 13'te *tamamlanıyor* ama her
@@ -5581,8 +6085,8 @@ Hepsinin gerekçesi E.9'da.
 |---|---|
 | **Teknoloji** | `@nestjs/jwt` · argon2 · NestJS Guard · `nestjs-cls` |
 | **Nereye** | `apps/api/src/modules/auth/` · Guard'lar `apps/api/src/common/guards/` |
-| **Neye bağlanıyor** | Giriş → jeton üretiliyor → sonraki her istekte Guard jetonu çözüp kullanıcıyı `nestjs-cls` bağlamına koyuyor → audit alanları oradan doluyor |
-| **Bitti sayılır** | Yanlış şifre 401 · yetkisiz rol 403 · pasif kullanıcı giremiyor · jeton yenileme eskisini iptal ediyor |
+| **Neye bağlanıyor** | Giriş → jeton (token) üretiliyor → sonraki her istekte Guard jetonu (token) çözüp kullanıcıyı `nestjs-cls` bağlamına koyuyor → audit alanları oradan doluyor |
+| **Bitti sayılır** | Yanlış şifre 401 · yetkisiz rol 403 · pasif kullanıcı giremiyor · jeton (token) yenileme eskisini iptal ediyor |
 | **Rehberde** | C.13 JWT ve argon2 · C.16 `nestjs-cls` |
 
 ⚠️ **Neden bu kadar erken — Kural 2 (yatay kesen iş):** Sonraki her modülün
@@ -5722,7 +6226,7 @@ beklerken veri eskiyebilir.
 | **Teknoloji** | Next.js App Router · TanStack Query · Tailwind + shadcn/ui |
 | **Nereye** | `apps/web/app/(auth)/`, `apps/web/app/(protected)/`, `apps/web/hooks/` |
 | **Neye bağlanıyor** | Ekran → `hooks/` içindeki ortak katman → API. Hiçbir ekran doğrudan istek atmıyor |
-| **Bitti sayılır** | Girişsiz kullanıcı korumalı sayfaya giremiyor · jeton süresi dolunca sessizce yenileniyor · rol bazlı butonlar gizleniyor |
+| **Bitti sayılır** | Girişsiz kullanıcı korumalı sayfaya giremiyor · jeton (token) süresi dolunca sessizce yenileniyor · rol bazlı butonlar gizleniyor |
 | **Rehberde** | ⭐ **BÖLÜM G — bir ekranın hayatı** (arayüz tarafının tamamı) · C.2 Next.js · **C.19 TanStack Query** · C.20 Tailwind/shadcn |
 
 ⭐ **Bu adımdan itibaren arayüz (UI) tarafındasın.** Adım 1–9 arka uçtu; bundan
@@ -5736,14 +6240,14 @@ gönderebilir ve sunucu onu reddetmek zorundadır.
 
 > **ℹ️ Neden ekranlar bu kadar geç**
 >
-> Bu noktada arka uç **tamamen çalışıyor**: her işlem API üzerinden
+> Bu noktada arka uç (backend) **tamamen çalışıyor**: her işlem API üzerinden
 > yapılabiliyor, kurallar test edilmiş durumda. Ekran, var olan bir yeteneği
 > insana açıyor — yeni bir yetenek eklemiyor.
 >
 > Ekranlar önce yazılsaydı, henüz var olmayan bir veri şekline göre tasarlanır
-> ve arka uç yazılınca baştan elden geçirilirdi.
+> ve arka uç (backend) yazılınca baştan elden geçirilirdi.
 >
-> ⚠️ **Bu sıra evrensel değil.** Arka uç zaten yazılmışsa (kurumda sık olan
+> ⚠️ **Bu sıra evrensel değil.** Arka uç (backend) zaten yazılmışsa (kurumda sık olan
 > durum) doğru sıra tersine döner ve doğrudan bu adımdan başlanır. Üç istisna
 > ve kuralın gerçek hâli **G.0**'da.
 
