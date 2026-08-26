@@ -39,14 +39,69 @@ git --version ; node --version ; pnpm --version ; docker --version ; gh --versio
 
 ## A2. Git'i tanıt
 
+Git, her commit'in üstüne bir **ad ve e-posta** yazar. İş bilgisayarında
+⚠️ **hangi e-postayı yazacağı önemli.**
+
+### Önce makine geneli — satır sonu ayarı
+
 ```powershell
-git config --global user.name "Barış Köse"
-git config --global user.email "kilicarslan45@gmail.com"
 git config --global core.autocrlf input
 ```
 
-⛔ **Üçüncü satır atlanmaz.** Windows satır sonlarını `CRLF` yapar; Linux
+⛔ **Bu satır atlanmaz.** Windows satır sonlarını `CRLF` yapar; Linux
 konteynerindeki betikler bunu okuyamaz ve `\r` hatası verir.
+
+### ⭐ Sonra KİMLİK — ama hangi hesap?
+
+| Durum | Ne yaparsın |
+|---|---|
+| İş bilgisayarında **yalnızca kurum işi** yapacaksan | `--global` ile **kurum** adresin |
+| ⚠️ Aynı makinede **kişisel projelerin de** olacaksa | ⛔ `--global` **kullanma** — aşağıya bak |
+
+**Yalnızca kurum işi yapacaksan:**
+
+```powershell
+git config --global user.name  "Ad Soyad"
+git config --global user.email "ad.soyad@izmir.bel.tr"
+```
+
+**Aynı makinede iki kimlik olacaksa — ⭐ doğru yol bu:**
+
+```powershell
+# Global'i kişisel bırak (ya da hiç ayarlama)
+git config --global user.name  "Barış Köse"
+git config --global user.email "kilicarslan45@gmail.com"
+
+# Sonra HER kurum projesinin İÇİNDE, o depoya özel:
+cd bakim-is-emri-hazirlik
+git config --local user.name  "Ad Soyad"
+git config --local user.email "ad.soyad@izmir.bel.tr"
+```
+
+| Ayar | Kapsamı |
+|---|---|
+| `--global` | ⚠️ Makinedeki **tüm** depolar |
+| ⭐ `--local` | **Sadece içinde bulunduğun depo** — global'i ezer |
+
+⛔ **Kurum projesinde `--global` kullanmanın bedeli:** kişisel projelerinin
+commit'leri de kurum e-postasıyla imzalanır. Geri almak, commit geçmişini
+**yeniden yazmayı** gerektirir.
+
+⚠️ **İlk commit'ten önce ayarla.** Sonra fark edersen geçmişteki commit'ler
+yanlış kimlikle kalır.
+
+**Kontrol — hangi kimlik geçerli:**
+
+```powershell
+git config user.email
+```
+
+Depo içinde çalıştırırsan `--local` varsa onu, yoksa `--global`'i gösterir.
+
+⭐ **Ajan bunu kendisi kontrol edecek:** kurulumda git kimliği proje tipiyle
+uyuşmuyorsa sana söyleyip `--local` ile ayarlayacak (kit kuralı
+`08-git-workflow.md`). Yani bu adımı atlarsan da yakalanır — ama ilk
+commit'ten önce doğru olması en temizi.
 
 ## A3. GitHub'a giriş yap
 
