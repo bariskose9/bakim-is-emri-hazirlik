@@ -138,9 +138,15 @@ gereksiz doldurur.
 |---|---|---|---|
 | 1 | **`odev.md`** | ⭐ Gerçeğin kaynağı: 32 bölüm, iş kuralları, teslim listesi | **Tamamını.** ~30 KB |
 | 2 | **bu dosya** | Devir notu — rolün, kararlar, yapılacaklar | Zaten okuyorsun |
-| 3 | **`proje-teknoloji-ve-plan.md`** | Tüm teknoloji kararları + kavramlar + yapım planı | ⚠️ **Aşağıdaki gibi parça parça** |
-| 4 | **`KURUMDAN-OGRENECEKLERIM.md`** | Kullanıcının kuruma soracakları + cevap gelmezse ne yapılacağı | Tamamını — kısa |
-| 5 | `sunum-anlatim-plani.md` | Sunumun iskeleti — her adımda büyütülecek | Bir kez göz at |
+| 3 | ⭐ **`PRD-taslak.md`** | **Sistem ne yapacak** — roller, iş kuralları, durum makinesi, SLA, ekranlar. Ekleri: hangi madde neyle yapılacak · hangi sırada | **Tamamını.** Yapılacak işin tanımı bu |
+| 4 | ⭐ **`veri-modeli-ve-sahte-veri-plani.md`** | 10 tablo, 25 index, silme davranışları, sahte veri planı | Adım 3'e gelince tamamını; öncesinde §0b ve §2 |
+| 5 | **`proje-teknoloji-ve-plan.md`** | Tüm teknoloji kararları + kavramlar + yapım planı | ⚠️ **Aşağıdaki gibi parça parça** |
+| 6 | **`KURUMDAN-OGRENECEKLERIM.md`** | Kullanıcının kuruma soracakları + cevap gelmezse ne yapılacağı | Tamamını — kısa |
+| 7 | `sunum-anlatim-plani.md` | Sunumun iskeleti — her adımda büyütülecek | Bir kez göz at |
+
+⭐ **3 ve 4 numaralı dosyalar 2026-08-26 plan oturumunda üretildi.** İkisi de
+`docs/project/` altına taşınmak üzere bekliyor (§5b). ⛔ Bunlar yeniden
+çıkarılmaz — okunur ve ❓ satırları kullanıcıyla kapatılır.
 
 > **ℹ️ `odev.docx` ile `odev.md` aynı şeydir**
 >
@@ -290,10 +296,25 @@ Yeni bir sapma yapacaksan **ADR yaz** — açıklamasız sapma yasak.
 
 ## 5b. ⭐ DEVRALDIĞIN AÇIK İŞLER
 
-Hazırlık aşaması bitti ama **iki iş bilerek yarım bırakıldı** — ikisi de senin
-ilk oturumunda yapılacak.
+> **✅ GÜNCELLEME — 2026-08-26 plan oturumu**
+>
+> Aşağıdaki **İş 1 ve İş 2 tamamlandı.** Çıktıları depoda:
+>
+> | İş | Çıktı | Durum |
+> |---|---|---|
+> | İş 1 — PRD taslağı | `PRD-taslak.md` | ✅ 25 karar · 9 varsayım · 9 açık soru |
+> | İş 2 — Veri modeli + sahte veri | `veri-modeli-ve-sahte-veri-plani.md` | ✅ 10 tablo · 25 index · ~3000 satırlık tohumlama planı |
+> | İş 3 — Kuruma sorulacaklar | `KURUMDAN-OGRENECEKLERIM.md` | ⏳ Kullanıcı soracak |
+>
+> ⛔ **Bu iki işi yeniden yapma.** Aşağıdaki tanımlar *ne istendiğini* anlatmak
+> için duruyor; **yapılacak olan**, çıktıları okuyup kullanıcıyla ❓ satırlarını
+> kapatmak ve kurulumda `docs/project/` altına taşımak.
+>
+> ⚠️ Plan oturumunda **rehberde de dört yer güncellendi**: E.4'e dört yeni SLA
+> kararı, E.5'e `REQUESTED` durumu, E.9'a veri modeli belgesine köprü, BÖLÜM
+> H'de Adım 1 ve Adım 3'e "taslak hazır" notu.
 
-### İş 2 — Veri modeli ve sahte veri planı ⏳
+### İş 2 — Veri modeli ve sahte veri planı ✅ *(2026-08-26'da yapıldı)*
 
 ⛔ **PRD'den SONRA yapılır.** Veri modeli iş kurallarından türer; kurallar
 netleşmeden tablo tasarlamak tahmine dayanmak olur (kit `16` → *"bir şey,
@@ -332,7 +353,7 @@ kurallarına bağlı. Önce PRD, sonra bu.
 ilgisiz mevcut bir projeyi uyarlamak yerine, verilen iş ihtiyacına göre veri
 modeli oluşturmanız beklenmektedir."* Model ödevin iş kurallarından türetilir.
 
-### İş 1 — PRD taslağı ⏳  ← ÖNCE BU
+### İş 1 — PRD taslağı ✅ *(2026-08-26'da yapıldı → `PRD-taslak.md`)*
 
 **Ne isteniyor:** `docs/project/PRD.md`'nin taslağı — sistem **ne yapacak**.
 
@@ -375,7 +396,18 @@ yazılır — ilk gün sorulmalı.
 
 ## 6. İlk oturumda ne yapılacak
 
-### ⛔ BU OTURUMUN İŞİ: PLAN — KOD DEĞİL
+> **⭐ NEREDE KALINDI — 2026-08-26**
+>
+> **Plan oturumu (A) bitti.** PRD taslağı ve veri modeli çıkarıldı, rehber
+> güncellendi, PDF'ler yenilendi, depoya gönderildi.
+>
+> ⭐ **Sıradaki oturum: B) KURULUM.** Aşağıdaki "bu oturumun işi plan, kod
+> değil" kuralı **A oturumuna aitti**; kullanıcı *"kuruluma geçelim"* dediğinde
+> B'deki adımlar işler.
+>
+> ⛔ Yine de sıra bozulmaz: önce §4-A'daki dört soru, **sonra** `/yeni-proje`.
+
+### ⛔ PLAN OTURUMUNUN (A) İŞİYDİ: PLAN — KOD DEĞİL
 
 ⛔ **Bu oturumda kod yazılmayacak.** Yapılacak tek şey: kalan açık işleri
 kapatıp **sahte veri planını** çıkarmak ve yol haritasını netleştirmek.
@@ -447,21 +479,25 @@ farklı bir cevap verirse **planla çelişen** bir kurulum çıkar.
 
 ### Adım adım
 
-**A) PLAN OTURUMU** *(şu an burası)*
+**A) PLAN OTURUMU** — ✅ **TAMAMLANDI (2026-08-26)**
 
-| # | Ne | Kim yapar |
+| # | Ne | Durum |
 |---|---|---|
-| 1 | Bu dosyayı ve **`odev.md`**'yi oku | Ajan |
-| 2 | Rehberin **E.9** (veri modeli) ve **BÖLÜM H** kısımlarını oku | Ajan |
-| 3 | ⭐ **PRD taslağını çıkar** — §5b → İş 1 | Ajan |
-| 4 | Sun, onaylat, `_devir/md/PRD-taslak.md`'ye yaz | İkisi |
-| 5 | ⭐ **Veri modeli + sahte veri planı** — §5b → İş 2 | Ajan |
-| 6 | Sun, onaylat, düzelt | İkisi |
-| 7 | `proje-teknoloji-ve-plan.md` → **E.9'a yeni alt bölüm** olarak ekle | Ajan |
-| 8 | PDF'leri yenile, commit + push | Ajan |
-| 9 | ⛔ **DUR.** Kod yazma, `/yeni-proje` çalıştırma | — |
+| 1 | Bu dosyayı ve **`odev.md`**'yi oku | ✅ |
+| 2 | Rehberin **E.9** (veri modeli) ve **BÖLÜM H** kısımlarını oku | ✅ + E.4, E.5, BÖLÜM 0, A, B |
+| 3 | ⭐ **PRD taslağını çıkar** — §5b → İş 1 | ✅ `PRD-taslak.md` |
+| 4 | Sun, onaylat | ⚠️ **Kısmen** — üç kritik karar kullanıcıya sorulup onaylandı (tek tablo · SLA başlangıcı · personel tablosu); kalan ⭐ ve ❓ satırları **sabah incelenecek** |
+| 5 | ⭐ **Veri modeli + sahte veri planı** — §5b → İş 2 | ✅ `veri-modeli-ve-sahte-veri-plani.md` |
+| 6 | Sun, onaylat, düzelt | ⚠️ Aynı — ⭐V1–⭐V16 satırları onay bekliyor |
+| 7 | `proje-teknoloji-ve-plan.md` → **E.9'a yeni alt bölüm** olarak ekle | ✅ + E.4, E.5 ve BÖLÜM H güncellendi |
+| 8 | PDF'leri yenile, commit + push | ✅ |
+| 9 | ⛔ **DUR.** Kod yazma, `/yeni-proje` çalıştırma | ✅ Uyuldu |
 
-**B) KURULUM OTURUMU** *(kullanıcı "kuruluma geçelim" dediğinde)*
+⭐ **Sabah yapılacak tek iş:** `PRD-taslak.md` §0b ve
+`veri-modeli-ve-sahte-veri-plani.md` §0b tablolarındaki ⭐ ve ❓ satırlarını
+gözden geçirmek. İkisi de tek sayfa, karar başına tek satır.
+
+**B) KURULUM OTURUMU** — ⭐ **ŞU AN BURASI** *(kullanıcı "kuruluma geçelim" dediğinde)*
 
 | # | Ne | Kim yapar |
 |---|---|---|

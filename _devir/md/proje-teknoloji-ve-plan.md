@@ -3627,11 +3627,30 @@ veritabanında `timestamptz` olarak saklanır. Sistem saati doğrudan okunmaz �
 `Clock` servisi üzerinden alınır (ödev §8: *"sistem saati abstraction üzerinden
 kullanılmalıdır"*), böylece testte sahte saat verilebilir.
 
+#### 6) ⭐ Plan oturumunda eklenen dört karar (2026-08-26)
+
+Yukarıdaki politika değişmedi; PRD çıkarılırken **cevapsız kalan dört nokta**
+karara bağlandı. Ayrıntılı gerekçeler `PRD-taslak.md` §5.6'da.
+
+| # | Soru | Karar | Neden |
+|---|---|---|---|
+| 1 | Saat **ne zaman başlıyor** | ⭐ **Talep açıldığı an** — iş emrine dönüştüğünde değil | Bu bölümün kendi tanımı: *"sınıflandırma, bekleme ve kontrol de bu sürenin içindedir."* Aksi hâlde yavaş sınıflandırma ölçüme hiç girmez |
+| 2 | Saat **ne zaman duruyor** | ⭐ Yalnızca `CLOSED` ve `CANCELLED`'da — `RESOLVED`'da **değil** | SLA, talep sahibine verilen sözdür. "Çözüldü" işaretlenip üç gün onay bekleyen iş, sahibi açısından hâlâ çözülmemiştir |
+| 3 | `KURULUM` türü hangi politikaya düşüyor | ⭐ **Planlı tarih politikası** — ayrı sınıf açılmıyor | Kurulumun da randevusu vardır; davranışı planlı bakımla birebir aynı olacak 4. sınıf, ödev §7'nin yasakladığı *"göstermelik sınıf"* tanımına girer |
+| 4 | `WAITING_PART` süreyi **durduruyor mu** | ⭐ **Evet, duraklatıyor** (clock stop) | Dış tedarikçiyi bekleyen süreden teknik personel sorumlu tutulamaz. ⚠️ Bedeli iki kolon + yeniden hesaplama akışı; süre darsa **ilk feda edilecek madde** olarak işaretli |
+
+⭐ **4. karar mimariyi ikinci kez sınıyor:** ödev §15 zaten *"SLA zamanı
+değiştiğinde ileri bir tarih için job planlanmalıdır"* diyor. Duraklatma, bu
+yolun gerçek bir senaryoyla **tekrar** kullanılmasını sağlıyor — yani kod tek
+bir kez çalışıp bir daha uğranmayan bir dal olmuyor.
+
 #### Bu politikanın PRD'deki yeri
 
 Bu tablolar `docs/project/PRD.md` → *"SLA kuralları"* bölümüne kopyalanır ve
 `docs/sla-rules.md` olarak teslim paketine girer — ödev §7 dokümante edilmesini
 **zorunlu** tutuyor.
+
+⭐ Taslağı hazır: `PRD-taslak.md` → §5.6.
 
 ---
 
@@ -3775,6 +3794,11 @@ Durum makinesi, izin verilen geçişlerin tek bir yerde tanımlanmasıdır:
 // Tabloda olmayan her geçiş otomatik olarak reddediliyor.
 const TRANSITIONS: Record<Status, Status[]> = {
 
+  // ⭐ Talep evresi (2026-08-26'da eklendi — gerekçe aşağıda).
+  //    Talep sahibinin açtığı kayıt burada başlar; operasyon sorumlusu
+  //    "iş emrine dönüştür" dediğinde OPEN'a geçer.
+  REQUESTED:   ['OPEN', 'CANCELLED'],
+
   // Yeni açılmış iş emri: ya birine atanır ya iptal edilir
   OPEN:        ['ASSIGNED', 'CANCELLED'],
 
@@ -3798,6 +3822,22 @@ const TRANSITIONS: Record<Status, Status[]> = {
 };
 ```
 
+> **⭐ 2026-08-26 — tabloya `REQUESTED` eklendi**
+>
+> Plan oturumunda karara bağlandı: **talep ve iş emri aynı kayıttır**, talep
+> iş emrinin `REQUESTED` durumundaki hâlidir. *"Talebi iş emrine dönüştürme"*
+> ödevin istediği bir yetenek (§2 madde 4) ve bu tasarımda **bir durum
+> geçişidir**.
+>
+> **Neden ayrı tablo değil:** Ödev §5.4 aynı 13 alanı *"talep **veya** iş
+> emri"* diyerek ikisine birden veriyor. İki tablo tutulsaydı o alanlar
+> tekrarlanır (§9 DRY), doğrulama iki yerde yazılır, geçmiş ikiye bölünür ve
+> *"bu iş ne zaman talep edildi"* sorusu iki sorgu gerektirirdi.
+>
+> ⚠️ **Bedeli:** Listelerde *"henüz iş emri olmayanlar"* ayrımı bir filtre
+> koşulu olarak yaşıyor. Ayrıntı ve alan listesi: `PRD-taslak.md` §5.4–§5.5 ·
+> `veri-modeli-ve-sahte-veri-plani.md` §3.5.
+
 `CLOSED` ve `CANCELLED` **terminal** durumlardır — çıkışı olmayan düğümler.
 Ödevin *"kapatılmış iş emri normal güncelleme işlemleriyle
 değiştirilememelidir"* ve *"iptal edilmiş iş emri üzerinde işlem
@@ -3810,6 +3850,7 @@ geçişe **koşul** eklenir:
 
 | Geçiş | Ek koşul |
 |---|---|
+| `REQUESTED → OPEN` | ⭐ Lokasyon **aktif**, varlık iş emri kabul eden durumda; öncelik/tür değiştiyse SLA **yeniden hesaplanır** |
 | `OPEN → ASSIGNED` | Atanan kullanıcı **aktif** ve rolü **teknik personel** olmalı |
 | `ASSIGNED → IN_PROGRESS` | İş emri atanmış olmalı (atanmamış iş işleme alınamaz) |
 | `IN_PROGRESS → RESOLVED` | **Çözüm açıklaması zorunlu** |
@@ -4496,6 +4537,50 @@ Numaranın kendisi ayrıca `@unique` işaretli; ikinci savunma hattı.
 
 Her mutasyona uğrayan tabloda `version` sütunu var — gerekçesi ve çalışma
 biçimi E.8'de.
+
+---
+
+### ⭐ Modelin kendisi nerede — plan oturumu çıktısı (2026-08-26)
+
+Buraya kadarki kısım veri modeliyle ilgili **kararları** anlatıyor: soft
+delete neden var, enum neden metin, index neden şu kolonda. **Modelin
+kendisi** — tablo tablo kolonlar, tipler, ilişkiler, silme davranışları,
+benzersizlik kısıtları ve sahte veri planı — ayrı bir belgede duruyor:
+
+> 📄 **`veri-modeli-ve-sahte-veri-plani.md`**
+
+⭐ **Neden ayrı dosya:** Bu belge *"neyi neden seçtik"* sorusuna bakıyor ve
+sonuna kadar okunuyor. Veri modeli ise **başvuru belgesidir** — kod yazarken
+tek bir tabloya bakmak için açılır. İkisini birleştirmek, 190 sayfalık bir
+belgenin ortasında tablo aramak demek olurdu.
+
+⛔ Kurulumdan sonra o belge ikiye ayrılıp teslim paketine giriyor:
+`docs/project/data-model.md` (§1–§8) ve `docs/project/fake-data-guide.md` (§9);
+ödevin zorunlu tuttuğu `docs/database-decisions.md` de oradan türetiliyor.
+
+**Ne içeriyor:**
+
+| Bölüm | Ne var |
+|---|---|
+| §1 | Her tabloda geçerli ortak kurallar: isimlendirme köprüsü, birincil anahtar, tarih, audit, enum, soft delete, eşzamanlılık, `null` kullanımı |
+| §2 | İlişki şeması + 10 tablonun listesi + 10 enum'un değerleri |
+| §3 | **Tablo tablo** kolonlar: tip, `null` durumu ve **her kolonun neden var olduğu** |
+| §4 | 25 index — her biri hangi sorgu için · birleşik index'te sıranın önemi · SLA taraması için kısmi (partial) index |
+| §5 | Silme davranışları: hangi ilişki RESTRICT, hangisi CASCADE, tek ilkeye bağlı |
+| §6–§7 | Kişisel veri envanteri, saklama süreleri, imha |
+| §8 | ⭐ Ödev §11'in istediği **14 kararın** kontrol listesi — teslimden önce tek tek doğrulanır |
+| §9 | Sahte veri planı: miktarlar, dağılımlar, **14 sınır durumu**, tohumlama sırası ve sonrasındaki doğrulama |
+| §10 | DBML'in migration'dan **otomatik** üretilmesi ve CI kapısı |
+
+⭐ **Bu modelin dört ayırt edici kararı** (ayrıntısı o belgede):
+
+1. **Talep ve iş emri tek tabloda** — talep bir durumdur (E.5'teki nota bak).
+2. **Durum, atama, öncelik ve SLA olayları tek geçmiş tablosunda** — dört ayrı
+   tablo yerine tipli tek olay tablosu.
+3. **İş emri lokasyonu ayrıca saklanıyor** — varlık taşınsa bile geçmiş iş
+   emri, işin **yapıldığı** binayı göstermeye devam ediyor.
+4. **Mükerrer bildirim tek `dedupe_key` benzersiz index'iyle** engelleniyor —
+   uygulama kontrolü değil, veritabanı kısıtı.
 
 ## E.10 Listeleme, filtreleme ve sayfalama (§17)
 
@@ -6178,6 +6263,11 @@ iş emri numarası hangi biçimde, hangi rol neyi görebilir, kapsam dışı ne.
 | **Bitti sayılır** | PRD'de "açık soru" kalmadı |
 | **Rehberde** | BÖLÜM B — sistemin yapması istenen 12 şey |
 
+⭐ **Taslak hazır (2026-08-26): `PRD-taslak.md`.** 25 karar gerekçesiyle, 9
+varsayım ve 9 açık soru işaretli hâlde yazıldı; kurulumda `docs/project/PRD.md`
+altına taşınacak. Bu adım **sıfırdan başlamıyor** — ❓ satırlarının kapatılması
+ve kullanıcı onayı kaldı.
+
 ⛔ **Bu adım atlanamaz.** Cevabı bilinmeyen bir kural kodlanırsa, yanlış varsayım
 tüm katmanlara yayılır ve geri dönüşü pahalı olur.
 
@@ -6232,6 +6322,12 @@ kalkması. Henüz hiçbir özellik yok — sadece iskele.
 **Bu adımda verilen kararlar:** soft delete hangi tablolarda, enum metin mi sayı
 mı, tarihler UTC mi, hangi kolonlara index, iş emri numarası nasıl üretiliyor.
 Hepsinin gerekçesi E.9'da.
+
+⭐ **Model ve tohumlama planı hazır (2026-08-26):
+`veri-modeli-ve-sahte-veri-plani.md`.** 10 tablo, 10 enum, 25 index, silme
+davranışları, kişisel veri envanteri ve ~3000 satırlık sahte veri planı
+(14 sınır durumu dahil) yazılı. Bu adım **şema yazmakla** başlıyor, tasarımla
+değil.
 
 ---
 
