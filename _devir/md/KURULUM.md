@@ -129,6 +129,31 @@ taşıyacaksın (WhatsApp/USB ile gönderdiğin üç dosya):
 
 ⛔ **`odev.md` olmadan yeni oturum ödevi okuyamaz** — bu adımı atlama.
 
+### ⛔ DOSYA KOPYALARKEN: KLASÖRÜ DEĞİL, İÇİNDEKİ DOSYAYI TAŞI
+
+Bu Windows'ta gerçekten yaşanan bir kayıp sebebidir.
+
+| ⛔ Yapma | Ne olur |
+|---|---|
+| USB'deki **`_devir` klasörünü** sürükleyip klonun üstüne bırakmak | Windows *"Bu klasör zaten var, değiştirilsin mi?"* der. **Evet dersen klonla gelen 12 dosya SİLİNİR**, yerine USB'dekiler gelir |
+| **`md` klasörünü** sürüklemek | Aynı şey — `md` içindeki 6 dosya gider |
+
+| ✅ Yap | |
+|---|---|
+| **Tek tek dosyaları** kopyala | `odev.docx` → `_devir/` içine sürükle |
+| | `odev.md` → `_devir/md/` içine sürükle |
+| | `odev.pdf` → `_devir/pdf/` içine sürükle |
+
+⭐ **Kural:** klasörü değil, **içindeki dosyayı** taşı. Hedef klasörü **açıp
+içine** bırak.
+
+⚠️ Windows *"Aynı adda dosya var, değiştirilsin mi?"* diye sorarsa **Evet** de
+— o yalnızca **o dosyayı** değiştirir, klasörü değil. Tehlikeli olan
+**klasör** sorusudur.
+
+**Kontrol:** kopyaladıktan sonra `_devir/md/` içinde **7 dosya** olmalı
+(6 klonla geldi + `odev.md`).
+
 ## A5. Claude Code eklentisini kur
 
 VS Code içinde:
