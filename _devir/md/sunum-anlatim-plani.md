@@ -45,6 +45,9 @@ sona anlatırsan, mimariyi *anlatmadan göstermiş* olursun.
 | Test ve teslim | **C.7** Testcontainers · **C.11** Vitest · **C.8** mimari testi · **C.10** Docker |
 | Dokümantasyon | **E.12** ADR ve AI_USAGE |
 | Reddedilen alternatifler | **E.13** — Fastify, GraphQL, Repository, pg-boss |
+| ⭐ SLA politikası ve takvim | **E.4** — süreler, çarpan, yüzdeler, karma takvim kararı |
+| Veri modeli ve isimlendirme | **E.9** — `@map` köprüsü, index, soft delete, audit, eşzamanlılık |
+| Git akışı ve CI | **E.11** — GitHub Flow, yedi kapı, GitLab farkı |
 | Arayüz (UI) tarafının tamamı | **BÖLÜM G** — bir ekranın hayatı: sıra kararı (G.0), teknoloji katmanları (G.1), on adımlık akış (G.2) |
 | Yapım sırası ve durum | **BÖLÜM H** — 17 adım, kutucuklarla ilerleme |
 
@@ -116,6 +119,13 @@ Numaralar **rehberdeki** bölümleri gösteriyor.
 | "N+1 problemi nedir, sende var mı?" | **E.13** → REST/GraphQL — 51 sorgu vs 2 sorgu örneği |
 | "Neden Fastify değil?" | **E.13** — süre dağılımı + *"emeği index'lere harcadım"* açılımı |
 | "Neden konteyner portları standart ama host portları farklı?" | **C.10** → port ve konteyner planı — 12-factor, `.env`'den gelen host portu |
+| ⭐ "SLA sürelerini neye göre belirlediniz?" | **E.4** → *"Kararlaştırılan SLA politikası"* — dört öncelik, varlık kritikliği çarpanı, %50/%80 yüzdeleri |
+| ⭐ "Kritik arıza gece açılırsa ne oluyor?" | **E.4** → karma takvim — Kritik 7/24, diğerleri mesai. Örnek: Cuma 16:00'da açılan bilet |
+| ⭐ "Kurumun isimlendirme kuralına nasıl uydunuz?" | **E.9** → `@map` köprüsü — kodda `dueAt`, veritabanında `due_at`; kurum kuralı değişirse yalnızca şema değişir |
+| "Mapping kütüphanesi yok demiştiniz, `@map` nedir?" | **E.6** ve **E.9** başındaki karşılıklı ayrım notu — biri nesne dönüşümü, diğeri ad eşlemesi |
+| "Git akışınız nasıl?" | **E.11** → GitHub Flow, dokuz adım İngilizce karşılıklarıyla |
+| ⭐ "GitLab'a geçersek ne olur?" | **E.11** → CI adımları `pnpm ci:verify`'de; iki platform dosyası da onu çağırıyor, ek iş çıkmaz |
+| "CI'da tam olarak ne koşuyor?" | **E.11** → yedi kapı tablosu (lint, tip, birim, entegrasyon, mimari, E2E, derleme) |
 | "Aynı makinede iki proje çakışmaz mı?" | **C.10** — konteyner içi sabit, host değişken; Testcontainers rastgele port |
 
 ---
