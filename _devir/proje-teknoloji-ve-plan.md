@@ -6013,7 +6013,7 @@ bakışta görülür.
 | **Nereye** | Makinenin kendisi — projeye dosya yazılmıyor |
 | **Neye bağlanıyor** | Sonraki her adım buna dayanıyor |
 | **Bitti sayılır** | `node -v`, `pnpm -v`, `docker -v`, `gh --version` hepsi sürüm veriyor |
-| **Rehberde** | C.10 Docker · `_devir/NE-YAPACAGIM.md` |
+| **Rehberde** | C.10 Docker → port ve konteyner planı |
 
 ---
 

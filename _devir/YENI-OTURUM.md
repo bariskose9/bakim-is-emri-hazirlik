@@ -172,10 +172,9 @@ bölümü okuyacağını söylüyor. Takip et.
 
 ### Okumana gerek OLMAYANLAR
 
-`calisma-kilavuzu.md` (kullanıcının kılavuzu — kit zaten kopyalıyor) · `*.pdf`
-(kullanıcının telefonda okuması için) · `NE-YAPACAGIM.md`,
-`WINDOWS-ADIMLARI.md`, `OKU-ONCE.md`, `WHATSAPP-NOTU.txt` (kullanıcının kurulum
-taşındı, çelişki görürsen **rehber kazanır**).
+`calisma-kilavuzu.md` — kullanıcının kılavuzu, kit zaten her projeye kopyalıyor ·
+`*.pdf` — kullanıcının telefonda okuması için · `KURULUM.md` — kullanıcının
+Windows kurulum talimatları.
 
 ---
 
