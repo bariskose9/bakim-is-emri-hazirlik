@@ -70,69 +70,23 @@ yazılır.
 
 ---
 
-# BÖLÜM 2 — DevOps sınırı: kim ne yapıyor
+# BÖLÜM 2 — DevOps sınırı
 
-> **Bu üç soru, "senin işin nerede bitiyor" sorusunun cevabı.** Kurumda bu
-> sınır **yazılı olmadığı için** en çok karışıklık buradan çıkar. Cevaplar
-> `altyapi-durumu.md`'ye yazılır — kodda görünmezler ve altı ay sonra kimse
-> hatırlamaz.
+⭐ **Üç sorunun tamamı ve "bu ne demek" açıklamaları
+`calisma-kilavuzu` → *"DEVOPS SINIRI — işe başlamadan sorulacak üç soru"*
+bölümünde.** Orada her sorunun ne anlama geldiği, neyi değiştirdiği ve cevap
+gelmezse ne yapılacağı yazılı — burada tekrarlanmıyor.
 
-## 2.1 Migration'ı canlıda kim çalıştırıyor
+Burada yalnızca **cevaplar** tutuluyor:
 
-> **Soru:** *"Veritabanı şema değişikliklerini (migration) canlıda kim
-> çalıştırıyor — uygulama açılışta kendisi mi yapıyor, yoksa DevOps ayrı bir
-> adımda mı koşturuyor?"*
+| # | Soru | Cevap |
+|---|---|---|
+| 2.1 | Migration'ı canlıda kim çalıştırıyor | *(doldurulacak)* |
+| 2.2 | Gizli değerleri kim, nereye giriyor | *(doldurulacak)* |
+| 2.3 | Bir sürüm bozarsa geri almayı kim yapıyor | *(doldurulacak)* |
 
-**Bu ne demek — açıklaması:**
-
-Veritabanına yeni bir tablo veya kolon eklediğimde, bu değişikliği **canlı
-veritabanına da uygulamak** gerekir. Buna *migration* denir. İki yol var:
-
-| Yol | Nasıl | Artısı | Eksisi |
-|---|---|---|---|
-| **A) Uygulama kendisi** | Konteyner açılırken `prisma migrate deploy` çalışır | Ekstra adım yok | ⚠️ İki kopya aynı anda açılırsa ikisi birden çalıştırmaya kalkar |
-| **B) DevOps ayrı adımda** | Yayına almadan önce elle veya hatta bir adım olarak | Kontrollü, geri alınabilir | Koordinasyon gerekir |
-
-| | |
-|---|---|
-| **Cevaba göre ne değişir** | `Dockerfile`'ın başlangıç komutu ve teslim belgesindeki yayına alma sırası |
-| **Cevap gelmezse** | **B** varsayılır (kurumsal ortamda yaygın olan). Migration komutu README'de ayrı bir adım olarak belgelenir |
-| **Cevap** | *(doldurulacak)* |
-
-## 2.2 Gizli değerleri kim, nereye giriyor
-
-> **Soru:** *"Veritabanı şifresi, JWT anahtarı gibi gizli değerleri canlıda kim
-> giriyor ve nereye — bir panele mi, sunucudaki dosyaya mı, yoksa kurumun bir
-> gizli değer yönetim sistemi mi var?"*
-
-**Bu ne demek — açıklaması:**
-
-Uygulamanın çalışması için şifre ve anahtarlara ihtiyacı var. Bunlar **koda
-yazılmaz** (git geçmişi silinmez, bir kez girerse orada kalır). Canlıda bir
-şekilde uygulamaya verilmesi gerekir.
-
-| | |
-|---|---|
-| **Cevaba göre ne değişir** | `.env.example` dosyasının nasıl yazılacağı ve DevOps'a verilecek talimat |
-| **Cevap gelmezse** | Standart yol: `.env.example`'da **adları ve ne işe yaradıkları** belgelenir, değerleri DevOps girer. Bu her durumda çalışır |
-| **Cevap** | *(doldurulacak)* |
-
-## 2.3 Bir sürüm bozarsa geri almayı kim yapıyor
-
-> **Soru:** *"Yayına alınan bir sürüm sorun çıkarırsa geri alma (rollback)
-> kararını kim veriyor ve nasıl yapılıyor?"*
-
-**Bu ne demek — açıklaması:**
-
-Yeni sürüm canlıya çıktı ve bir şey bozuldu. Eski sürüme dönmek gerekiyor.
-⚠️ **Zor kısmı veritabanı:** kod geri alınabilir ama **migration geri
-alınamaz** — silinen bir kolon geri gelmez.
-
-| | |
-|---|---|
-| **Cevaba göre ne değişir** | Migration'ları **geriye uyumlu** yazma zorunluluğu. Örneğin bir kolonu silmek yerine önce kullanımdan kaldırıp bir sonraki sürümde silmek |
-| **Cevap gelmezse** | ⭐ **Her durumda geriye uyumlu yazarım** — bu zaten best practice. Kolon silme/yeniden adlandırma iki aşamaya bölünür |
-| **Cevap** | *(doldurulacak)* |
+⚠️ **Üçünü de ilk gün sor.** Cevaplar `altyapi-durumu.md`'ye de işlenir —
+kodda görünmezler ve altı ay sonra kimse hatırlamaz.
 
 ---
 

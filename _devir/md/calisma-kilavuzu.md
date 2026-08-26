@@ -888,6 +888,68 @@ site" değil, **kurulabilir bir paket**tir.
 websocket açık mı"*, *"migration'ı biz mi koşturalım"*, *"hangi portu
 dinliyor"* diye soracak. Süreci bilmezsen bu sorular havada kalır.
 
+## ⛔ DEVOPS SINIRI — işe başlamadan sorulacak ÜÇ SORU
+
+İşyeri projesinde deploy senin işin değil. Ama sınırın **tam olarak nerede
+bittiği** çoğu kurumda yazılı değildir ve en çok karışıklık buradan çıkar.
+
+⭐ **Bu üç soruyu ilk gün sor.** Cevaplar `altyapi-durumu.md`'ye yazılır —
+kodda görünmezler ve altı ay sonra kimse hatırlamaz.
+
+### 1. Migration'ı canlıda kim çalıştırıyor
+
+> *"Veritabanı şema değişikliklerini canlıda kim çalıştırıyor — uygulama
+> açılışta kendisi mi yapıyor, yoksa DevOps ayrı bir adımda mı?"*
+
+**Bu ne demek:** Veritabanına yeni bir tablo veya kolon eklendiğinde, bu
+değişikliği **canlı veritabanına da uygulamak** gerekir. Buna *migration*
+denir. İki yol var:
+
+| Yol | Nasıl | Artısı | Eksisi |
+|---|---|---|---|
+| **A) Uygulama kendisi** | Kap açılırken migration komutu çalışır | Ekstra adım yok | ⚠️ İki kopya aynı anda açılırsa ikisi birden çalıştırmaya kalkar |
+| **B) DevOps ayrı adımda** | Yayına almadan önce elle veya hatta bir adım olarak | Kontrollü, geri alınabilir | Koordinasyon gerekir |
+
+**Neyi değiştirir:** `Dockerfile`'ın başlangıç komutunu ve teslim
+belgesindeki yayına alma sırasını.
+
+**Cevap gelmezse:** **B** varsayılır (kurumsal ortamda yaygın olan).
+Migration komutu README'de ayrı bir adım olarak belgelenir.
+
+### 2. Gizli değerleri kim, nereye giriyor
+
+> *"Veritabanı şifresi, jeton (token) anahtarı gibi gizli değerleri canlıda
+> kim giriyor ve nereye — bir panele mi, sunucudaki dosyaya mı, yoksa kurumun
+> bir gizli değer yönetim sistemi mi var?"*
+
+**Bu ne demek:** Uygulamanın çalışması için şifre ve anahtarlara ihtiyacı var.
+⛔ Bunlar **koda yazılmaz** — git geçmişi silinmez, bir kez girerse orada
+kalır. Canlıda bir şekilde uygulamaya verilmesi gerekir.
+
+**Neyi değiştirir:** `.env.example` dosyasının nasıl yazılacağını ve DevOps'a
+verilecek talimatı.
+
+**Cevap gelmezse:** Standart yol — `.env.example`'da **adları ve ne işe
+yaradıkları** belgelenir, değerleri DevOps girer. Bu her durumda çalışır.
+
+### 3. Bir sürüm bozarsa geri almayı kim yapıyor
+
+> *"Yayına alınan bir sürüm sorun çıkarırsa geri alma (rollback) kararını kim
+> veriyor ve nasıl yapılıyor?"*
+
+**Bu ne demek:** Yeni sürüm canlıya çıktı ve bir şey bozuldu. Eski sürüme
+dönmek gerekiyor. ⚠️ **Zor kısmı veritabanı:** kod geri alınabilir ama
+**migration geri alınamaz** — silinen bir kolon geri gelmez.
+
+**Neyi değiştirir:** Migration'ları **geriye uyumlu** yazma zorunluluğunu.
+Örneğin bir kolonu silmek yerine önce kullanımdan kaldırıp bir sonraki
+sürümde silmek.
+
+**Cevap gelmezse:** ⭐ **Her durumda geriye uyumlu yazılır** — bu zaten best
+practice. Kolon silme ve yeniden adlandırma iki aşamaya bölünür.
+
+---
+
 ## Hangisini ne zaman
 
 | Durum | Yol |
