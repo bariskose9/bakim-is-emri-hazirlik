@@ -969,7 +969,7 @@ practice. Kolon silme ve yeniden adlandırma iki aşamaya bölünür.
 
 | Komut | Ne zaman | Ne yapar |
 |---|---|---|
-| `/yeni-proje` | Yalnızca **boş klasörde**, projeye ilk başlarken | Kurulumu baştan sona yürütür |
+| `/yeni-proje` | Projeye ilk başlarken. ⭐ Klasörde **belge ve ayar** olması sorun değil (`_devir/`, `.gitignore`, `.vscode/`); ⛔ var olan **kod** varsa durur ve sorar | Kurulumu baştan sona yürütür |
 | `/kit-senkron` | Bir kuralı kalıcı hâle getirirken | Aşağıda açıldı |
 | `/video-analiz <url>` | Bir YouTube videosunda işe yarar bir şey gördüğünde | Videoyu transkriptinden inceler, **kitte eksik olanı** bulur ve sana onaylatır |
 | `/pdf-uret <dosya.md>` | Bir belgeyi telefonda okumak istediğinde | Karanlık temalı PDF üretir (`--acik` ile yazdırma sürümü) |
