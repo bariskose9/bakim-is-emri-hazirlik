@@ -124,6 +124,28 @@ Seviyesi sabit değil, büyüyor: `docs/project/ogrendiklerim.md` içindeki
 açıklanmaz. Listeye eklemeyi **sen teklif edersin**, kullanıcının hatırlaması
 beklenmez.
 
+### ⭐ Her doküman İKİ okuyucu için yazılır
+
+Bu, derinliği değil **anlatım biçimini** belirleyen kural — ve atlanırsa
+kimse fark etmez, doküman sadece sessizce işe yaramaz hâle gelir.
+
+| Okuyucu | Ne arıyor |
+|---|---|
+| **Kullanıcı** | Öğrenmek ve canlı teknik incelemede (ödev §31) savunmak |
+| ⭐ **Projeyi devralacak kişi** | Yazılımda uzman olmayabilir — kullanıcının ifadesiyle *"artık çoğu işi AI yapıyor, geliştirici kontrol ediyor"* |
+
+⚠️ **Test:** *"Kod okumayan biri bu paragrafı okuyup (a) ne olduğunu,
+(b) neden öyle olduğunu, (c) bu projede nerede durduğunu söyleyebilir mi?"*
+Hayırsa açıklama eksiktir.
+
+⛔ **Kısaltma istendiğinde DERİNLİK kesilmez, TEKRAR kesilir.** Aynı bilgi iki
+yerde yazılmaz — biri diğerine işaret eder. Terimi, ölçümü veya gerekçeyi
+atmak kısaltma değil **kalite kaybıdır**; kullanıcı bunu açıkça böyle
+tanımladı.
+
+⭐ Bu yüzden her kavram üç adımda açılır (§1b'nin başında): gerçek hayat
+örneği → yazılımdaki tanımı → **bu projede tam olarak nerede.**
+
 ⭐ Tam kural seti kurulumdan sonra: `CLAUDE.md` → *"⭐ ROL"* ·
 `docs/standards/11-agent-workflow.md` · `docs/standards/02-coding-standards.md`.
 
