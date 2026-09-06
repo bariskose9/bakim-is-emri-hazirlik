@@ -1,4 +1,14 @@
 # Devir notu — bu projeyi devralan Claude Code oturumu için
+>
+> ---
+>
+> ⚠️ **2026-09-06 — bu belge kite taşındı.** Metinde geçen çalışma kılavuzu
+> artık kitin içinde (`CALISMA-KILAVUZU.md`), dosya rehberinin kit bölümü ise
+> `1-kit-rehberi.md` → *Ek* içine alındı. Belgenin geri kalanı **tarihî
+> kayıttır**, olduğu gibi bırakılmıştır.
+>
+> ---
+
 
 > **Bu dosyayı okuyan sensin: yeni bir makinede, yeni bir hesapta açılmış,
 > bu projenin geçmişini hiç görmemiş bir oturum.**
@@ -205,10 +215,10 @@ kendi çalışma ve öğrenme belgeleri.**
 
 | Dosya | Kimin | Neden sana gerekmiyor |
 |---|---|---|
-| `calisma-kilavuzu.md` | **Kullanıcı** | Kitle nasıl çalışılacağını anlatıyor; sen kuralları `docs/standards/`'tan alıyorsun |
+| `CALISMA-KILAVUZU.md` | **Kullanıcı** | Kitle nasıl çalışılacağını anlatıyor; sen kuralları `docs/standards/`'tan alıyorsun |
 | `KURULUM.md` | **Kullanıcı** | Windows'ta program kurma talimatları |
 | `sunum-anlatim-plani.md` | **Kullanıcı** | Sunumu **o** yapacak; içinde bilgi yok, hepsi rehbere işaret |
-| `DOSYA-REHBERI.md` | **Kullanıcı** | *"Bu dosya ne"* sorusunun cevabı — sen zaten bu notu okuyorsun |
+| `1-kit-rehberi.md` | **Kullanıcı** | *"Bu dosya ne"* sorusunun cevabı — sen zaten bu notu okuyorsun |
 | `pdf/*.pdf` | **Kullanıcı** | Telefonda okumak için; `md/` karşılıkları zaten var |
 
 ⛔ **Bunları kullanıcı açıkça istemedikçe okuma.** Toplam ~90 KB; okumak
